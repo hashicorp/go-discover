@@ -14,7 +14,7 @@ func TestParse(t *testing.T) {
 	}{
 		{"", nil, nil},
 		{"  ", nil, nil},
-		{"provider=aws foo", nil, errors.New(`discover: invalid format: foo`)},
+		{"provider=aws foo", nil, errors.New(`invalid format: foo`)},
 		{"project_name=Test zone_pattern=us-(?west|east).%2b tag_value=consul+server credentials_file=xxx",
 			map[string]string{
 				"project_name":     "Test",
