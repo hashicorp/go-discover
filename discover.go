@@ -37,7 +37,7 @@ func init() {
 func Discover(cfg string, l *log.Logger) ([]string, error) {
 	m, err := config.Parse(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("discover: %s", err)
 	}
 	p := m["provider"]
 	if p == "" {
