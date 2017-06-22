@@ -10,7 +10,7 @@ determined through the `provider` key. Effectively, only spaces have to
 be encoded with a `+` and on the command line you have to observe
 quoting rules with your shell.
 
-##### Example
+### Example
 
 ```
 # Amazon AWS
@@ -23,7 +23,7 @@ provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credential
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...
 ```
 
-##### Supported Providers
+### Supported Providers
 
 The following cloud providers are supported but additional providers
 can be added to the `discover.Disoverers` map.
@@ -46,7 +46,7 @@ Then run it with:
 $ discover provider=aws region=eu-west-1 ...
 ```
 
-### Library Usage
+## Library Usage
 
 Install the library with:
 
