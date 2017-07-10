@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/go-discover/config"
 )
 
 func TestDiscover(t *testing.T) {
@@ -20,8 +22,13 @@ func TestDiscover(t *testing.T) {
 	cfg := fmt.Sprintf("project_name=%s zone_pattern=%s tag_value=%s credentials_file=%s",
 		os.Getenv("GCE_PROJECT"), os.Getenv("GCE_ZONE"), "consul-server", os.Getenv("GCE_CONFIG_CREDENTIALS"))
 
+	m, err := config.Parse(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := Discover(cfg, l)
+	addrs, err := Discover(m, l)
 	if err != nil {
 		t.Fatal(err)
 	}

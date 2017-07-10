@@ -5,35 +5,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/go-discover/config"
 	"github.com/softlayer/softlayer-go/filter"
 	"github.com/softlayer/softlayer-go/services"
 	"github.com/softlayer/softlayer-go/session"
 )
 
-// Discover returns the private ip addresses of all Softlayer
-// instances in a datacenter with a certain tag value.
-//
-// cfg contains the configuration in "key=val key=val ..." format. The
-// values are URL encoded.
-//
-// The supported keys are:
-//
-//   datacenter: The SoftLayer datacenter to filter on
-//   tag_value:  The tag value to filter on
-//   username:   The SoftLayer username to use
-//   api_key:    The SoftLayer api key to use
-//
-// Example:
-//
-//  provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
-//
-func Discover(cfg string, l *log.Logger) ([]string, error) {
-	m, err := config.Parse(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("discover-softlayer: %s", err)
-	}
-
+func Discover(m map[string]string, l *log.Logger) ([]string, error) {
 	datacenter := m["datacenter"]
 	tagValue := m["tag_value"]
 	username := m["username"]

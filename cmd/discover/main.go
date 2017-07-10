@@ -13,26 +13,33 @@ import (
 	discover "github.com/hashicorp/go-discover"
 )
 
+func usage() {
+	fmt.Println("Usage: discover addrs key=val key=val ...")
+	fmt.Println(discover.HelpDiscoverAddrs)
+}
 func main() {
-	help := flag.Bool("h", false, "show help")
-	quiet := flag.Bool("q", false, "no output")
+	var quiet bool
+	var help bool
+	flag.BoolVar(&quiet, "q", false, "no verbose output")
+	flag.BoolVar(&help, "h", false, "print help")
 	flag.Parse()
 
-	args := strings.Join(flag.Args(), " ")
-	if *help || args == "" {
-		fmt.Println("Usage: discover key=val key=val ...")
+	args := flag.Args()
+	if help || len(args) == 0 || args[0] != "addrs" {
+		usage()
 		os.Exit(0)
 	}
+	args = args[1:]
 
 	var w io.Writer = os.Stderr
-	if *quiet {
+	if quiet {
 		w = ioutil.Discard
 	}
-	l := log.New(w, "", log.LstdFlags)
+	l := log.New(w, "", 0)
 
-	addrs, err := discover.Discover(args, l)
+	addrs, err := discover.Addrs(strings.Join(args, " "), l)
 	if err != nil {
-		l.Fatal("[ERR] ", err)
+		l.Fatal(err)
 	}
 	fmt.Println(strings.Join(addrs, " "))
 }

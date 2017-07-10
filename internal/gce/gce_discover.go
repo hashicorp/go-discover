@@ -7,46 +7,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hashicorp/go-discover/config"
-
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 )
 
-// Discover returns the private ip addresses of all Google Cloud
-// instances in some or all zones of a project with a certain tag value.
-//
-// cfg contains the configuration in "key=val key=val ..." format. The
-// values are URL encoded.
-//
-// The supported keys are:
-//
-//   project_name     : The name of the project. discovered if not set
-//   zone_pattern     : A RE2 regular expression for filtering zones, e.g. us-west1-.*, or us-(?west|east).*
-//   tag_value        : The tag value for filtering instances
-//   credentials_file : The path to the credentials file. See below for more details
-//
-// Authentication is handled in the following order:
-//
-//  1. Use credentials from "credentials_file", if provided.
-//  2. Use JSON file from GOOGLE_APPLICATION_CREDENTIALS environment variable.
-//  3. Use JSON file in a location known to the gcloud command-line tool.
-//     On Windows, this is %APPDATA%/gcloud/application_default_credentials.json.
-//     On other systems, $HOME/.config/gcloud/application_default_credentials.json.
-//  4. On Google Compute Engine, use credentials from the metadata
-//     server. In this final case any provided scopes are ignored.
-//
-// Example:
-//
-//  project_name=test zone_pattern=us-(?west|east).* tag_value=consul-server credentials_file=xxx
-//
-func Discover(cfg string, l *log.Logger) ([]string, error) {
-	m, err := config.Parse(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("discover-gce: %s", err)
-	}
-
+func Discover(m map[string]string, l *log.Logger) ([]string, error) {
 	project := m["project_name"]
 	zone := m["zone_pattern"]
 	creds := m["credentials_file"]

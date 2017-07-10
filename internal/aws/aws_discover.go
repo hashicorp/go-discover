@@ -11,34 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/go-discover/config"
 )
 
-// Discover returns the private ip addresses of all AWS instances in a
-// region with a given tag key and value. If no region is provided the
-// region of the instance is used.
-//
-// cfg contains the configuration in "key=val key=val ..." format. The
-// values are URL encoded.
-//
-// The supported keys are:
-//
-//   region:            The AWS region
-//   tag_key:           The tag key to filter on
-//   tag_value:         The tag value to filter on
-//   access_key_id:     The AWS access key to use
-//   secret_access_key: The AWS secret access key to use
-//
-// Example:
-//
-//  region=eu-west-1 tag_key=consul tag_value=xxx access_key_id=xxx secret_access_key=xxx
-//
-func Discover(cfg string, l *log.Logger) ([]string, error) {
-	m, err := config.Parse(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("discover-aws: %s", err)
-	}
-
+func Discover(m map[string]string, l *log.Logger) ([]string, error) {
 	region := m["region"]
 	tagKey := m["tag_key"]
 	tagValue := m["tag_value"]

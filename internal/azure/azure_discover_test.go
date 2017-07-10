@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/go-discover/config"
 )
 
 func TestDiscover(t *testing.T) {
@@ -26,8 +28,13 @@ func TestDiscover(t *testing.T) {
 	cfg := fmt.Sprintf("tenant_id=%s client_id=%s subscription_id=%s secret_access_key=%s tag_name=%s tag_value=%s",
 		tenantID, clientID, subscriptionID, clientSecret, "type", "Foundation")
 
+	m, err := config.Parse(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := Discover(cfg, l)
+	addrs, err := Discover(m, l)
 	if err != nil {
 		t.Fatal(err)
 	}

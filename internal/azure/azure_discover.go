@@ -8,35 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-discover/config"
 )
 
-// Discover returns the private ip addresses of all Azure instances in a
-// subscription with a certain tag name and value. Only Azure public cloud
-// is supported.
-//
-// cfg contains the configuration in "key=val key=val ..." format. The
-// values are URL encoded.
-//
-// The supported keys are:
-//
-//  tenant_id         : The id of the tenant
-//  client_id         : The id of the client
-//  subscription_id   : The id of the subscription
-//  secret_access_key : The authentication credential
-//  tag_name          : The name of the tag to filter on
-//  tag_value         : The value of the tag to filter on
-//
-// Example:
-//
-//  tenant_id=xxx client_id=xxx subscription_id=xxx secret_access_key=xxx tag_name=consul tag_value=xxx
-//
-func Discover(cfg string, l *log.Logger) ([]string, error) {
-	m, err := config.Parse(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("discover-azure: %s", err)
-	}
-
+func Discover(m map[string]string, l *log.Logger) ([]string, error) {
 	tenantID := m["tenant_id"]
 	clientID := m["client_id"]
 	subscriptionID := m["subscription_id"]
