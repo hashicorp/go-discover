@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-discover/azure"
 	"github.com/hashicorp/go-discover/config"
 	"github.com/hashicorp/go-discover/gce"
+	"github.com/hashicorp/go-discover/softlayer"
 )
 
 // Discoverer is the signature of the function to discover ip addresses of nodes
@@ -23,6 +24,7 @@ func init() {
 		"aws":   aws.Discover,
 		"gce":   gce.Discover,
 		"azure": azure.Discover,
+		"softlayer": softlayer.Discover,
 	}
 }
 
