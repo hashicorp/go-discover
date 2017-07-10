@@ -22,6 +22,9 @@ provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credential
 
 # Microsoft Azure
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...
+
+# SoftLayer
+provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
 ```
 
 ### Supported Providers
@@ -32,6 +35,7 @@ can be added to the `discover.Disoverers` map.
  * Amazon AWS [Config options](http://godoc.org/github.com/hashicorp/go-discover/aws)
  * Google Cloud [Config options](http://godoc.org/github.com/hashicorp/go-discover/gce)
  * Microsoft Azure [Config options](http://godoc.org/github.com/hashicorp/go-discover/azure)
+ * SoftLayer [Config options](http://godoc.org/github.com/hashicorp/go-discover/softlayer)
 
 ## Command Line Tool Usage
 
@@ -68,4 +72,3 @@ addrs, err := discover.Discover(args, l)
 
 For complete API documentation, see [GoDoc](https://godoc.org/github.com/hashicorp/go-discover) and
 the [supported providers](http://godoc.org/github.com/hashicorp/go-discover#pkg-subdirectories).
-
