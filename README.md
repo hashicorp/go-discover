@@ -70,5 +70,6 @@ args := "provider=aws region=eu-west-1 ..."
 addrs, err := discover.Addrs(args, l)
 ```
 
-For complete API documentation, see [GoDoc](https://godoc.org/github.com/hashicorp/go-discover) and
-the [supported providers](http://godoc.org/github.com/hashicorp/go-discover#pkg-subdirectories).
+For complete API documentation, see [GoDoc](https://godoc.org/github.com/hashicorp/go-discover).
+The configuration for the supported providers is documented in `HelpDiscoverAddrs` which can be
+found [here](https://godoc.org/github.com/hashicorp/go-discover#pkg-variables).
