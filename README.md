@@ -48,7 +48,7 @@ go get -u github.com/hashicorp/go-discover/cmd/discover
 Then run it with:
 
 ```
-$ discover provider=aws region=eu-west-1 ...
+$ discover addrs provider=aws region=eu-west-1 ...
 ```
 
 ## Library Usage
@@ -67,7 +67,7 @@ for the provider you want to use:
 # use ioutil.Discard for no log output
 l := log.New(os.Stderr, "", log.LstdFlags)
 args := "provider=aws region=eu-west-1 ..."
-addrs, err := discover.Discover(args, l)
+addrs, err := discover.Addrs(args, l)
 ```
 
 For complete API documentation, see [GoDoc](https://godoc.org/github.com/hashicorp/go-discover) and
