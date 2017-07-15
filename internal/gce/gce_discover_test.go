@@ -1,34 +1,27 @@
-package gce
+package gce_test
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-discover/config"
+	discover "github.com/hashicorp/go-discover"
 )
 
-func TestDiscover(t *testing.T) {
-	t.Parallel()
-	if os.Getenv("GCE_PROJECT") == "" {
-		t.Skip("GCE_PROJECT not set, skipping")
+func TestAddrs(t *testing.T) {
+	cfg := discover.Config{
+		"provider":         "gce",
+		"project_name":     os.Getenv("GCE_PROJECT"),
+		"zone_pattern":     os.Getenv("GCE_ZONE"),
+		"tag_value":        "consul-server",
+		"credentials_file": os.Getenv("GCE_CONFIG_CREDENTIALS"),
 	}
-
-	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" && os.Getenv("GCE_CONFIG_CREDENTIALS") == "" {
-		t.Skip("GOOGLE_APPLICATION_CREDENTIALS or GCE_CONFIG_CREDENTIALS not set, skipping")
-	}
-
-	cfg := fmt.Sprintf("project_name=%s zone_pattern=%s tag_value=%s credentials_file=%s",
-		os.Getenv("GCE_PROJECT"), os.Getenv("GCE_ZONE"), "consul-server", os.Getenv("GCE_CONFIG_CREDENTIALS"))
-
-	m, err := config.Parse(cfg)
-	if err != nil {
-		t.Fatal(err)
+	if cfg["project_name"] == "" || cfg["credentials_file"] == "" {
+		t.Skip("GCE credentials missing")
 	}
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := Discover(m, l)
+	addrs, err := discover.Addrs(cfg.String(), l)
 	if err != nil {
 		t.Fatal(err)
 	}

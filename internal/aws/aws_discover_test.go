@@ -1,38 +1,29 @@
-package aws
+package aws_test
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-discover/config"
+	discover "github.com/hashicorp/go-discover"
 )
 
-func TestDiscover(t *testing.T) {
-	t.Parallel()
-	if os.Getenv("AWS_REGION") == "" {
-		t.Skip("AWS_REGION not set, skipping")
+func TestAddrs(t *testing.T) {
+	cfg := discover.Config{
+		"provider":          "aws",
+		"region":            os.Getenv("AWS_REGION"),
+		"tag_key":           "consul-role",
+		"tag_value":         "server",
+		"access_key_id":     os.Getenv("AWS_ACCESS_KEY_ID"),
+		"secret_access_key": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
 
-	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
-		t.Skip("AWS_ACCESS_KEY_ID not set, skipping")
-	}
-
-	if os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
-		t.Skip("AWS_SECRET_ACCESS_KEY not set, skipping")
-	}
-
-	cfg := fmt.Sprintf("region=%s tag_key=%s tag_value=%s access_key_id=%s secret_access_key=%s",
-		os.Getenv("AWS_REGION"), "consul-role", "server", os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"))
-
-	m, err := config.Parse(cfg)
-	if err != nil {
-		t.Fatal(err)
+	if cfg["region"] == "" || cfg["access_key_id"] == "" || cfg["secret_access_key"] == "" {
+		t.Skip("AWS credentials or region missing")
 	}
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := Discover(m, l)
+	addrs, err := discover.Addrs(cfg.String(), l)
 	if err != nil {
 		t.Fatal(err)
 	}

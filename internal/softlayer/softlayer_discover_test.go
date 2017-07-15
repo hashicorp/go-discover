@@ -1,34 +1,27 @@
-package softlayer
+package softlayer_test
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-discover/config"
+	discover "github.com/hashicorp/go-discover"
 )
 
-func TestDiscover(t *testing.T) {
-	t.Parallel()
-	if os.Getenv("SL_USERNAME") == "" {
-		t.Skip("SL_USERNAME not set, skipping")
+func TestAddrs(t *testing.T) {
+	cfg := discover.Config{
+		"provider":   "softlayer",
+		"username":   os.Getenv("SL_USERNAME"),
+		"api_key":    os.Getenv("SL_API_KEY"),
+		"datacenter": "dal06",
+		"tag_value":  "consul-server",
 	}
-
-	if os.Getenv("SL_API_KEY") == "" {
-		t.Skip("SL_API_KEY not set, skipping")
-	}
-
-	cfg := fmt.Sprintf("username=%s api_key=%s datacenter=%s tag_value=%s",
-		os.Getenv("SL_USERNAME"), os.Getenv("SL_API_KEY"), "dal06", "consul-server")
-
-	m, err := config.Parse(cfg)
-	if err != nil {
-		t.Fatal(err)
+	if cfg["username"] == "" || cfg["api_key"] == "" {
+		t.Skip("SoftLayer credentials missing")
 	}
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := Discover(m, l)
+	addrs, err := discover.Addrs(cfg.String(), l)
 	if err != nil {
 		t.Fatal(err)
 	}

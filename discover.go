@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/hashicorp/go-discover/config"
 	"github.com/hashicorp/go-discover/internal/aws"
 	"github.com/hashicorp/go-discover/internal/azure"
 	"github.com/hashicorp/go-discover/internal/gce"
@@ -88,7 +87,7 @@ type Discoverer struct {
 // criteria. The configuration is provider specific and is described in
 // HelpDiscoverAddrs.
 func (d *Discoverer) Addrs(cfg string) ([]string, error) {
-	m, err := config.Parse(cfg)
+	m, err := Parse(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("discover: %s", err)
 	}

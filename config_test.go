@@ -1,4 +1,4 @@
-package config
+package discover
 
 import (
 	"errors"
@@ -6,10 +6,10 @@ import (
 	"testing"
 )
 
-func TestParse(t *testing.T) {
+func TestConfigParse(t *testing.T) {
 	tests := []struct {
 		s   string
-		c   map[string]string
+		c   Config
 		err error
 	}{
 		{"", nil, nil},
@@ -34,6 +34,29 @@ func TestParse(t *testing.T) {
 			}
 			if got, want := c, tt.c; !reflect.DeepEqual(got, want) {
 				t.Fatalf("got config %#v want %#v", got, want)
+			}
+		})
+	}
+}
+
+func TestConfigString(t *testing.T) {
+	tests := []struct {
+		in, out string
+	}{
+		{"", ""},
+		{"   ", ""},
+		{"b=c a=b", "a=b b=c"},
+		{"a=b provider=foo x=y", "provider=foo a=b x=y"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			c, err := Parse(tt.in)
+			if err != nil {
+				t.Fatal("Parse failed: ", err)
+			}
+			if got, want := c.String(), tt.out; got != want {
+				t.Fatalf("got %q want %q", got, want)
 			}
 		})
 	}
