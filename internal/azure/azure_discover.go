@@ -32,7 +32,7 @@ func Discover(m map[string]string, l *log.Logger) ([]string, error) {
 
 	// Setup the client using autorest; followed the structure from Terraform
 	vmnet := network.NewInterfacesClient(subscriptionID)
-	vmnet.Client.UserAgent = fmt.Sprint("Hashicorp-Consul")
+	vmnet.Client.UserAgent = "Hashicorp-Consul"
 	vmnet.Sender = autorest.CreateSender(autorest.WithLogging(l))
 	vmnet.Authorizer = sbt
 
@@ -43,13 +43,18 @@ func Discover(m map[string]string, l *log.Logger) ([]string, error) {
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}
 
-	// For now, ignore Primary interfaces, choose any PrivateIPAddress with the matching tags
+	if netres.Value == nil {
+		return nil, fmt.Errorf("discover-azure: no interfaces")
+	}
+
+	// Choose any PrivateIPAddress with the matching tag
 	var addrs []string
 	for _, v := range *netres.Value {
 		if v.Tags == nil {
 			continue
 		}
-		if *(*v.Tags)[tagName] != tagValue {
+		tv := (*v.Tags)[tagName] // *string
+		if tv == nil || *tv != tagValue {
 			continue
 		}
 		if v.IPConfigurations == nil {
