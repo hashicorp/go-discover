@@ -26,16 +26,16 @@ var HelpDiscoverAddrs = `
   The options are provider specific and are listed below.
 
   Amazon AWS:
-  
+
     provider:          "aws"
     region:            The AWS region. Default to region of instance.
     tag_key:           The tag key to filter on
     tag_value:         The tag value to filter on
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
-  
+
   Microsoft Azure:
-  
+
    provider:          "azure"
    tenant_id:         The id of the tenant
    client_id:         The id of the client
@@ -43,17 +43,17 @@ var HelpDiscoverAddrs = `
    secret_access_key: The authentication credential
    tag_name:          The name of the tag to filter on
    tag_value:         The value of the tag to filter on
-  
+
   Google Cloud:
-  
+
     provider:         "gce"
     project_name:     The name of the project. discovered if not set
     zone_pattern:     A RE2 regular expression for filtering zones, e.g. us-west1-.*, or us-(?west|east).*
     tag_value:        The tag value for filtering instances
     credentials_file: The path to the credentials file. See below for more details
-  
+
     Authentication is handled in the following order:
-    
+
      1. Use credentials from "credentials_file", if provided.
      2. Use JSON file from GOOGLE_APPLICATION_CREDENTIALS environment variable.
      3. Use JSON file in a location known to the gcloud command-line tool.
@@ -61,9 +61,9 @@ var HelpDiscoverAddrs = `
         On other systems, $HOME/.config/gcloud/application_default_credentials.json.
      4. On Google Compute Engine, use credentials from the metadata
         server. In this final case any provided scopes are ignored.
-  
+
   Softlayer:
-  
+
     provider:   "softlayer"
     datacenter: The SoftLayer datacenter to filter on
     tag_value:  The tag value to filter on
