@@ -3,18 +3,43 @@ package softlayer
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 
+	discover "github.com/hashicorp/go-discover"
 	"github.com/softlayer/softlayer-go/filter"
 	"github.com/softlayer/softlayer-go/services"
 	"github.com/softlayer/softlayer-go/session"
 )
 
-func Discover(m map[string]string, l *log.Logger) ([]string, error) {
-	datacenter := m["datacenter"]
-	tagValue := m["tag_value"]
-	username := m["username"]
-	apiKey := m["api_key"]
+func init() {
+	discover.Register("softlayer", &Provider{}, Help)
+}
+
+var Help = `Softlayer:
+
+    provider:   "softlayer"
+    datacenter: The SoftLayer datacenter to filter on
+    tag_value:  The tag value to filter on
+    username:   The SoftLayer username to use
+    api_key:    The SoftLayer api key to use
+`
+
+type Provider struct{}
+
+func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
+	if args["provider"] != "softlayer" {
+		return nil, fmt.Errorf("discover-softlayer: invalid provider " + args["provider"])
+	}
+
+	if l == nil {
+		l = log.New(ioutil.Discard, "", 0)
+	}
+
+	datacenter := args["datacenter"]
+	tagValue := args["tag_value"]
+	username := args["username"]
+	apiKey := args["api_key"]
 
 	l.Printf("[INFO] discover-softlayer: Datacenter is %q", datacenter)
 

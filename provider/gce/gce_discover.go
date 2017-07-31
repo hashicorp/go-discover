@@ -7,16 +7,51 @@ import (
 	"log"
 	"net/http"
 
+	discover "github.com/hashicorp/go-discover"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 )
 
-func Discover(m map[string]string, l *log.Logger) ([]string, error) {
-	project := m["project_name"]
-	zone := m["zone_pattern"]
-	creds := m["credentials_file"]
-	tagValue := m["tag_value"]
+func init() {
+	discover.Register("gce", &Provider{}, Help)
+}
+
+var Help = `Google Cloud:
+
+    provider:         "gce"
+    project_name:     The name of the project. discovered if not set
+    tag_value:        The tag value for filtering instances
+    zone_pattern:     A RE2 regular expression for filtering zones, e.g. us-west1-.*, or us-(?west|east).*
+    credentials_file: The path to the credentials file. See below for more details
+
+    The credentials for a GCE Service Account are required and are searched in
+    the following locations:
+
+     1. Use credentials from "credentials_file", if provided.
+     2. Use JSON file from GOOGLE_APPLICATION_CREDENTIALS environment variable.
+     3. Use JSON file in a location known to the gcloud command-line tool.
+        On Windows, this is %APPDATA%/gcloud/application_default_credentials.json.
+        On other systems, $HOME/.config/gcloud/application_default_credentials.json.
+     4. On Google Compute Engine, use credentials from the metadata
+        server. In this final case any provided scopes are ignored.
+`
+
+type Provider struct{}
+
+func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
+	if args["provider"] != "gce" {
+		return nil, fmt.Errorf("discover-gce: invalid provider " + args["provider"])
+	}
+
+	if l == nil {
+		l = log.New(ioutil.Discard, "", 0)
+	}
+
+	project := args["project_name"]
+	zone := args["zone_pattern"]
+	creds := args["credentials_file"]
+	tagValue := args["tag_value"]
 
 	// determine the project name
 	if project == "" {

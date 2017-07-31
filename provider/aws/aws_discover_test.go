@@ -3,12 +3,19 @@ package aws_test
 import (
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/aws"
 )
 
 func TestAddrs(t *testing.T) {
+	if got, want := discover.ProviderNames(), []string{"aws"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got providers %v want %v", got, want)
+	}
+
 	cfg := discover.Config{
 		"provider":          "aws",
 		"region":            os.Getenv("AWS_REGION"),

@@ -3,12 +3,19 @@ package softlayer_test
 import (
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/softlayer"
 )
 
 func TestAddrs(t *testing.T) {
+	if got, want := discover.ProviderNames(), []string{"softlayer"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got providers %v want %v", got, want)
+	}
+
 	cfg := discover.Config{
 		"provider":   "softlayer",
 		"username":   os.Getenv("SL_USERNAME"),

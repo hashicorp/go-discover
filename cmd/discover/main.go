@@ -11,12 +11,15 @@ import (
 	"strings"
 
 	discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/all"
 )
 
 func usage() {
 	fmt.Println("Usage: discover addrs key=val key=val ...")
-	fmt.Println(discover.HelpDiscoverAddrs)
+	fmt.Println(discover.Help())
 }
+
 func main() {
 	var quiet bool
 	var help bool
@@ -36,6 +39,7 @@ func main() {
 		w = ioutil.Discard
 	}
 	l := log.New(w, "", 0)
+	l.Printf("Registered providers: %v", discover.ProviderNames())
 
 	addrs, err := discover.Addrs(strings.Join(args, " "), l)
 	if err != nil {
