@@ -3,12 +3,19 @@ package gce_test
 import (
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/gce"
 )
 
 func TestAddrs(t *testing.T) {
+	if got, want := discover.ProviderNames(), []string{"gce"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got providers %v want %v", got, want)
+	}
+
 	cfg := discover.Config{
 		"provider":         "gce",
 		"project_name":     os.Getenv("GCE_PROJECT"),

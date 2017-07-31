@@ -3,20 +3,50 @@ package azure
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	discover "github.com/hashicorp/go-discover"
 )
 
-func Discover(m map[string]string, l *log.Logger) ([]string, error) {
-	tenantID := m["tenant_id"]
-	clientID := m["client_id"]
-	subscriptionID := m["subscription_id"]
-	secretKey := m["secret_access_key"]
-	tagName := m["tag_name"]
-	tagValue := m["tag_value"]
+func init() {
+	discover.Register("azure", &Provider{}, Help)
+}
+
+var Help = `Microsoft Azure:
+
+   provider:          "azure"
+   tenant_id:         The id of the tenant
+   client_id:         The id of the client
+   subscription_id:   The id of the subscription
+   secret_access_key: The authentication credential
+   tag_name:          The name of the tag to filter on
+   tag_value:         The value of the tag to filter on
+
+   The only permission needed is the 'ListAll' method for 'NetworkInterfaces'.
+   It is recommended you make a dedicated key used only for auto-joining.
+`
+
+type Provider struct{}
+
+func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
+	if args["provider"] != "azure" {
+		return nil, fmt.Errorf("discover-azure: invalid provider " + args["provider"])
+	}
+
+	if l == nil {
+		l = log.New(ioutil.Discard, "", 0)
+	}
+
+	tenantID := args["tenant_id"]
+	clientID := args["client_id"]
+	subscriptionID := args["subscription_id"]
+	secretKey := args["secret_access_key"]
+	tagName := args["tag_name"]
+	tagValue := args["tag_value"]
 
 	// Only works for the Azure PublicCLoud for now; no ability to test other Environment
 	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(tenantID)

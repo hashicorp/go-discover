@@ -11,7 +11,18 @@ determined through the `provider` key. Effectively, only spaces have to
 be encoded with a `+` and on the command line you have to observe
 quoting rules with your shell.
 
-### Example
+### Supported Providers
+
+The following cloud providers have implementations in the go-discover/provider
+sub packages. Additional providers can be added through the [Register](https://godoc.org/github.com/hashicorp/go-discover#Register)
+function.
+
+ * Amazon AWS [Config options](http://godoc.org/github.com/hashicorp/go-discover/aws)
+ * Google Cloud [Config options](http://godoc.org/github.com/hashicorp/go-discover/gce)
+ * Microsoft Azure [Config options](http://godoc.org/github.com/hashicorp/go-discover/azure)
+ * SoftLayer [Config options](http://godoc.org/github.com/hashicorp/go-discover/softlayer)
+
+### Config Example
 
 ```
 # Amazon AWS
@@ -26,16 +37,6 @@ provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscri
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
 ```
-
-### Supported Providers
-
-The following cloud providers are supported but additional providers
-can be added to the `discover.Disoverers` map.
-
- * Amazon AWS [Config options](http://godoc.org/github.com/hashicorp/go-discover/aws)
- * Google Cloud [Config options](http://godoc.org/github.com/hashicorp/go-discover/gce)
- * Microsoft Azure [Config options](http://godoc.org/github.com/hashicorp/go-discover/azure)
- * SoftLayer [Config options](http://godoc.org/github.com/hashicorp/go-discover/softlayer)
 
 ## Command Line Tool Usage
 
@@ -59,17 +60,48 @@ Install the library with:
 go get -u github.com/hashicorp/go-discover
 ```
 
-Then call the `discover.Discover` function with the arguments
-for the provider you want to use:
+Supported providers need to be registered by importing them similar
+to database drivers for the `database/sql` package. 
 
+Import the `go-discover` package and any provider package
+you want to support.
+
+```go
+// support only AWS and GCE
+import (
+    discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/aws"
+	_ "github.com/hashicorp/go-discover/provider/gce"
+)
+
+```
+
+To import all known providers at once you can use the convenience 
+package `all`.
+
+
+```go
+// support all providers supported by go-discover
+import (
+    discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/all"
+)
+```
+
+Then call the `discover.Addrs` function with the arguments
+for the provider you want to use:
 
 ```go
 # use ioutil.Discard for no log output
 l := log.New(os.Stderr, "", log.LstdFlags)
-args := "provider=aws region=eu-west-1 ..."
-addrs, err := discover.Addrs(args, l)
+cfg := "provider=aws region=eu-west-1 ..."
+addrs, err := discover.Addrs(cfg, l)
 ```
 
-For complete API documentation, see [GoDoc](https://godoc.org/github.com/hashicorp/go-discover).
-The configuration for the supported providers is documented in `HelpDiscoverAddrs` which can be
-found [here](https://godoc.org/github.com/hashicorp/go-discover#pkg-variables).
+For complete API documentation, see
+[GoDoc](https://godoc.org/github.com/hashicorp/go-discover). The configuration
+for the supported providers is documented in the
+[providers](https://godoc.org/github.com/hashicorp/go-discover/provider)
+sub-package.

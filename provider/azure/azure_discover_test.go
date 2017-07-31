@@ -3,12 +3,19 @@ package azure_test
 import (
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
+
+	_ "github.com/hashicorp/go-discover/provider/azure"
 )
 
 func TestAddrs(t *testing.T) {
+	if got, want := discover.ProviderNames(), []string{"azure"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got providers %v want %v", got, want)
+	}
+
 	cfg := discover.Config{
 		"provider":          "azure",
 		"tag_name":          "type",

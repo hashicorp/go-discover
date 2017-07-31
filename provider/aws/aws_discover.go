@@ -3,6 +3,7 @@ package aws
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,14 +12,42 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	discover "github.com/hashicorp/go-discover"
 )
 
-func Discover(m map[string]string, l *log.Logger) ([]string, error) {
-	region := m["region"]
-	tagKey := m["tag_key"]
-	tagValue := m["tag_value"]
-	accessKey := m["access_key_id"]
-	secretKey := m["secret_access_key"]
+func init() {
+	discover.Register("aws", &Provider{}, Help)
+}
+
+var Help = `Amazon AWS:
+
+    provider:          "aws"
+    region:            The AWS region. Default to region of instance.
+    tag_key:           The tag key to filter on
+    tag_value:         The tag value to filter on
+    access_key_id:     The AWS access key to use
+    secret_access_key: The AWS secret access key to use
+
+    The only required IAM permission is 'ec2:DescribeInstances'. It is
+    recommended you make a dedicated key used only for auto-joining.
+`
+
+type Provider struct{}
+
+func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
+	if args["provider"] != "aws" {
+		return nil, fmt.Errorf("discover-aws: invalid provider " + args["provider"])
+	}
+
+	if l == nil {
+		l = log.New(ioutil.Discard, "", 0)
+	}
+
+	region := args["region"]
+	tagKey := args["tag_key"]
+	tagValue := args["tag_value"]
+	accessKey := args["access_key_id"]
+	secretKey := args["secret_access_key"]
 
 	if region == "" {
 		l.Printf("[INFO] discover-aws: Looking up region")
