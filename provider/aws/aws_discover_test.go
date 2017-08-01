@@ -3,20 +3,14 @@ package aws_test
 import (
 	"log"
 	"os"
-	"reflect"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
-
-	_ "github.com/hashicorp/go-discover/provider/aws"
+	"github.com/hashicorp/go-discover/provider/aws"
 )
 
 func TestAddrs(t *testing.T) {
-	if got, want := discover.ProviderNames(), []string{"aws"}; !reflect.DeepEqual(got, want) {
-		t.Fatalf("got providers %v want %v", got, want)
-	}
-
-	cfg := discover.Config{
+	args := discover.Config{
 		"provider":          "aws",
 		"region":            os.Getenv("AWS_REGION"),
 		"tag_key":           "consul-role",
@@ -25,12 +19,13 @@ func TestAddrs(t *testing.T) {
 		"secret_access_key": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
 
-	if cfg["region"] == "" || cfg["access_key_id"] == "" || cfg["secret_access_key"] == "" {
+	if args["region"] == "" || args["access_key_id"] == "" || args["secret_access_key"] == "" {
 		t.Skip("AWS credentials or region missing")
 	}
 
+	p := &aws.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := discover.Addrs(cfg.String(), l)
+	addrs, err := p.Addrs(args, l)
 	if err != nil {
 		t.Fatal(err)
 	}

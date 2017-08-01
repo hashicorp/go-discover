@@ -3,20 +3,14 @@ package azure_test
 import (
 	"log"
 	"os"
-	"reflect"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
-
-	_ "github.com/hashicorp/go-discover/provider/azure"
+	"github.com/hashicorp/go-discover/provider/azure"
 )
 
 func TestAddrs(t *testing.T) {
-	if got, want := discover.ProviderNames(), []string{"azure"}; !reflect.DeepEqual(got, want) {
-		t.Fatalf("got providers %v want %v", got, want)
-	}
-
-	cfg := discover.Config{
+	args := discover.Config{
 		"provider":          "azure",
 		"tag_name":          "type",
 		"tag_value":         "Foundation",
@@ -27,16 +21,17 @@ func TestAddrs(t *testing.T) {
 		"environment":       os.Getenv("ARM_ENVIRONMENT"),
 	}
 
-	if cfg["subscription_id"] == "" || cfg["client_id"] == "" || cfg["secret_access_key"] == "" || cfg["tenant_id"] == "" {
+	if args["subscription_id"] == "" || args["client_id"] == "" || args["secret_access_key"] == "" || args["tenant_id"] == "" {
 		t.Skip("Azure credentials missing")
 	}
 
-	if cfg["environment"] == "" {
+	if args["environment"] == "" {
 		t.Log("Environments other than Public not supported at the moment")
 	}
 
+	p := &azure.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := discover.Addrs(cfg.String(), l)
+	addrs, err := p.Addrs(args, l)
 	if err != nil {
 		t.Fatal(err)
 	}
