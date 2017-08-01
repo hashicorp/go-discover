@@ -69,10 +69,10 @@ you want to support.
 ```go
 // support only AWS and GCE
 import (
-	discover "github.com/hashicorp/go-discover"
+    discover "github.com/hashicorp/go-discover"
 
-	_ "github.com/hashicorp/go-discover/provider/aws"
-	_ "github.com/hashicorp/go-discover/provider/gce"
+    _ "github.com/hashicorp/go-discover/provider/aws"
+    _ "github.com/hashicorp/go-discover/provider/gce"
 )
 
 ```
@@ -84,9 +84,9 @@ package `all`.
 ```go
 // support all providers supported by go-discover
 import (
-	discover "github.com/hashicorp/go-discover"
+    discover "github.com/hashicorp/go-discover"
 
-	_ "github.com/hashicorp/go-discover/provider/all"
+    _ "github.com/hashicorp/go-discover/provider/all"
 )
 ```
 
