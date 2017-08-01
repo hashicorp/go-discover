@@ -6,17 +6,15 @@ import (
 	"io/ioutil"
 	"log"
 
-	discover "github.com/hashicorp/go-discover"
 	"github.com/softlayer/softlayer-go/filter"
 	"github.com/softlayer/softlayer-go/services"
 	"github.com/softlayer/softlayer-go/session"
 )
 
-func init() {
-	discover.Register("softlayer", &Provider{}, Help)
-}
+type Provider struct{}
 
-var Help = `Softlayer:
+func (p *Provider) Help() string {
+	return `Softlayer:
 
     provider:   "softlayer"
     datacenter: The SoftLayer datacenter to filter on
@@ -24,8 +22,7 @@ var Help = `Softlayer:
     username:   The SoftLayer username to use
     api_key:    The SoftLayer api key to use
 `
-
-type Provider struct{}
+}
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "softlayer" {
