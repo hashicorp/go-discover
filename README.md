@@ -22,6 +22,7 @@ sub packages. Additional providers can be added through the
 function.
 
  * Amazon AWS [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/aws)
+ * DigitalOcean [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/digitalocean)
  * Google Cloud [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/gce)
  * Microsoft Azure [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/azure)
  * SoftLayer [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/softlayer)
@@ -31,6 +32,9 @@ function.
 ```
 # Amazon AWS
 provider=aws region=eu-west-1 tag_key=consul tag_value=... access_key_id=... secret_access_key=...
+
+# DigitalOcean
+addrs provider=digitalocean region=... tag_name=... api_token=...
 
 # Google Cloud
 provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credentials_file=...
