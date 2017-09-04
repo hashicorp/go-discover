@@ -1,0 +1,67 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Zcapl92yLsRGDnDfmD5BMZrU0i8=",
+			"path": "github.com/gophercloud/gophercloud",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "WAu+jx7c6kshm05B/W34gpzw148=",
+			"path": "github.com/gophercloud/gophercloud/openstack",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "NwHRS4gvS7xcXlWRT8WpJbBbvbs=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/flavors",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "CSnfH01hSas0bdc/3m/f5Rt6SFY=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/images",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "BzQbqNKKDkIHN+1G6sRsMeWz4Zs=",
+			"path": "github.com/gophercloud/gophercloud/openstack/compute/v2/servers",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "oOJkelRgWx0NzUmxuI3kTS27gM0=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v2/tenants",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "z5NsqMZX3TLMzpmwzOOXE4M5D9w=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v2/tokens",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "HzVyehPh0jvNZpL5iodoWpUd46k=",
+			"path": "github.com/gophercloud/gophercloud/openstack/identity/v3/tokens",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "TDOZnaS0TO0NirpxV1QwPerAQTY=",
+			"path": "github.com/gophercloud/gophercloud/openstack/utils",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		},
+		{
+			"checksumSHA1": "YspETi3tOMvawKIT91HyuqaA5lM=",
+			"path": "github.com/gophercloud/gophercloud/pagination",
+			"revision": "2bf16b94fdd9b01557c4d076e567fe5cbbe5a961",
+			"revisionTime": "2017-08-31T14:48:56Z"
+		}
+	],
+	"rootPath": "github.com/hashicorp/go-discover/provider/os"
+}
