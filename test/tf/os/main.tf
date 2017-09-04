@@ -20,4 +20,4 @@ resource "openstack_compute_instance_v2" "consul-server" {
 variable "image" {}
 variable "flavor" {}
 variable "az" {}
-variable "network_uuid" {} 
+variable "network_uuid" {}
