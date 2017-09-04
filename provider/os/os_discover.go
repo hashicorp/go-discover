@@ -23,15 +23,15 @@ type Provider struct{}
 func (p *Provider) Help() string {
 	return `Openstack:
 
-		provider:          "os"
-		auth_url: 				 The endpoint of OS identity
-    project_id:        The id of the project (tenant id)
-    tag_key:           The tag key to filter on
-		tag_value:         The tag value to filter on
-		user_name:				 The user used to authenticate
-		password:					 The password of the provided user
-		token:						 The token to use
-		insecure:          Sets if the api certificate shouldn't be check. Any value means true
+    provider:   "os"
+    auth_url:   The endpoint of OS identity
+    project_id: The id of the project (tenant id)
+    tag_key:    The tag key to filter on
+    tag_value:  The tag value to filter on
+    user_name:  The user used to authenticate
+    password:   The password of the provided user
+    token:      The token to use
+    insecure:   Sets if the api certificate shouldn't be check. Any value means true
 
     Variables can also be provided by environmental variables.
 `
@@ -118,6 +118,10 @@ func newClient(args map[string]string, l *log.Logger) (*gophercloud.ServiceClien
 	}
 	projectID := argsOrEnv(args, "project_id", "OS_PROJECT_ID")
 	insecure := argsOrEnv(args, "insecure", "OS_INSECURE")
+
+	if url == "" {
+		return nil, fmt.Errorf("discover-os: Auth url must be provided")
+	}
 
 	ao := gophercloud.AuthOptions{
 		// "domain_id": OS_DOMAIN_ID
