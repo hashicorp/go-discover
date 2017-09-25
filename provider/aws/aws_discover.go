@@ -23,7 +23,7 @@ func (p *Provider) Help() string {
     region:            The AWS region. Default to region of instance.
     tag_key:           The tag key to filter on
     tag_value:         The tag value to filter on
-    addrtype:          private_v4,public_v4 or public_v6 defaults to private_v4
+    addr_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
 
@@ -44,21 +44,21 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	region := args["region"]
 	tagKey := args["tag_key"]
 	tagValue := args["tag_value"]
-	addrType := args["addrtype"]
+	addrType := args["addr_type"]
 	accessKey := args["access_key_id"]
 	secretKey := args["secret_access_key"]
 
 	if addrType != "private_v4" && addrType != "public_v4" && addrType != "public_v6" {
-		l.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to private IPv4", addrType)
+		l.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addrType)
 		addrType = "private_v4"
 	}
 
 	if addrType == "" {
-		l.Printf("[DEBUG] discover-aws: Address type not provided. Using private IPv4")
+		l.Printf("[DEBUG] discover-aws: Address type not provided. Using 'private_v4'")
 		addrType = "private_v4"
 	}
 
-	log.Printf("[DEBUG] discover-aws: Using region=%s tag_key=%s tag_value=%s addrtype=%s", region, tagKey, tagValue, addrType)
+	log.Printf("[DEBUG] discover-aws: Using region=%s tag_key=%s tag_value=%s addr_type=%s", region, tagKey, tagValue, addrType)
 	if accessKey == "" && secretKey == "" {
 		log.Printf("[DEBUG] discover-aws: No static credentials")
 		log.Printf("[DEBUG] discover-aws: Using environment variables, shared credentials or instance role")
