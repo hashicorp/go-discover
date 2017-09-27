@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-discover/provider/aws"
 	"github.com/hashicorp/go-discover/provider/azure"
+	"github.com/hashicorp/go-discover/provider/digitalocean"
 	"github.com/hashicorp/go-discover/provider/gce"
 	"github.com/hashicorp/go-discover/provider/softlayer"
 )
@@ -28,10 +29,11 @@ type Provider interface {
 
 // Providers contains all available providers.
 var Providers = map[string]Provider{
-	"aws":       &aws.Provider{},
-	"azure":     &azure.Provider{},
-	"gce":       &gce.Provider{},
-	"softlayer": &softlayer.Provider{},
+	"aws":          &aws.Provider{},
+	"azure":        &azure.Provider{},
+	"digitalocean": &digitalocean.Provider{},
+	"gce":          &gce.Provider{},
+	"softlayer":    &softlayer.Provider{},
 }
 
 // Discover looks up metadata in different cloud environments.

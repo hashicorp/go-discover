@@ -1,0 +1,25 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "zTi0sr6hUeeShuLKjC+bg1r40Uw=",
+			"path": "github.com/digitalocean/godo",
+			"revision": "6590ae2b11308f9e4434392ca45117b02e150be5",
+			"revisionTime": "2017-09-23T15:50:20Z"
+		},
+		{
+			"checksumSHA1": "yNdgWHw0jfiNAO9E7IfrbyiuKVc=",
+			"path": "golang.org/x/oauth2",
+			"revision": "3b966c7f301c0c71c53d94dc632a62df0a682cd7",
+			"revisionTime": "2016-07-25T20:29:55Z"
+		},
+		{
+			"checksumSHA1": "D3v/aqfB9swlaZcSksCoF+lbOqo=",
+			"path": "golang.org/x/oauth2/internal",
+			"revision": "3b966c7f301c0c71c53d94dc632a62df0a682cd7",
+			"revisionTime": "2016-07-25T20:29:55Z"
+		}
+	],
+	"rootPath": "github.com/hashicorp/go-discover/provider/digitalocean"
+}
