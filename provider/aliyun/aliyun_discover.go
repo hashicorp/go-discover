@@ -13,7 +13,7 @@ import (
 type Provider struct{}
 
 func (p *Provider) Help() string {
-	return `Aliyun ECS:
+	return `Aliyun(Alibaba Cloud):
 
     provider:          "aliyun"
     region:            The Aliyun region
@@ -22,8 +22,8 @@ func (p *Provider) Help() string {
     access_key_id:     The Aliyun access key to use
     access_key_secret: The Aliyun access key secret to use
 
-    The required RAM Action is 'DescribeInstances'. It is
-    recommended you make a dedicated key used only for auto-joining.
+	The required RAM permission is 'ecs:DescribeInstances'. 
+	It is recommended you make a dedicated key used only for auto-joining.
 `
 }
 
