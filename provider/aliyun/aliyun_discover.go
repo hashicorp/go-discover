@@ -16,13 +16,13 @@ func (p *Provider) Help() string {
 	return `Aliyun ECS:
 
     provider:          "aliyun"
-    region:            The Aliyun region. Default to region of instance.
+    region:            The Aliyun region
     tag_key:           The tag key to filter on
     tag_value:         The tag value to filter on
     access_key_id:     The Aliyun access key to use
     access_key_secret: The Aliyun access key secret to use
 
-    The only required RAM permission is 'ecs:DescribeInstances'. It is
+    The required RAM Action is 'DescribeInstances'. It is
     recommended you make a dedicated key used only for auto-joining.
 `
 }
