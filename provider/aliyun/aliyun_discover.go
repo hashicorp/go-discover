@@ -16,7 +16,7 @@ func (p *Provider) Help() string {
 	return `Aliyun(Alibaba Cloud):
 
     provider:          "aliyun"
-    region:            The Aliyun region
+    region:            The Aliyun region. Default to region of instance.
     tag_key:           The tag key to filter on
     tag_value:         The tag value to filter on
     access_key_id:     The Aliyun access key to use
