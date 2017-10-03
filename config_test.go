@@ -12,11 +12,18 @@ func TestConfigParse(t *testing.T) {
 		c   Config
 		err error
 	}{
-		{"", nil, nil},
-		{"  ", nil, nil},
-		{"provider=aws foo", nil, errors.New(`invalid format: foo`)},
-		{"project_name=Test zone_pattern=us-(?west|east).%2b tag_value=consul+server credentials_file=xxx",
-			map[string]string{
+		// happy flows
+		{``, nil, nil},
+		{`key=a`, Config{"key": "a"}, nil},
+		{`key=a key2=b`, Config{"key": "a", "key2": "b"}, nil},
+		{`key=a+b key2=c/d`, Config{"key": "a+b", "key2": "c/d"}, nil},
+		{` key=a    key2=b `, Config{"key": "a", "key2": "b"}, nil},
+		{` key = a   key2 = b `, Config{"key": "a", "key2": "b"}, nil},
+		{`  "k e y" = "a \" b" key2=c`, Config{"k e y": "a \" b", "key2": "c"}, nil},
+
+		{`provider=aws foo`, nil, errors.New(`foo: missing '='`)},
+		{`project_name=Test zone_pattern=us-(?west|east).+ tag_value="consul server" credentials_file=xxx`,
+			Config{
 				"project_name":     "Test",
 				"zone_pattern":     "us-(?west|east).+",
 				"tag_value":        "consul server",
@@ -24,6 +31,14 @@ func TestConfigParse(t *testing.T) {
 			},
 			nil,
 		},
+
+		// errors
+		{`key`, nil, errors.New(`key: missing '='`)},
+		{`key=`, nil, errors.New(`key: missing value`)},
+		{`key="a`, nil, errors.New(`key: unbalanced quotes`)},
+		{`key="\`, nil, errors.New(`key: unterminated escape sequence`)},
+		{`key=a key=b`, nil, errors.New(`key: duplicate key`)},
+		{`key key2`, nil, errors.New(`key: missing '='`)},
 	}
 
 	for _, tt := range tests {
@@ -43,10 +58,10 @@ func TestConfigString(t *testing.T) {
 	tests := []struct {
 		in, out string
 	}{
-		{"", ""},
-		{"   ", ""},
-		{"b=c a=b", "a=b b=c"},
-		{"a=b provider=foo x=y", "provider=foo a=b x=y"},
+		{``, ``},
+		{`   `, ``},
+		{`b=c "a a"="b b"`, `"a a"="b b" b=c`},
+		{`a=b provider=foo x=y`, `provider=foo a=b x=y`},
 	}
 
 	for _, tt := range tests {
