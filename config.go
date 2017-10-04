@@ -64,7 +64,7 @@ func parse(in string) (Config, error) {
 		// get the next token
 		item, val, n := lex(s)
 		s = s[n:]
-		fmt.Printf("parse: state: %q item: %q val: '%s' n: %d rest: '%s'\n", state, item, val, n, string(s))
+		// fmt.Printf("parse: state: %q item: %q val: '%s' n: %d rest: '%s'\n", state, item, val, n, string(s))
 
 		switch state {
 
