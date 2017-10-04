@@ -40,6 +40,9 @@ provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscri
 
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
+
+# OS
+provider=os tag_key=consul tag_value=server username=... password=... auth_url=...
 ```
 
 ## Command Line Tool Usage
