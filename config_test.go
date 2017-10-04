@@ -19,7 +19,7 @@ func TestConfigParse(t *testing.T) {
 		{`key=a+b key2=c/d`, Config{"key": "a+b", "key2": "c/d"}, nil},
 		{` key=a    key2=b `, Config{"key": "a", "key2": "b"}, nil},
 		{` key = a   key2 = b `, Config{"key": "a", "key2": "b"}, nil},
-		{`  "k e y" = "a \" b" key2=c`, Config{"k e y": "a \" b", "key2": "c"}, nil},
+		{`  "k e \\\" y" = "a \" b" key2=c`, Config{`k e \" y`: `a " b`, "key2": "c"}, nil},
 
 		{`provider=aws foo`, nil, errors.New(`foo: missing '='`)},
 		{`project_name=Test zone_pattern=us-(?west|east).+ tag_value="consul server" credentials_file=xxx`,
