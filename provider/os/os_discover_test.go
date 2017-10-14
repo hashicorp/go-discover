@@ -10,6 +10,9 @@ import (
 )
 
 func TestAddrs(t *testing.T) {
+	// todo: maybe check for http://169.254.169.254/openstack/latest/meta_data.json first
+	t.Skip("Skipping Openstack test in non-openstack env. Please enable manually")
+
 	args := discover.Config{
 		"provider":  "os",
 		"tag_key":   "consul",
