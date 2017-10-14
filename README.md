@@ -21,12 +21,12 @@ sub packages. Additional providers can be added through the
 [Register](https://godoc.org/github.com/hashicorp/go-discover#Register)
 function.
 
- * Amazon AWS [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/aws)
- * DigitalOcean [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/digitalocean)
- * Google Cloud [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/gce)
- * Microsoft Azure [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/azure)
- * Openstack [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/os)
- * SoftLayer [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/softlayer)
+ * Amazon AWS [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aws/aws_discover.go#L19-L33)
+ * DigitalOcean [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/digitalocean/digitalocean_discover.go#L16-L24)
+ * Google Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/gce/gce_discover.go#L17-L37)
+ * Microsoft Azure [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/azure/azure_discover.go#L16-L30)
+ * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/os/os_discover.go#L23-L38)
+ * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
 
 ### Config Example
 
