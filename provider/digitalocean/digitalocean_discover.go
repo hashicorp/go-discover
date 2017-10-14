@@ -4,10 +4,11 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"github.com/digitalocean/godo"
-	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
+
+	"github.com/digitalocean/godo"
+	"golang.org/x/oauth2"
 )
 
 type Provider struct{}
@@ -100,12 +101,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}
 
 			if privateIP != "" {
-				l.Printf("[INFO] discover-digitalocean: Found instance %s (%d) with private IP: %s",
-					d.Name, d.ID, privateIP)
+				l.Printf("[INFO] discover-digitalocean: Found instance %s (%d) with private IP: %s", d.Name, d.ID, privateIP)
 				addrs = append(addrs, privateIP)
 			}
 		}
 	}
 
+	l.Printf("[DEBUG] discover-digitalocean: Found ip addresses: %v", addrs)
 	return addrs, nil
 }
