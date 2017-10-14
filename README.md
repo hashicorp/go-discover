@@ -25,6 +25,7 @@ function.
  * DigitalOcean [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/digitalocean)
  * Google Cloud [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/gce)
  * Microsoft Azure [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/azure)
+ * Openstack [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/os)
  * SoftLayer [Config options](http://godoc.org/github.com/hashicorp/go-discover/provider/softlayer)
 
 ### Config Example
@@ -34,7 +35,7 @@ function.
 provider=aws region=eu-west-1 tag_key=consul tag_value=... access_key_id=... secret_access_key=...
 
 # DigitalOcean
-addrs provider=digitalocean region=... tag_name=... api_token=...
+provider=digitalocean region=... tag_name=... api_token=...
 
 # Google Cloud
 provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credentials_file=...
@@ -42,11 +43,11 @@ provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credential
 # Microsoft Azure
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...
 
+# Openstack
+provider=os tag_key=consul tag_value=server username=... password=... auth_url=...
+
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
-
-# OS
-provider=os tag_key=consul tag_value=server username=... password=... auth_url=...
 ```
 
 ## Command Line Tool Usage
