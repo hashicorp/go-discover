@@ -22,7 +22,7 @@ func (p *Provider) Help() string {
     access_key_id:     The Aliyun access key to use
     access_key_secret: The Aliyun access key secret to use
 
-	The required RAM permission is 'ecs:DescribeInstances'. 
+	The required RAM permission is 'ecs:DescribeInstances'.
 	It is recommended you make a dedicated key used only for auto-joining.
 `
 }
@@ -73,17 +73,16 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-aliyun: Found total %d instances", resp.TotalCount)
 
 	var addrs []string
-
 	for _, instanceAttributesType := range resp.Instances.Instance {
 		switch instanceAttributesType.InstanceNetworkType {
 		case "classic":
 			for _, ipAddress := range instanceAttributesType.InnerIpAddress.IpAddress {
-				l.Printf("[DEBUG] discover-aliyun:  Instance %s has innner ip %s ", instanceAttributesType.InstanceId, ipAddress)
+				l.Printf("[DEBUG] discover-aliyun: Instance %s has innner ip %s ", instanceAttributesType.InstanceId, ipAddress)
 				addrs = append(addrs, ipAddress)
 			}
 		case "vpc":
 			for _, ipAddress := range instanceAttributesType.VpcAttributes.PrivateIpAddress.IpAddress {
-				l.Printf("[DEBUG] discover-aliyun:  Instance %s has private ip %s ", instanceAttributesType.InstanceId, ipAddress)
+				l.Printf("[DEBUG] discover-aliyun: Instance %s has private ip %s ", instanceAttributesType.InstanceId, ipAddress)
 				addrs = append(addrs, ipAddress)
 			}
 		}

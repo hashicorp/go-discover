@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-    "github.com/hashicorp/go-discover/provider/aliyun"
+	"github.com/hashicorp/go-discover/provider/aliyun"
 	"github.com/hashicorp/go-discover/provider/aws"
 	"github.com/hashicorp/go-discover/provider/azure"
 	"github.com/hashicorp/go-discover/provider/digitalocean"
@@ -31,7 +31,7 @@ type Provider interface {
 
 // Providers contains all available providers.
 var Providers = map[string]Provider{
-	"aliyun":    &aliyun.Provider{},
+	"aliyun":       &aliyun.Provider{},
 	"aws":          &aws.Provider{},
 	"azure":        &azure.Provider{},
 	"digitalocean": &digitalocean.Provider{},
