@@ -21,6 +21,7 @@ sub packages. Additional providers can be added through the
 [Register](https://godoc.org/github.com/hashicorp/go-discover#Register)
 function.
 
+ * Aliyun (Alibaba) Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aliyun/aliyun_discover.go#L15-L28)
  * Amazon AWS [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aws/aws_discover.go#L19-L33)
  * DigitalOcean [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/digitalocean/digitalocean_discover.go#L16-L24)
  * Google Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/gce/gce_discover.go#L17-L37)
@@ -31,6 +32,9 @@ function.
 ### Config Example
 
 ```
+# Aliyun (Alibaba) Cloud
+provider=aliyun region=... tag_key=consul tag_value=... access_key_id=... access_key_secret=...
+
 # Amazon AWS
 provider=aws region=eu-west-1 tag_key=consul tag_value=... access_key_id=... secret_access_key=...
 
