@@ -16,7 +16,7 @@ func (p *Provider) Help() string {
 	provider: "scaleway"
 	organization: The Scaleway organization access key
 	tag_name: The tag name to filter on
-	api_key: The Scaleway api access token
+	token: The Scaleway api access token
 	region: The Scalway region
 `
 }
@@ -32,7 +32,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	organization := args["organization"]
 	tagName := args["tag_name"]
-	apiKey := args["api_key"]
+	token := args["token"]
 	region := args["region"]
 
 	l.Printf("[INFO] discover-scaleway: Organization is %q", organization)
@@ -41,7 +41,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	// Create a new API client
 	api, err := api.New(
 		organization,
-		apiKey,
+		token,
 		region,
 	)
 	if err != nil {
@@ -63,7 +63,7 @@ func filterServersForTagName(servers *[]api.ScalewayServer, tagName string, l *l
 	var serverAddrs []string
 	for _, server := range *servers {
 		if stringInSlice(tagName, server.Tags) {
-			l.Printf("[INFO] discover-scaleway: Found server (%d) - %s with private IP: %s",
+			l.Printf("[INFO] discover-scaleway: Found server (%s) - %s with private IP: %s",
 				server.Name, server.Hostname, server.PrivateIP)
 			serverAddrs = append(serverAddrs, server.PrivateIP)
 		}

@@ -80,3 +80,7 @@ make destroy
 ### Softlayer
 
 tbd
+
+### Scaleway
+
+todo
