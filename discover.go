@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-discover/provider/digitalocean"
 	"github.com/hashicorp/go-discover/provider/gce"
 	"github.com/hashicorp/go-discover/provider/os"
+	"github.com/hashicorp/go-discover/provider/scaleway"
 	"github.com/hashicorp/go-discover/provider/softlayer"
 )
 
@@ -38,6 +39,7 @@ var Providers = map[string]Provider{
 	"gce":          &gce.Provider{},
 	"os":           &os.Provider{},
 	"softlayer":    &softlayer.Provider{},
+	"scaleway":     &scaleway.Provider{},
 }
 
 // Discover looks up metadata in different cloud environments.

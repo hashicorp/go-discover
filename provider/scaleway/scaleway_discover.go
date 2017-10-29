@@ -56,10 +56,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	// Get a list of private ips that match the tag name
-	return filterServersForTagName(servers, tagName), nil
+	return filterServersForTagName(servers, tagName, l), nil
 }
 
-func filterServersForTagName(servers *[]api.ScalewayServer, tagName string) []string {
+func filterServersForTagName(servers *[]api.ScalewayServer, tagName string, l *log.Logger) []string {
 	var serverAddrs []string
 	for _, server := range *servers {
 		if stringInSlice(tagName, server.Tags) {
