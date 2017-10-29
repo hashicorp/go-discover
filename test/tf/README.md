@@ -77,6 +77,10 @@ make destroy
 ### Google Cloud
 
 
+### Scaleway
+
+todo
+
 ### Softlayer
 
 tbd
