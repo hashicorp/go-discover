@@ -13,11 +13,12 @@ type Provider struct{}
 
 func (p *Provider) Help() string {
 	return `Scaleway:
-	provider: "scaleway"
-	organization: The Scaleway organization access key
-	tag_name: The tag name to filter on
-	token: The Scaleway api access token
-	region: The Scalway region
+
+    provider:     "scaleway"
+    organization: The Scaleway organization access key
+    tag_name:     The tag name to filter on
+    token:        The Scaleway api access token
+    region:       The Scalway region
 `
 }
 
