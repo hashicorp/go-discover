@@ -40,17 +40,17 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[INFO] discover-scaleway: Region is %q", region)
 
 	// Create a new API client
-	api, err := api.New(
-		organization,
-		token,
-		region,
-	)
+	api, err := api.New(organization, token, region)
 	if err != nil {
 		return nil, fmt.Errorf("discover-scaleway: %s", err)
 	}
 
 	// Currently fetching all servers since the API doesn't support
-	// filter options
+	// filter options.
+	// api.GetServers() takes the following two arguments:
+	// * all (bool) - lets you list all servers in any state (stopped, running etc)
+	// * limit (int) - limits the results to a certain number. In this case we are listing
+	// all servers since the api doesn't support filtering options.
 	servers, err := api.GetServers(true, 0)
 	if err != nil {
 		return nil, fmt.Errorf("discover-scaleway: %s", err)
@@ -61,16 +61,18 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 }
 
 func filterServersForTagName(servers *[]api.ScalewayServer, tagName string, l *log.Logger) []string {
-	var serverAddrs []string
-	for _, server := range *servers {
-		if stringInSlice(tagName, server.Tags) {
-			l.Printf("[INFO] discover-scaleway: Found server (%s) - %s with private IP: %s",
-				server.Name, server.Hostname, server.PrivateIP)
-			serverAddrs = append(serverAddrs, server.PrivateIP)
+	var addrs []string
+	if servers != nil {
+		for _, server := range *servers {
+			if stringInSlice(tagName, server.Tags) {
+				l.Printf("[DEBUG] discover-scaleway: Found server (%s) - %s with private IP: %s",
+					server.Name, server.Hostname, server.PrivateIP)
+				addrs = append(addrs, server.PrivateIP)
+			}
 		}
 	}
-
-	return serverAddrs
+	l.Printf("[DEBUG] discover-scaleway: Found ip addresses: %v", addrs)
+	return addrs
 }
 
 func stringInSlice(a string, list []string) bool {

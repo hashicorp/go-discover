@@ -38,8 +38,8 @@ var Providers = map[string]Provider{
 	"digitalocean": &digitalocean.Provider{},
 	"gce":          &gce.Provider{},
 	"os":           &os.Provider{},
-	"softlayer":    &softlayer.Provider{},
 	"scaleway":     &scaleway.Provider{},
+	"softlayer":    &softlayer.Provider{},
 }
 
 // Discover looks up metadata in different cloud environments.
