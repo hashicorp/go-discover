@@ -17,7 +17,7 @@ func (p *Provider) Help() string {
     provider:     "scaleway"
     organization: The Scaleway organization access key
     tag_name:     The tag name to filter on
-    token:        The Scaleway api access token
+    token:        The Scaleway API access token
     region:       The Scalway region
 `
 }
@@ -50,17 +50,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	// api.GetServers() takes the following two arguments:
 	// * all (bool) - lets you list all servers in any state (stopped, running etc)
 	// * limit (int) - limits the results to a certain number. In this case we are listing
-	// all servers since the api doesn't support filtering options.
 	servers, err := api.GetServers(true, 0)
 	if err != nil {
 		return nil, fmt.Errorf("discover-scaleway: %s", err)
 	}
 
-	// Get a list of private ips that match the tag name
-	return filterServersForTagName(servers, tagName, l), nil
-}
-
-func filterServersForTagName(servers *[]api.ScalewayServer, tagName string, l *log.Logger) []string {
+	// Filter servers by tag
 	var addrs []string
 	if servers != nil {
 		for _, server := range *servers {
@@ -71,8 +66,9 @@ func filterServersForTagName(servers *[]api.ScalewayServer, tagName string, l *l
 			}
 		}
 	}
+
 	l.Printf("[DEBUG] discover-scaleway: Found ip addresses: %v", addrs)
-	return addrs
+	return addrs, nil
 }
 
 func stringInSlice(a string, list []string) bool {
