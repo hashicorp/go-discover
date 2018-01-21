@@ -21,14 +21,15 @@ sub packages. Additional providers can be added through the
 [Register](https://godoc.org/github.com/hashicorp/go-discover#Register)
 function.
 
- * Aliyun (Alibaba) Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aliyun/aliyun_discover.go#L15-L28)
- * Amazon AWS [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aws/aws_discover.go#L19-L33)
- * DigitalOcean [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/digitalocean/digitalocean_discover.go#L16-L24)
- * Google Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/gce/gce_discover.go#L17-L37)
- * Microsoft Azure [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/azure/azure_discover.go#L16-L37)
- * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/os/os_discover.go#L23-L38)
- * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/scaleway/scaleway_discover.go#L14-L22)
- * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
+ * Aliyun (Alibaba) Cloud [Config options](provider/aliyun/aliyun_discover.go#L15-L28)
+ * Amazon AWS [Config options](provider/aws/aws_discover.go#L19-L33)
+ * DigitalOcean [Config options](provider/digitalocean/digitalocean_discover.go#L16-L24)
+ * Google Cloud [Config options](provider/gce/gce_discover.go#L17-L37)
+ * Kubernetes [Config options](provider/kubernetes/kubernetes_discover.go#L16-L24)
+ * Microsoft Azure [Config options](provider/azure/azure_discover.go#L16-L37)
+ * Openstack [Config options](provider/os/os_discover.go#L23-L38)
+ * Scaleway [Config options](provider/scaleway/scaleway_discover.go#L14-L22)
+ * SoftLayer [Config options](provider/softlayer/softlayer_discover.go#L16-L25)
 
 ### Config Example
 
@@ -44,6 +45,9 @@ provider=digitalocean region=... tag_name=... api_token=...
 
 # Google Cloud
 provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credentials_file=...
+
+# Kubernetes
+provider=kubernetes namespace=... label_key=role label_value=consul
 
 # Microsoft Azure
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...

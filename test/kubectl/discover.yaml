@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: discover-nginx
+  namespace: hashicorp
+spec:
+  containers:
+  - name: discover-nginx
+    image: hashicorp/discover:latest
+    imagePullPolicy: Never
