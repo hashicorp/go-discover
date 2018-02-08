@@ -115,7 +115,11 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.Interface
 			continue
 		}
 		tv := (*v.Tags)[tagName] // *string
-		if tv == nil || *tv != tagValue {
+		if tv == nil {
+                        l.Printf("[DEBUG] discover-azure: Interface %s did not have tag: %s", id, tagName)
+			continue
+		}
+		if *tv != tagValue {
 			l.Printf("[DEBUG] discover-azure: Interface %s tag value was: %s which did not match: %s", id, *tv, tagValue)
 			continue
 		}
