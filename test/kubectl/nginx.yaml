@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hashicorp
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: discover-test
+  namespace: hashicorp
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        run: discover-test
+        role: discoverable
+    spec:
+      containers:
+      - name: discover-test
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discover-test
+  namespace: hashicorp
+  labels:
+    run: discover-test
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: discover-test
