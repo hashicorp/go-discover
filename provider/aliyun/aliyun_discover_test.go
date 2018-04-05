@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/go-discover/provider/aliyun"
 )
 
+var _ discover.Provider = (*aliyun.Provider)(nil)
+var _ discover.ProviderWithUserAgent = (*aliyun.Provider)(nil)
+
 func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "aliyun",

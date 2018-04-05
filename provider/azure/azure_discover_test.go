@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/go-discover/provider/azure"
 )
 
+var _ discover.Provider = (*azure.Provider)(nil)
+var _ discover.ProviderWithUserAgent = (*azure.Provider)(nil)
+
 func TestTagAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "azure",
