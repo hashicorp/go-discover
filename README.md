@@ -159,3 +159,82 @@ $ cd test/tf/aws
 $ terraform destroy
 ...
 ```
+
+## Retrieving Test Credentials
+
+Below are instructions for retrieving credentials in order to run
+tests for some of the providers.
+
+<details>
+  <summary>GCE</summary>
+1. Go to https://console.cloud.google.com/
+1. IAM &amp; Admin / Settings:
+    * Create Project, e.g. `discover`
+    * Write down the `Project ID`, e.g. `discover-xxx`
+1. Billing: Ensure that the project is linked to a billing account
+1. API Manager / Dashboard: Enable the following APIs
+    * Google Compute Engine API
+1. IAM &amp; Admin / Service Accounts: Create Service Account
+    * Service account name: `admin`
+    * Roles:
+        * `Project/Service Account Actor`
+        * `Compute Engine/Compute Instance Admin (v1)`
+        * `Compute Engine/Compute Security Admin`
+    * Furnish a new private key: `yes`
+    * Key type: `JSON`
+1. The credentials file `discover-xxx.json` will have been downloaded
+   automatically to your machine
+</details>
+
+<details>
+  <summary>Azure</summary>
+See also the [Terraform provider documentation](https://www.terraform.io/docs/providers/azurerm/index.html#creating-credentials).
+
+```shell
+# Install Azure CLI (https://github.com/Azure/azure-cli)
+curl -L https://aka.ms/InstallAzureCli | bash
+
+# 1. Login
+$ az login
+
+# 2. Get SubscriptionID
+$ az account list
+[
+  {
+    "cloudName": "AzureCloud",
+    "id": "subscription_id",
+    "isDefault": true,
+    "name": "Gratis versie",
+    "state": "Enabled",
+    "tenantId": "tenant_id",
+    "user": {
+      "name": "user@email.com",
+      "type": "user"
+    }
+  }
+]
+
+# 3. Switch to subscription
+$ az account set --subscription="subscription_id"
+
+# 4. Create ClientID and Secret
+$ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/subscription_id"
+{
+  "appId": "client_id",
+  "displayName": "azure-cli-2017-07-18-16-51-43",
+  "name": "http://azure-cli-2017-07-18-16-51-43",
+  "password": "client_secret",
+  "tenant": "tenant_id"
+}
+
+# 5. Export the Credentials for the client
+export ARM_CLIENT_ID=client_id
+export ARM_CLIENT_SECRET=client_secret
+export ARM_TENANT_ID=tenant_id
+export ARM_SUBSCRIPTION_ID=subscription_id
+
+# 6. Test the credentials
+$ az vm list-sizes
+```
+</details>
+
