@@ -12,8 +12,8 @@ import (
 func TestTagAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "azure",
-		"tag_name":          "type",
-		"tag_value":         "Foundation",
+		"tag_name":          "consul",
+		"tag_value":         "server",
 		"subscription_id":   os.Getenv("ARM_SUBSCRIPTION_ID"),
 		"tenant_id":         os.Getenv("ARM_TENANT_ID"),
 		"client_id":         os.Getenv("ARM_CLIENT_ID"),
