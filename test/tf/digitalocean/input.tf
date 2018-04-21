@@ -1,5 +1,3 @@
-variable "digitalocean_token" {}
-
 variable "prefix" {
   default = "go-discover"
 }

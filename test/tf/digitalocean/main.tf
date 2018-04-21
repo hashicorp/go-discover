@@ -1,12 +1,11 @@
-provider "digitalocean" {
-  token = "${var.digitalocean_token}"
-}
+provider "digitalocean" {}
 
 resource "digitalocean_tag" "test" {
   name = "${var.prefix}-test-tag"
 }
 
 resource "digitalocean_droplet" "test-01" {
+  count              = 2
   image              = "${var.do_image}"
   name               = "${var.prefix}-01"
   region             = "${var.do_region}"
@@ -21,10 +20,4 @@ resource "digitalocean_droplet" "test-02" {
   region             = "${var.do_region}"
   size               = "${var.do_size}"
   private_networking = true
-}
-
-resource "digitalocean_firewall" "test" {
-  name = "${var.prefix}-test-firewall"
-
-  droplet_ids = ["${digitalocean_droplet.test-01.id }", "${digitalocean_droplet.test-02.id }"]
 }
