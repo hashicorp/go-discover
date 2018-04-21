@@ -12,7 +12,7 @@ Within a quoted string you can use the backslash to escape double quotes or the
 backslash itself, e.g. `key=val "some key"="some value"`
 
 Duplicate keys are reported as error and the provider is determined through the
-`provider` key. 
+`provider` key.
 
 ### Supported Providers
 
@@ -108,3 +108,54 @@ For complete API documentation, see
 for the supported providers is documented in the
 [providers](https://godoc.org/github.com/hashicorp/go-discover/provider)
 sub-package.
+
+## Testing
+
+Configuration tests can be run with Go:
+
+```
+$ go test ./...
+```
+
+By default tests that communicate with providers do not run unless credentials
+are set for that provider. To run provider tests you must set the necessary
+environment variables.
+
+**Note: This will make real API calls to the account provided by the credentials.**
+
+```
+$ AWS_ACCESS_KEY_ID=... AWS_ACCESS_KEY_SECRET=... AWS_REGION=... go test -v ./provider/aws
+```
+
+This requires resources to exist that match those specified in tests
+(eg instance tags in the case of AWS). To create these resources,
+there are sets of [Terraform](https://www.terraform.io) configuration
+in the `test/tf` directory for supported providers.
+
+You must use the same account and access credentials above. The same
+environment variables should be applicable and read by Terraform.
+
+```
+$ cd test/tf/aws
+$ export AWS_ACCESS_KEY_ID=... AWS_ACCESS_KEY_SECRET=... AWS_REGION=...
+$ terraform init
+...
+$ terraform apply
+...
+```
+
+After Terraform successfully runs, you should be able to successfully
+run the tests, assuming you have exported credentials into
+your environment:
+
+```
+$ go test -v ./provider/aws
+```
+
+To destroy the resources you need to use Terraform again:
+
+```
+$ cd test/tf/aws
+$ terraform destroy
+...
+```
