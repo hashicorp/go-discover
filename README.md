@@ -30,6 +30,10 @@ function.
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
 
+HashiCorp maintains acceptance tests that regularly run real resources to
+verify the behavior of several of these providers. Those currently
+are: Amazon AWS, Microsoft Azure, Google Cloud, and DigitalOcean.
+
 ### Config Example
 
 ```
@@ -160,13 +164,17 @@ $ terraform destroy
 ...
 ```
 
+**Note: There should be no requirements to create and test these resources other
+than credentials and Terraform. This is to ensure tests can run in development
+and CI environments consistently across all providers.**
+
 ## Retrieving Test Credentials
 
 Below are instructions for retrieving credentials in order to run
 tests for some of the providers.
 
 <details>
-  <summary>GCE</summary>
+  <summary>Google Cloud</summary>
 1. Go to https://console.cloud.google.com/
 1. IAM &amp; Admin / Settings:
     * Create Project, e.g. `discover`
@@ -237,4 +245,3 @@ export ARM_SUBSCRIPTION_ID=subscription_id
 $ az vm list-sizes
 ```
 </details>
-
