@@ -193,6 +193,8 @@ tests for some of the providers.
     * Key type: `JSON`
 1. The credentials file `discover-xxx.json` will have been downloaded
    automatically to your machine
+1. Source the contents of the credentials file into the `GOOGLE_CREDENTIALS`
+   environment variable
 
 </details>
 
