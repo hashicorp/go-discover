@@ -35,7 +35,7 @@ func TestTagAddrs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(addrs) != 3 {
+	if len(addrs) != 2 {
 		t.Fatalf("bad: %v", addrs)
 	}
 }
