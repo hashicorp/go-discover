@@ -175,6 +175,7 @@ tests for some of the providers.
 
 <details>
   <summary>Google Cloud</summary>
+
 1. Go to https://console.cloud.google.com/
 1. IAM &amp; Admin / Settings:
     * Create Project, e.g. `discover`
@@ -192,6 +193,7 @@ tests for some of the providers.
     * Key type: `JSON`
 1. The credentials file `discover-xxx.json` will have been downloaded
    automatically to your machine
+
 </details>
 
 <details>
