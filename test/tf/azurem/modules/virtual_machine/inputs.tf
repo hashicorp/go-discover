@@ -18,11 +18,3 @@ variable "tags" {
   type    = "map"
   default = {}
 }
-
-variable "private_ssh_key_path" {
-  default = "tf_rsa"
-}
-
-variable "public_ssh_key_path" {
-  default = "tf_rsa.pub"
-}
