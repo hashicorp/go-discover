@@ -25,17 +25,6 @@ resource "azurerm_lb_backend_address_pool" "bpepool" {
   name                = "BackEndAddressPool"
 }
 
-resource "azurerm_lb_nat_pool" "lbnatpool" {
-  resource_group_name            = "${var.resource_group}"
-  name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  protocol                       = "Tcp"
-  frontend_port_start            = 50000
-  frontend_port_end              = 50119
-  backend_port                   = 22
-  frontend_ip_configuration_name = "PublicIPAddress"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "${var.name}-vmss"
   location            = "${var.location}"
@@ -68,15 +57,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     admin_password       = ""
   }
 
-  os_profile_linux_config {
-    disable_password_authentication = true
-
-    ssh_keys {
-      path     = "/home/${var.username}/.ssh/authorized_keys"
-      key_data = "${file(var.public_ssh_key_path)}"
-    }
-  }
-
   network_profile {
     name    = "${var.name}-np"
     primary = true
@@ -85,7 +65,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       name                                   = "${var.name}-ipc"
       subnet_id                              = "${var.subnet_id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.lbnatpool.id}"]
     }
   }
 
