@@ -23,7 +23,7 @@ func (p *Provider) Help() string {
     service:           The mDNS service name.
     domain:            The mDNS discovery domain.  Default "local".
     timeout:           The mDNS lookup timeout.  Default "5s" (five seconds).
-    v6:                IPv6 will be allowed and prefferred when set to "true"
+    v6:                IPv6 will be allowed and preferred when set to "true"
                        and disabled when set to "false".  Default "true".
     v4:                IPv4 will be allowed when set to "true" and disabled
                        when set to "false".  Default "true".
