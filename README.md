@@ -30,9 +30,9 @@ function.
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
 
-HashiCorp maintains acceptance tests that regularly run real resources to
-verify the behavior of several of these providers. Those currently
-are: Amazon AWS, Microsoft Azure, Google Cloud, and DigitalOcean.
+HashiCorp maintains acceptance tests that regularly allocate and run tests with
+real resources to verify the behavior of several of these providers. Those
+currently are: Amazon AWS, Microsoft Azure, Google Cloud, and DigitalOcean.
 
 ### Config Example
 
@@ -246,6 +246,6 @@ export ARM_TENANT_ID=tenant_id
 export ARM_SUBSCRIPTION_ID=subscription_id
 
 # 6. Test the credentials
-$ az vm list-sizes
+$ az vm list-sizes --location 'West Europe'
 ```
 </details>
