@@ -54,7 +54,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "${var.name}"
     admin_username       = "${var.username}"
-    admin_password       = ""
+    admin_password       = "${random_string.password.result}"
   }
 
   network_profile {
@@ -69,4 +69,8 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   tags = "${var.tags}"
+}
+
+resource "random_string" "password" {
+  length = 16
 }
