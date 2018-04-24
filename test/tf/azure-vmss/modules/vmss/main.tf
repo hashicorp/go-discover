@@ -1,3 +1,11 @@
+provider "azurerm" {
+  version = "~> 1.3"
+}
+
+provider "random" {
+  version = "~> 1.2"
+}
+
 resource "azurerm_public_ip" "test" {
   name                         = "${var.name}-pip"
   location                     = "${var.location}"

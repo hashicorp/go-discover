@@ -1,4 +1,6 @@
-provider "google" {}
+provider "google" {
+  version = "~> 1.10"
+}
 
 resource "google_compute_instance" "tagged" {
   count = 2

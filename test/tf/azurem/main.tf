@@ -1,3 +1,11 @@
+provider "azurerm" {
+  version = "~> 1.3"
+}
+
+provider "random" {
+  version = "~> 1.2"
+}
+
 variable "prefix" {
   default = "go-discover"
 }

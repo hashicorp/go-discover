@@ -1,4 +1,6 @@
-provider "aws" {}
+provider "aws" {
+  version = "~> 1.15"
+}
 
 variable "prefix" {
   default     = "go-discover"

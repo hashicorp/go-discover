@@ -1,4 +1,6 @@
-provider "digitalocean" {}
+provider "digitalocean" {
+  version = "~> 0.1"
+}
 
 resource "digitalocean_tag" "test" {
   name = "${var.prefix}-test-tag"
