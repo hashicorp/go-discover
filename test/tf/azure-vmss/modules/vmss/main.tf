@@ -1,3 +1,11 @@
+provider "azurerm" {
+  version = "~> 1.3"
+}
+
+provider "random" {
+  version = "~> 1.2"
+}
+
 resource "azurerm_public_ip" "test" {
   name                         = "${var.name}-pip"
   location                     = "${var.location}"
@@ -23,17 +31,6 @@ resource "azurerm_lb_backend_address_pool" "bpepool" {
   resource_group_name = "${var.resource_group}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "BackEndAddressPool"
-}
-
-resource "azurerm_lb_nat_pool" "lbnatpool" {
-  resource_group_name            = "${var.resource_group}"
-  name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  protocol                       = "Tcp"
-  frontend_port_start            = 50000
-  frontend_port_end              = 50119
-  backend_port                   = 22
-  frontend_ip_configuration_name = "PublicIPAddress"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -65,16 +62,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "${var.name}"
     admin_username       = "${var.username}"
-    admin_password       = ""
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = true
-
-    ssh_keys {
-      path     = "/home/${var.username}/.ssh/authorized_keys"
-      key_data = "${file(var.public_ssh_key_path)}"
-    }
+    admin_password       = "${random_string.password.result}"
   }
 
   network_profile {
@@ -85,9 +73,12 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       name                                   = "${var.name}-ipc"
       subnet_id                              = "${var.subnet_id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.lbnatpool.id}"]
     }
   }
 
   tags = "${var.tags}"
+}
+
+resource "random_string" "password" {
+  length = 16
 }

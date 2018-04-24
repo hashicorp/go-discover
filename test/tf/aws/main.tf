@@ -1,33 +1,42 @@
-resource "aws_key_pair" "main" {
-  key_name   = "${var.prefix}-key"
-  public_key = "${file(var.public_key_path)}"
-}
-
 module "network" {
   source        = "./modules/network"
   address_space = "${var.address_space}"
   subnet_cidr   = "${var.subnet_cidr}"
 }
 
-module "vm01" {
-  source           = "./modules/virtual_machine"
-  name             = "vm01"
-  key_pair_name    = "${aws_key_pair.main.key_name}"
-  subnet_id        = "${module.network.subnet_id}"
-  vpc_id           = "${module.network.vpc_id}"
-  private_key_path = "${var.private_key_path}"
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+resource "aws_instance" "tagged" {
+  count                       = 2
+  ami                         = "${data.aws_ami.ubuntu.id}"
+  instance_type               = "t2.micro"
+  subnet_id                   = "${module.network.subnet_id}"
+  associate_public_ip_address = true
 
   tags {
     "consul" = "server"
   }
 }
 
-module "vm02" {
-  source           = "./modules/virtual_machine"
-  name             = "vm02"
-  key_pair_name    = "${aws_key_pair.main.key_name}"
-  subnet_id        = "${module.network.subnet_id}"
-  vpc_id           = "${module.network.vpc_id}"
-  private_key_path = "${var.private_key_path}"
+// We keep an extra untagged resource to test we get back
+// 2/3 of our instances
+resource "aws_instance" "not-tagged" {
+  ami                         = "${data.aws_ami.ubuntu.id}"
+  instance_type               = "t2.micro"
+  subnet_id                   = "${module.network.subnet_id}"
+  associate_public_ip_address = true
 }
-

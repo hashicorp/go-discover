@@ -22,15 +22,14 @@ resource "azurerm_virtual_machine" "main" {
   os_profile {
     computer_name  = "${var.name}"
     admin_username = "${var.username}"
-    admin_password = ""
+    admin_password = "${random_string.password.result}"
   }
 
   os_profile_linux_config {
-    disable_password_authentication = true
-
-    ssh_keys {
-      path     = "/home/${var.username}/.ssh/authorized_keys"
-      key_data = "${file(var.public_ssh_key_path)}"
-    }
+    disable_password_authentication = false
   }
+}
+
+resource "random_string" "password" {
+  length = 16
 }

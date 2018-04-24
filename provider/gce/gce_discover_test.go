@@ -1,6 +1,7 @@
 package gce_test
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -10,15 +11,32 @@ import (
 )
 
 func TestAddrs(t *testing.T) {
+	// assume the google credentials file contents are in the environment,
+	// as with the terraform provider
+	fileContents := os.Getenv("GOOGLE_CREDENTIALS")
+	tmpCreds, err := ioutil.TempFile("", "gce-credentials")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tmpCreds.WriteString(fileContents); err != nil {
+		t.Fatal(err)
+	}
+	if err := tmpCreds.Close(); err != nil {
+		t.Fatal(err)
+	}
+	// remove credentials file
+	defer os.Remove(tmpCreds.Name())
+
 	args := discover.Config{
 		"provider":         "gce",
-		"project_name":     os.Getenv("GCE_PROJECT"),
-		"zone_pattern":     os.Getenv("GCE_ZONE"),
+		"project_name":     os.Getenv("GOOGLE_PROJECT"),
+		"zone_pattern":     os.Getenv("GOOGLE_ZONE"),
 		"tag_value":        "consul-server",
-		"credentials_file": os.Getenv("GCE_CONFIG_CREDENTIALS"),
+		"credentials_file": tmpCreds.Name(),
 	}
+
 	if args["project_name"] == "" || args["credentials_file"] == "" {
-		t.Skip("GCE credentials missing")
+		t.Skip("Google credentials missing")
 	}
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
@@ -27,7 +45,7 @@ func TestAddrs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(addrs) != 3 {
+	if len(addrs) != 2 {
 		t.Fatalf("bad: %v", addrs)
 	}
 }

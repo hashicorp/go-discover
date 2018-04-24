@@ -13,7 +13,7 @@ func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "aws",
 		"region":            os.Getenv("AWS_REGION"),
-		"tag_key":           "consul-role",
+		"tag_key":           "consul",
 		"tag_value":         "server",
 		"access_key_id":     os.Getenv("AWS_ACCESS_KEY_ID"),
 		"secret_access_key": os.Getenv("AWS_SECRET_ACCESS_KEY"),
@@ -29,7 +29,7 @@ func TestAddrs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(addrs) != 3 {
+	if len(addrs) != 2 {
 		t.Fatalf("bad: %v", addrs)
 	}
 }

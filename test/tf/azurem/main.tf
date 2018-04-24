@@ -1,3 +1,11 @@
+provider "azurerm" {
+  version = "~> 1.3"
+}
+
+provider "random" {
+  version = "~> 1.2"
+}
+
 variable "prefix" {
   default = "go-discover"
 }
@@ -17,11 +25,11 @@ module "network" {
 }
 
 module "vm01" {
-  source               = "./modules/virtual_machine"
-  name                 = "${var.prefix}-01"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  subnet_id            = "${module.network.subnet_id}"
+  source              = "./modules/virtual_machine"
+  name                = "${var.prefix}-01"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  subnet_id           = "${module.network.subnet_id}"
 
   tags {
     "consul" = "server"
@@ -29,21 +37,35 @@ module "vm01" {
 }
 
 module "vm02" {
-  source               = "./modules/virtual_machine"
-  name                 = "${var.prefix}-02"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  subnet_id            = "${module.network.subnet_id}"
+  source              = "./modules/virtual_machine"
+  name                = "${var.prefix}-02"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  subnet_id           = "${module.network.subnet_id}"
+
+  tags {
+    "consul" = "server"
+  }
+}
+
+// We intentionally don't tag the last machine to ensure we only discover the
+// first two
+module "vm03" {
+  source              = "./modules/virtual_machine"
+  name                = "${var.prefix}-03"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  subnet_id           = "${module.network.subnet_id}"
 }
 
 output "public_ips" {
-  value = ["${module.vm01.public_ip}","${module.vm02.public_ip}"]
+  value = ["${module.vm01.public_ip}", "${module.vm02.public_ip}", "${module.vm03.public_ip}"]
 }
 
 output "private_ips" {
-  value = ["${module.vm01.private_ip}", "${module.vm02.private_ip}"]
+  value = ["${module.vm01.private_ip}", "${module.vm02.private_ip}", "${module.vm03.private_ip}"]
 }
 
 output "tagged_ips" {
-  value = ["${module.vm01.private_ip}"]
+  value = ["${module.vm01.private_ip}", "${module.vm02.private_ip}"]
 }
