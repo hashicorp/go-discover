@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
@@ -63,13 +64,13 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	vmScaleSet := args["vm_scale_set"]
 
 	// Only works for the Azure PublicCLoud for now; no ability to test other Environment
-	oauthConfig, err := azure.PublicCloud.OAuthConfigForTenant(tenantID)
+	oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}
 
 	// Get the ServicePrincipalToken for use searching the NetworkInterfaces
-	sbt, err := azure.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, azure.PublicCloud.ResourceManagerEndpoint)
+	sbt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, azure.PublicCloud.ResourceManagerEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}
@@ -78,7 +79,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	vmnet := network.NewInterfacesClient(subscriptionID)
 	vmnet.Client.UserAgent = "Hashicorp-Consul"
 	vmnet.Sender = autorest.CreateSender(autorest.WithLogging(l))
-	vmnet.Authorizer = sbt
+	vmnet.Authorizer = autorest.NewBearerAuthorizer(sbt)
 
 	if tagName != "" && tagValue != "" && resourceGroup == "" && vmScaleSet == "" {
 		l.Printf("[DEBUG] discover-azure: using tag method. tag_name: %s, tag_value: %s", tagName, tagValue)
