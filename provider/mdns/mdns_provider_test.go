@@ -2,14 +2,33 @@ package mdns_test
 
 import (
 	"log"
+	"net"
 	"os"
 	"testing"
 
+	"github.com/hashicorp/mdns"
+
 	discover "github.com/hashicorp/go-discover"
-	"github.com/hashicorp/go-discover/provider/mdns"
+	provider "github.com/hashicorp/go-discover/provider/mdns"
 )
 
-func TestAddrs(t *testing.T) {
+func newTestServer() (*mdns.Server, error) {
+	zone, err := mdns.NewMDNSService(
+		"localhost",
+		"_test-service._noop",
+		"local.",
+		"",
+		1234,
+		[]net.IP{net.IPv4(127, 0, 0, 1)},
+		[]string{"testing123"},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return mdns.NewServer(&mdns.Config{Zone: zone})
+}
+
+func TestDiscover(t *testing.T) {
 	type testCases []struct {
 		desc  string
 		args  discover.Config
@@ -23,13 +42,26 @@ func TestAddrs(t *testing.T) {
 			discover.Config{
 				"provider": "mdns",
 				"service":  "_fake-service._noop",
-				"domain":   "test",
+				"domain":   "local",
 				"timeout":  "1s",
 				"v6":       "false",
 				"v4":       "false",
 			},
 			false,
 			0,
+		},
+		{
+			"valid config - one address",
+			discover.Config{
+				"provider": "mdns",
+				"service":  "_test-service._noop",
+				"domain":   "local",
+				"timeout":  "10s",
+				"v6":       "true",
+				"v4":       "true",
+			},
+			false,
+			1,
 		},
 		{
 			"invalid config - missing service option",
@@ -85,8 +117,15 @@ func TestAddrs(t *testing.T) {
 		},
 	}
 
-	p := &mdns.Provider{}
+	p := &provider.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
+
+	svr, err := newTestServer()
+	if err != nil {
+		t.Fatalf("Failed to start test server: %s", err.Error())
+		return
+	}
+	defer svr.Shutdown()
 
 	for idx, tc := range cases {
 		addrs, err := p.Addrs(tc.args, l)
