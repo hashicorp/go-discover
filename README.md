@@ -29,6 +29,7 @@ function.
  * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/os/os_discover.go#L23-L38)
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
+ * Triton [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/triton/triton_discover.go#L17-L27)
 
 HashiCorp maintains acceptance tests that regularly allocate and run tests with
 real resources to verify the behavior of several of these providers. Those
@@ -60,6 +61,9 @@ provider=scaleway organization=my-org tag_name=consul-server token=... region=..
 
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
+
+# Triton
+provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_id=... tag_key=consul-role tag_value=server
 
 ```
 
