@@ -11,7 +11,7 @@ resource "azurerm_public_ip" "test" {
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group}"
   public_ip_address_allocation = "static"
-  domain_name_label            = "${var.resource_group}"
+  domain_name_label            = "${random_string.domain_name.result}"
 
   tags = "${var.tags}"
 }
@@ -30,7 +30,7 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_backend_address_pool" "bpepool" {
   resource_group_name = "${var.resource_group}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
-  name                = "BackEndAddressPool"
+  name                = "${random_string.resource_name.result}"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -81,4 +81,16 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 resource "random_string" "password" {
   length = 16
+}
+resource "random_string" "domain_name" {
+  length = 16
+  special = false
+  upper = false
+  number = false
+}
+resource "random_string" "resource_name" {
+  length = 16
+  special = false
+  upper = false
+  number = false
 }
