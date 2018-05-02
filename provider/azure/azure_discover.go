@@ -100,8 +100,7 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.Interface
 	// Get all network interfaces across resource groups
 	// unless there is a compelling reason to restrict
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 	netres, err := vmnet.ListAll(ctx)
 
 	if err != nil {
@@ -120,7 +119,7 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.Interface
 			l.Printf("[DEBUG] discover-azure: Interface %s has no tags", id)
 			continue
 		}
-		tv := (v.Tags)[tagName] // *string
+		tv := v.Tags[tagName] // *string
 		if tv == nil {
 			l.Printf("[DEBUG] discover-azure: Interface %s did not have tag: %s", id, tagName)
 			continue
@@ -149,8 +148,7 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.Interface
 
 func fetchAddrsWithVmScaleSet(resourceGroup string, vmScaleSet string, vmnet network.InterfacesClient, l *log.Logger) ([]string, error) {
 	// Get all network interfaces for a specific virtual machine scale set
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 	netres, err := vmnet.ListVirtualMachineScaleSetNetworkInterfaces(ctx, resourceGroup, vmScaleSet)
 	if err != nil {
 		return nil, fmt.Errorf("discover-azure: %s", err)
