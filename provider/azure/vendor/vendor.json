@@ -2,7 +2,6 @@
 	"comment": "",
 	"ignore": "test",
 	"package": [
-		{"path":"github.com/Azure/azure-sdk-for-go/...a","revision":""},
 		{"path":"github.com/Azure/azure-sdk-for-go/arm/network","checksumSHA1":"PDMRG1zVjFxDESUXBwR74V+zVHs=","revision":"a49674fdba11173ce3bc934d020634e3366464de","revisionTime":"2017-12-12T18:23:29Z"},
 		{"path":"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2015-05-01-preview/network","checksumSHA1":"TbC3pmqxFGaynGil/kEjLyBt2Ew=","revision":"4b3cf752d4d7bf6bbf3cde9d5c4d1157098726e3","revisionTime":"2018-04-30T22:05:37Z"},
 		{"path":"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2015-06-15/network","checksumSHA1":"Fs6Gcl0nhC0FJ6MsB+Ck7r4huYo=","revision":"4b3cf752d4d7bf6bbf3cde9d5c4d1157098726e3","revisionTime":"2018-04-30T22:05:37Z"},
@@ -15,8 +14,6 @@
 		{"path":"github.com/Azure/go-autorest/autorest/validation","checksumSHA1":"5UH4IFIB/98iowPCzzVs4M4MXiQ=","revision":"5cdef8c5dbd65369ef90f1b8d7ea2b7348ffc862","revisionTime":"2018-04-27T22:46:30Z"},
 		{"path":"github.com/dgrijalva/jwt-go","checksumSHA1":"+TKtBzv23ywvmmqRiGEjUba4YmI=","revision":"dbeaa9332f19a944acb5736b4456cfcc02140e29","revisionTime":"2017-10-19T21:57:19Z"},
 		{"path":"github.com/hashicorp/go-discover/provider/azure","checksumSHA1":"F8qQlAbbXZWigahcusD+1FOgXuU=","revision":"c7c0eb3fc6b6f8024c39cb24f3fe254a72595dd4","revisionTime":"2018-04-27T00:43:23Z"},
-		{"path":"govendor","revision":""},
-		{"path":"update","revision":""}
 	],
 	"rootPath": "github.com/hashicorp/go-discover/provider/azure"
 }
