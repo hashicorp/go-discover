@@ -114,7 +114,10 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.Interface
 	// Choose any PrivateIPAddress with the matching tag
 	var addrs []string
 	for _, v := range netres.Values() {
-		id := v.ID
+		var id string
+		if v.ID != nil {
+			id = *v.ID
+		}
 		if v.Tags == nil {
 			l.Printf("[DEBUG] discover-azure: Interface %s has no tags", id)
 			continue
@@ -161,7 +164,10 @@ func fetchAddrsWithVmScaleSet(resourceGroup string, vmScaleSet string, vmnet net
 	// Get all of PrivateIPAddresses we can.
 	var addrs []string
 	for _, v := range netres.Values() {
-		id := v.ID
+		var id string
+		if v.ID != nil {
+			id = *v.ID
+		}
 		if v.IPConfigurations == nil {
 			l.Printf("[DEBUG] discover-azure: Interface %s had no ip configuration", id)
 			continue
