@@ -7,9 +7,9 @@ resource "azurerm_public_ip" "external" {
 }
 
 resource "azurerm_network_interface" "internal" {
-  name                = "${var.name}-nic"
+  resource_group_name = "${var.resource_group_name}"
   location            = "${var.location}"
-  resource_group_name = "${random_string.resource_name.result}"
+  name                = "${var.resource_group_name}-${random_string.resource_name.result}"
 
   ip_configuration {
     name                          = "private"
