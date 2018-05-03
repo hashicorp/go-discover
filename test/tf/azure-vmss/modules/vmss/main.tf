@@ -30,7 +30,7 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_backend_address_pool" "bpepool" {
   resource_group_name = "${var.resource_group}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
-  name                = "BackEndAddressPool"
+  name                = "${var.resource_group}-${random_string.resource_name.result}"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -81,4 +81,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 resource "random_string" "password" {
   length = 16
+}
+resource "random_string" "resource_name" {
+  length = 16
+  special = false
+  upper = false
+  number = false
 }
