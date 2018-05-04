@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/go-discover/provider/digitalocean"
 )
 
+var _ discover.Provider = (*digitalocean.Provider)(nil)
+var _ discover.ProviderWithUserAgent = (*digitalocean.Provider)(nil)
+
 func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":  "digitalocean",

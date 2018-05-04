@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/go-discover/provider/gce"
 )
 
+var _ discover.Provider = (*gce.Provider)(nil)
+var _ discover.ProviderWithUserAgent = (*gce.Provider)(nil)
+
 func TestAddrs(t *testing.T) {
 	// assume the google credentials file contents are in the environment,
 	// as with the terraform provider

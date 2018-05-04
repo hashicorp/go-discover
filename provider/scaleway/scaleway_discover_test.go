@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/go-discover/provider/scaleway"
 )
 
+var _ discover.Provider = (*scaleway.Provider)(nil)
+
 func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":     "scaleway",
