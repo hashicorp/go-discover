@@ -12,13 +12,6 @@ import (
 var _ discover.Provider = (*scaleway.Provider)(nil)
 
 func TestAddrs(t *testing.T) {
-	//args := discover.Config{
-	//	"provider":     "scaleway",
-	//	"organization": os.Getenv("SCALEWAY_ORGANIZATION"),
-	//	"token":        os.Getenv("SCALEWAY_TOKEN"),
-	//	"tag_name":     "consul-server",
-	//	"region":       os.Getenv("SCALEWAY_REGION"),
-	//}
 	args := discover.Config{
 		"provider":     "scaleway",
 		"organization": os.Getenv("SCALEWAY_ORGANIZATION"),
