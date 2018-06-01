@@ -15,11 +15,11 @@ var _ discover.ProviderWithUserAgent = (*aliyun.Provider)(nil)
 func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "aliyun",
-		"region":            os.Getenv("ALIYUN_REGION"),
+		"region":            os.Getenv("ALICLOUD_REGION"),
 		"tag_key":           "consul",
 		"tag_value":         "server.test",
-		"access_key_id":     os.Getenv("ALIYUN_ACCESS_KEY_ID"),
-		"access_key_secret": os.Getenv("ALIYUN_ACCESS_KEY_SECRET"),
+		"access_key_id":     os.Getenv("ALICLOUD_ACCESS_KEY"),
+		"access_key_secret": os.Getenv("ALICLOUD_SECRET_KEY"),
 	}
 
 	if args["region"] == "" || args["access_key_id"] == "" || args["access_key_secret"] == "" {
