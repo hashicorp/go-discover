@@ -82,9 +82,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 resource "random_string" "password" {
   length = 16
 }
+
 resource "random_string" "resource_name" {
-  length = 16
+  length  = 16
   special = false
-  upper = false
-  number = false
+  upper   = false
+  number  = false
 }

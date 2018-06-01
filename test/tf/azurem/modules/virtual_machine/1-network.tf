@@ -22,8 +22,8 @@ resource "azurerm_network_interface" "internal" {
 }
 
 resource "random_string" "resource_name" {
-  length = 16
+  length  = 16
   special = false
-  upper = false
-  number = false
+  upper   = false
+  number  = false
 }
