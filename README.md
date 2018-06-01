@@ -33,7 +33,7 @@ function.
 
 HashiCorp maintains acceptance tests that regularly allocate and run tests with
 real resources to verify the behavior of several of these providers. Those
-currently are: Amazon AWS, Microsoft Azure, Google Cloud, DigitalOcean, and Triton.
+currently are: Amazon AWS, Microsoft Azure, Google Cloud, DigitalOcean, Triton, Scaleway and AliBaba Cloud.
 
 ### Config Example
 

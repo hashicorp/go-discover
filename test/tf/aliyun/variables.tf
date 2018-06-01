@@ -9,3 +9,7 @@ variable "tag" {
 variable "instance_type" {
   default = "ecs.n4.small"
 }
+
+variable "image_id" {
+  default = "centos_7_04_64_20G_alibase_201701015.vhd"
+}
