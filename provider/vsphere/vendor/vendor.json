@@ -1,0 +1,143 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "jc/kgOJNacek94rHKuFgIsjWwZw=",
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "ea8897e79973357ba785ac2533559a6297e83c44",
+			"revisionTime": "2018-05-23T07:42:43Z"
+		},
+		{
+			"checksumSHA1": "ljd3FhYRJ91cLZz3wsH9BQQ2JbA=",
+			"path": "github.com/pkg/errors",
+			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
+			"revisionTime": "2018-03-11T21:45:15Z"
+		},
+		{
+			"checksumSHA1": "d9wuJiM8kohvnjoHIRJcaYH8Bhw=",
+			"path": "github.com/vmware/govmomi",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "xFi1dbYQR8VwSRojdJMdvRGOmIw=",
+			"path": "github.com/vmware/govmomi/find",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "J3JrwZagGYMX6oNMkdsUFf8hHo8=",
+			"path": "github.com/vmware/govmomi/list",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "kYO3J9/MIfRkiKxPMTUwOvIOSso=",
+			"path": "github.com/vmware/govmomi/nfc",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "au0bpn151G5bPXhMYhizYr0HULU=",
+			"path": "github.com/vmware/govmomi/object",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "CPOocvkED4p4GhKZxwov8v7xfoA=",
+			"path": "github.com/vmware/govmomi/property",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "X0FWJTv6W/92YB21IBuEp3Mf3z4=",
+			"path": "github.com/vmware/govmomi/session",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "FQR3yNgiShaqUiJREkeqQCKYJ84=",
+			"path": "github.com/vmware/govmomi/task",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"path": "github.com/vmware/govmomi/types",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "7TYb0QwZ9DawKt89GlGABc9ufco=",
+			"path": "github.com/vmware/govmomi/vim25",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "xLvppq0NUD6Hv2GIx1gh75xUzyM=",
+			"path": "github.com/vmware/govmomi/vim25/debug",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "YfxE/jP0aAGIAhBQTVEAjZG1CKc=",
+			"path": "github.com/vmware/govmomi/vim25/methods",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "rAfxxiPj4cguQnmCzCpkKsuTsBc=",
+			"path": "github.com/vmware/govmomi/vim25/mo",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "OLrtV4J/PfHWhl0OZLb1zmqlt6E=",
+			"path": "github.com/vmware/govmomi/vim25/progress",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "QxjgzpmtHAg2pNHffZMnEPkYDLM=",
+			"path": "github.com/vmware/govmomi/vim25/soap",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "F58FP8qS+yAPVSCUPRsv2lhkfA0=",
+			"path": "github.com/vmware/govmomi/vim25/types",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "6XLRzLEvncx5ORtvBjp41KfRTjc=",
+			"path": "github.com/vmware/govmomi/vim25/xml",
+			"revision": "ae91c0ee0a326f320a5458d206fc751f319e1cf9",
+			"revisionTime": "2018-05-25T20:17:32Z"
+		},
+		{
+			"checksumSHA1": "ZLGAwcBpN5I+RNzoxt5pTssyobU=",
+			"path": "github.com/vmware/vic/pkg/vsphere/tags",
+			"revision": "7f6f2126d3ec4971408f4419d66a3cc945bd7ac6",
+			"revisionTime": "2018-06-02T01:19:01Z"
+		},
+		{
+			"checksumSHA1": "BGm8lKZmvJbf/YOJLeL1rw2WVjA=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "5ba7f63082460102a45837dbd1827e10f9479ac0",
+			"revisionTime": "2018-05-30T15:49:09Z"
+		},
+		{
+			"checksumSHA1": "VUb+SqeoloAw1A2Jz9IzkDNs06c=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "c11f84a56e43e20a78cee75a7c034031ecf57d1f",
+			"revisionTime": "2018-05-25T13:55:20Z"
+		},
+		{
+			"checksumSHA1": "m5QCvoZ2KaoLTG9VWjYNonM08b8=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "c11f84a56e43e20a78cee75a7c034031ecf57d1f",
+			"revisionTime": "2018-05-25T13:55:20Z"
+		}
+	],
+	"rootPath": "github.com/hashicorp/go-discover/provider/vsphere"
+}
