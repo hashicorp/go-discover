@@ -1,3 +1,21 @@
+// This is the Terraform file that is necessary to stand up the test
+// environment for vSphere node discovery.
+//
+// In order for this to function correctly, you need to have set up the correct
+// vSphere environment variables for connecting. The acceptance tests in
+// provider/vsphere also expect these.
+//
+// The expectant environment variables are:
+//
+// VSPHERE_SERVER:               The vCenter host
+// VSPHERE_USER:                 The vSphere username
+// VSPHERE_PASSWORD:             The password for VSPHERE_USER
+// VSPHERE_ALLOW_UNVERIFIED_SSL: Set if you need to skip SSL validation
+//
+// In addition to the above, you need to supply all of the variables below. If
+// you are automating in CI, the best way to supply these would be via a
+// TF_VAR_ variable, such as TF_VAR_template_name.
+
 // The name of the template to clone from. This needs to be a template
 // customizable by VMware tools, such as an up-to-date Linux VM.
 variable "template_name" {
