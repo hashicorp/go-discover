@@ -164,8 +164,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	setLog(l)
 
-	tagName := valueOrEnv(args, "tag_name", "VSPHERE_TAG_NAME")
-	categoryName := valueOrEnv(args, "category_name", "VSPHERE_CATEGORY_NAME")
+	tagName := args["tag_name"]
+	categoryName := args["category_name"]
 	host := valueOrEnv(args, "host", "VSPHERE_SERVER")
 	user := valueOrEnv(args, "user", "VSPHERE_USER")
 	password := valueOrEnv(args, "password", "VSPHERE_PASSWORD")
@@ -173,7 +173,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if err != nil {
 		logger.Println("[DEBUG] Non-truthy/falsey value for insecure_ssl, assuming false")
 	}
-	timeout, err := time.ParseDuration(valueOrEnv(args, "timeout", "VSPHERE_TIMEOUT"))
+	timeout, err := time.ParseDuration(args["timeout"])
 	if err != nil {
 		logger.Println("[DEBUG] Non-time value given for timeout, assuming 10m")
 		timeout = time.Minute * 10

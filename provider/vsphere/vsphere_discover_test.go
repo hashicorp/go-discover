@@ -64,21 +64,18 @@ func TestAddrs(t *testing.T) {
 	}
 }
 
+// TestAddrsEnv tests to make sure that we can lean on the environment for
+// credentials automatically. User credential environment variables are not set
+// using Setenv, leaving them to be fetched from the environment 100%.
 func TestAddrsEnv(t *testing.T) {
 	testPreCheck(t)
 
 	args := discover.Config{
-		"provider": "vsphere",
+		"provider":      "vsphere",
+		"tag_name":      "go-discover-test-tag",
+		"category_name": "go-discover-test-category",
+		"timeout":       "20m",
 	}
-
-	os.Setenv("VSPHERE_TAG_NAME", "go-discover-test-tag")
-	os.Setenv("VSPHERE_CATEGORY_NAME", "go-discover-test-category")
-	os.Setenv("VSPHERE_TIMEOUT", "20m")
-	defer func() {
-		_ = os.Unsetenv("VSPHERE_TAG_NAME")
-		_ = os.Unsetenv("VSPHERE_CATEGORY_NAME")
-		_ = os.Unsetenv("VSPHERE_TIMEOUT")
-	}()
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
 	p := &vsphere.Provider{}
