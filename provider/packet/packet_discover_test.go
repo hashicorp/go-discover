@@ -16,7 +16,7 @@ func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "packet",
 		"packet_auth_token": os.Getenv("PACKET_TOKEN"),
-		"packet_project":    "93125c2a-8b78-4d4f-a3c4-7367d6b7cca8",
+		"packet_project":    os.Getenv("PACKET_PROJECT"),
 	}
 
 	if args["packet_auth_token"] == "" {
