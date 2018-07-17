@@ -31,6 +31,7 @@ function.
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/triton/triton_discover.go#L17-L27)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/vsphere/vsphere_discover.go#L148-L155)
+ * Packet [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/packet/packet_discover.go#L25-L35)
 
 HashiCorp maintains acceptance tests that regularly allocate and run tests with
 real resources to verify the behavior of several of these providers. Those
@@ -68,6 +69,9 @@ provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_
 
 # vSphere
 provider=vsphere category_name=consul-role tag_name=consul-server host=... user=... password=... insecure_ssl=[true|false]
+
+# Packet 
+provider=packet packet_auth_token=token packet_project=uuid packet_url=... address_type=...
 ```
 
 ## Command Line Tool Usage

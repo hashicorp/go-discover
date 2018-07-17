@@ -24,11 +24,16 @@ func (p *Provider) SetUserAgent(s string) {
 func (p *Provider) Help() string {
 	return `Packet:
 	provider:		     "packet"
-	packet_project: 	 UUID of packet project
-	packet_url: 		 Packet REST URL
-	packet_auth_token:   Packet authentication token
-    address_type:        "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
-	`
+	packet_project: 	 UUID of packet project. Required
+	packet_auth_token:   Packet authentication token. Required
+	packet_url: 		 Packet REST URL. Optional
+	address_type:        "private_v4", "public_v4" or "public_v6". Defaults to "private_v4". Optional
+	
+	Variables can also be provided by environmental variables:
+	export PACKET_PROJECT for packet_project
+	export PACKET_URL for packet_url
+	export PACKET_AUTH_TOKEN for packet_auth_token
+`
 }
 
 // Addrs function
