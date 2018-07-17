@@ -27,6 +27,7 @@ func (p *Provider) Help() string {
 	packet_project: 	 UUID of packet project
 	packet_url: 		 Packet REST URL
 	packet_auth_token:   Packet authentication token
+    address_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
 	`
 }
 
@@ -35,6 +36,18 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	authToken := argsOrEnv(args, "packet_auth_token", "PACKET_AUTH_TOKEN")
 	projectID := argsOrEnv(args, "packet_project", "PACKET_PROJECT")
 	packetURL := argsOrEnv(args, "packet_url", "PACKET_URL")
+	addressType := args["address_type"]
+
+	if addressType != "private_v4" && addressType != "public_v4" && addressType != "public_v6" {
+		l.Printf("[INFO] discover-packet: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addressType)
+		addressType = "private_v4"
+	}
+
+	if addressType == "" {
+		l.Printf("[DEBUG] discover-packet: Address type not provided. Using 'private_v4'")
+		addressType = "private_v4"
+	}
+
 	c, err := client(p.userAgent, packetURL, authToken)
 	if err != nil {
 		return nil, fmt.Errorf("discover-packet: Initializing Packet client failed: %s", err)
@@ -52,8 +65,15 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 	var addrs []string
 	for _, d := range devices {
+		addressFamily := 4
+		if addressType == "public_v6" {
+			addressFamily = 6
+		}
 		for _, n := range d.Network {
-			addrs = append(addrs, n.Address)
+
+			if (n.Public == (addressType == "public_v4" || addressType == "public_v6")) && n.AddressFamily == addressFamily {
+				addrs = append(addrs, n.Address)
+			}
 		}
 	}
 	return addrs, nil
