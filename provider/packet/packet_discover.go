@@ -43,11 +43,6 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		addressType = "private_v4"
 	}
 
-	if addressType == "" {
-		l.Printf("[DEBUG] discover-packet: Address type not provided. Using 'private_v4'")
-		addressType = "private_v4"
-	}
-
 	c, err := client(p.userAgent, packetURL, authToken)
 	if err != nil {
 		return nil, fmt.Errorf("discover-packet: Initializing Packet client failed: %s", err)
