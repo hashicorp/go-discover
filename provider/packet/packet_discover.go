@@ -27,7 +27,7 @@ func (p *Provider) Help() string {
 	packet_project: 	 UUID of packet project
 	packet_url: 		 Packet REST URL
 	packet_auth_token:   Packet authentication token
-    address_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
+    address_type:        "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
 	`
 }
 

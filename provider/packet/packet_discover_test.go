@@ -22,6 +22,11 @@ func TestAddrs(t *testing.T) {
 	if args["packet_auth_token"] == "" {
 		t.Skip("Packet credentials missing")
 	}
+
+	if args["packet_project"] == "" {
+		t.Skip("Packet project UUID missing")
+	}
+	
 	p := packet.Provider{}
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
