@@ -23,24 +23,24 @@ func (p *Provider) SetUserAgent(s string) {
 // Help function
 func (p *Provider) Help() string {
 	return `Packet:
-	provider:		     "packet"
-	packet_project: 	 UUID of packet project. Required
-	packet_auth_token:   Packet authentication token. Required
-	packet_url: 		 Packet REST URL. Optional
-	address_type:        "private_v4", "public_v4" or "public_v6". Defaults to "private_v4". Optional
+	provider:		"packet"
+	project: 	 	UUID of packet project. Required
+	auth_token:   	Packet authentication token. Required
+	url: 		 	Packet REST URL. Optional
+	address_type:   "private_v4", "public_v4" or "public_v6". Defaults to "private_v4". Optional
 	
 	Variables can also be provided by environmental variables:
-	export PACKET_PROJECT for packet_project
-	export PACKET_URL for packet_url
-	export PACKET_AUTH_TOKEN for packet_auth_token
+	export PACKET_PROJECT for project
+	export PACKET_URL for url
+	export PACKET_AUTH_TOKEN for auth_token
 `
 }
 
 // Addrs function
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
-	authToken := argsOrEnv(args, "packet_auth_token", "PACKET_AUTH_TOKEN")
-	projectID := argsOrEnv(args, "packet_project", "PACKET_PROJECT")
-	packetURL := argsOrEnv(args, "packet_url", "PACKET_URL")
+	authToken := argsOrEnv(args, "auth_token", "PACKET_AUTH_TOKEN")
+	projectID := argsOrEnv(args, "project", "PACKET_PROJECT")
+	packetURL := argsOrEnv(args, "url", "PACKET_URL")
 	addressType := args["address_type"]
 
 	if addressType != "private_v4" && addressType != "public_v4" && addressType != "public_v6" {
@@ -56,7 +56,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var devices []packngo.Device
 
 	if projectID == "" {
-		return nil, fmt.Errorf("discover-packet: 'packet_project' parameter must be provider")
+		return nil, fmt.Errorf("discover-packet: 'project' parameter must be provider")
 	}
 
 	devices, _, err = c.Devices.List(projectID, nil)

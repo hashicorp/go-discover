@@ -71,7 +71,7 @@ provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_
 provider=vsphere category_name=consul-role tag_name=consul-server host=... user=... password=... insecure_ssl=[true|false]
 
 # Packet 
-provider=packet packet_auth_token=token packet_project=uuid packet_url=... address_type=...
+provider=packet auth_token=token project=uuid url=... address_type=...
 ```
 
 ## Command Line Tool Usage
