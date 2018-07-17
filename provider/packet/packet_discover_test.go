@@ -14,16 +14,16 @@ var _ discover.ProviderWithUserAgent = (*packet.Provider)(nil)
 
 func TestAddrsDefault(t *testing.T) {
 	args := discover.Config{
-		"provider":          "packet",
-		"packet_auth_token": os.Getenv("PACKET_TOKEN"),
-		"packet_project":    os.Getenv("PACKET_PROJECT"),
+		"provider":   "packet",
+		"auth_token": os.Getenv("PACKET_TOKEN"),
+		"project":    os.Getenv("PACKET_PROJECT"),
 	}
 
-	if args["packet_auth_token"] == "" {
+	if args["auth_token"] == "" {
 		t.Skip("Packet credentials missing")
 	}
 
-	if args["packet_project"] == "" {
+	if args["project"] == "" {
 		t.Skip("Packet project UUID missing")
 	}
 
@@ -43,17 +43,17 @@ func TestAddrsDefault(t *testing.T) {
 
 func TestAddrsPublicV6(t *testing.T) {
 	args := discover.Config{
-		"provider":          "packet",
-		"packet_auth_token": os.Getenv("PACKET_TOKEN"),
-		"packet_project":    os.Getenv("PACKET_PROJECT"),
-		"address_type":      "public_v6",
+		"provider":     "packet",
+		"auth_token":   os.Getenv("PACKET_TOKEN"),
+		"project":      os.Getenv("PACKET_PROJECT"),
+		"address_type": "public_v6",
 	}
 
-	if args["packet_auth_token"] == "" {
+	if args["auth_token"] == "" {
 		t.Skip("Packet credentials missing")
 	}
 
-	if args["packet_project"] == "" {
+	if args["project"] == "" {
 		t.Skip("Packet project UUID missing")
 	}
 
@@ -73,17 +73,17 @@ func TestAddrsPublicV6(t *testing.T) {
 
 func TestAddrsPublicV4(t *testing.T) {
 	args := discover.Config{
-		"provider":          "packet",
-		"packet_auth_token": os.Getenv("PACKET_TOKEN"),
-		"packet_project":    os.Getenv("PACKET_PROJECT"),
-		"address_type":      "public_v4",
+		"provider":     "packet",
+		"auth_token":   os.Getenv("PACKET_TOKEN"),
+		"project":      os.Getenv("PACKET_PROJECT"),
+		"address_type": "public_v4",
 	}
 
-	if args["packet_auth_token"] == "" {
+	if args["auth_token"] == "" {
 		t.Skip("Packet credentials missing")
 	}
 
-	if args["packet_project"] == "" {
+	if args["project"] == "" {
 		t.Skip("Packet project UUID missing")
 	}
 
