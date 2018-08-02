@@ -3,6 +3,7 @@ package k8s_test
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -13,6 +14,37 @@ import (
 )
 
 var _ discover.Provider = (*k8s.Provider)(nil)
+
+// Acceptance test against a real cluster
+func TestAcc(t *testing.T) {
+	path := "../../test/tf/k8s/kubeconfig.yaml"
+	path, err := filepath.Abs(path)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if _, err := os.Stat(path); err != nil {
+		t.Skipf("Skipping, can't find %q: %s", path, err)
+		return
+	}
+
+	args := discover.Config{
+		"provider":       "k8s",
+		"kubeconfig":     path,
+		"label_selector": "app = valid",
+	}
+
+	l := log.New(os.Stderr, "", log.LstdFlags)
+	p := &k8s.Provider{}
+	addrs, err := p.Addrs(args, l)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Addrs: %v", addrs)
+	if len(addrs) != 3 {
+		t.Fatalf("bad: %v", addrs)
+	}
+}
 
 func TestPodAddrs(t *testing.T) {
 	cases := []struct {
