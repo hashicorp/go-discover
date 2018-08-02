@@ -101,7 +101,15 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-k8s: error listing pods: %s", err)
 	}
 
-	// Parse out the addresses from the pods
+	return PodAddrs(pods, l)
+}
+
+// PodAddrs extracts the addresses from a list of pods.
+//
+// This is a separate method so that we can unit test this without having
+// to setup complicated K8S cluster scenarios. It shouldn't generally be
+// called externally.
+func PodAddrs(pods *corev1.PodList, l *log.Logger) ([]string, error) {
 	var addrs []string
 PodLoop:
 	for _, pod := range pods.Items {
