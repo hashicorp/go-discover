@@ -36,12 +36,18 @@ func (p *Provider) Help() string {
     namespace:        Namespace to search for pods (defaults to "default").
     label_selector:   Label selector value to filter pods.
     field_selector:   Field selector value to filter pods.
+    host_network:     "true" if pod host IP and ports should be used.
 
     The kubeconfig file value will be searched in the following locations:
 
      1. Use path from "kubeconfig" option if provided.
      2. Use path from KUBECONFIG environment variable.
      3. Use default path of $HOME/.kube/config
+
+    Note that if "host_network" is set to true, then only pods that have
+    a HostIP available will be selected. If a port annotation exists, then
+    the port must be exposed via a HostPort as well, otherwise the pod will
+    be ignored.
 `
 }
 
@@ -101,7 +107,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-k8s: error listing pods: %s", err)
 	}
 
-	return PodAddrs(pods, l)
+	return PodAddrs(pods, args, l)
 }
 
 // PodAddrs extracts the addresses from a list of pods.
@@ -109,7 +115,16 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 // This is a separate method so that we can unit test this without having
 // to setup complicated K8S cluster scenarios. It shouldn't generally be
 // called externally.
-func PodAddrs(pods *corev1.PodList, l *log.Logger) ([]string, error) {
+func PodAddrs(pods *corev1.PodList, args map[string]string, l *log.Logger) ([]string, error) {
+	hostNetwork := false
+	if v := args["host_network"]; v != "" {
+		var err error
+		hostNetwork, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, fmt.Errorf("discover-k8s: host_network must be boolean value: %s", err)
+		}
+	}
+
 	var addrs []string
 PodLoop:
 	for _, pod := range pods.Items {
@@ -130,16 +145,19 @@ PodLoop:
 
 		// Get the IP address that we will join.
 		addr := pod.Status.PodIP
+		if hostNetwork {
+			addr = pod.Status.HostIP
+		}
 		if addr == "" {
 			// This can be empty according to the API docs, so we protect that.
-			l.Printf("[DEBUG] discover-k8s: ignoring pod %q, PodIP is empty", pod.Name)
+			l.Printf("[DEBUG] discover-k8s: ignoring pod %q, requested IP is empty", pod.Name)
 			continue
 		}
 
 		// We only use the port if it is specified as an annotation. The
 		// annotation value can be a name or a number.
 		if v := pod.Annotations[AnnotationKeyPort]; v != "" {
-			port, err := podPort(&pod, v)
+			port, err := podPort(&pod, v, hostNetwork)
 			if err != nil {
 				l.Printf("[DEBUG] discover-k8s: ignoring pod %q, error retrieving port: %s",
 					pod.Name, err)
@@ -159,11 +177,21 @@ PodLoop:
 // for a non-empty annotation.
 //
 // Pre-condition: annotation is non-empty
-func podPort(pod *corev1.Pod, annotation string) (int32, error) {
+func podPort(pod *corev1.Pod, annotation string, host bool) (int32, error) {
 	// First look for a matching port matching the value of the annotation.
 	for _, container := range pod.Spec.Containers {
 		for _, portDef := range container.Ports {
 			if portDef.Name == annotation {
+				if host {
+					// It is possible for HostPort to be zero, if that is the
+					// case then we ignore this port.
+					if portDef.HostPort == 0 {
+						continue
+					}
+
+					return portDef.HostPort, nil
+				}
+
 				return portDef.ContainerPort, nil
 			}
 		}

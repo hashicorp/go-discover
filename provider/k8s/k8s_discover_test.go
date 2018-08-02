@@ -48,12 +48,28 @@ func TestPodAddrs(t *testing.T) {
 			[]corev1.Pod{
 				corev1.Pod{
 					Status: corev1.PodStatus{
-						Phase: corev1.PodRunning,
-						PodIP: "1.2.3.4",
+						Phase:  corev1.PodRunning,
+						PodIP:  "1.2.3.4",
+						HostIP: "2.3.4.5",
 					},
 				},
 			},
 			[]string{"1.2.3.4"},
+		},
+
+		{
+			"Simple pods host network",
+			map[string]string{"host_network": "true"},
+			[]corev1.Pod{
+				corev1.Pod{
+					Status: corev1.PodStatus{
+						Phase:  corev1.PodRunning,
+						PodIP:  "1.2.3.4",
+						HostIP: "2.3.4.5",
+					},
+				},
+			},
+			[]string{"2.3.4.5"},
 		},
 
 		{
@@ -173,6 +189,41 @@ func TestPodAddrs(t *testing.T) {
 		},
 
 		{
+			"Port annotation (named with host network)",
+			map[string]string{"host_network": "true"},
+			[]corev1.Pod{
+				corev1.Pod{
+					Status: corev1.PodStatus{
+						Phase:  corev1.PodRunning,
+						PodIP:  "1.2.3.4",
+						HostIP: "2.3.4.5",
+					},
+
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							corev1.Container{
+								Ports: []corev1.ContainerPort{
+									corev1.ContainerPort{
+										Name:          "http",
+										HostPort:      80,
+										ContainerPort: 8080,
+									},
+								},
+							},
+						},
+					},
+
+					ObjectMeta: metav1.ObjectMeta{
+						Annotations: map[string]string{
+							k8s.AnnotationKeyPort: "http",
+						},
+					},
+				},
+			},
+			[]string{"2.3.4.5:80"},
+		},
+
+		{
 			"Port annotation (direct)",
 			nil,
 			[]corev1.Pod{
@@ -205,12 +256,47 @@ func TestPodAddrs(t *testing.T) {
 			},
 			[]string{"1.2.3.4:4600"},
 		},
+
+		{
+			"Port annotation (direct with host network)",
+			map[string]string{"host_network": "true"},
+			[]corev1.Pod{
+				corev1.Pod{
+					Status: corev1.PodStatus{
+						Phase:  corev1.PodRunning,
+						PodIP:  "1.2.3.4",
+						HostIP: "2.3.4.5",
+					},
+
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							corev1.Container{
+								Ports: []corev1.ContainerPort{
+									corev1.ContainerPort{
+										Name:          "http",
+										HostPort:      80,
+										ContainerPort: 8080,
+									},
+								},
+							},
+						},
+					},
+
+					ObjectMeta: metav1.ObjectMeta{
+						Annotations: map[string]string{
+							k8s.AnnotationKeyPort: "4600",
+						},
+					},
+				},
+			},
+			[]string{"2.3.4.5:4600"},
+		},
 	}
 
 	for _, tt := range cases {
 		t.Run(tt.Name, func(t *testing.T) {
 			l := log.New(os.Stderr, "", log.LstdFlags)
-			addrs, err := k8s.PodAddrs(&corev1.PodList{Items: tt.Pods}, l)
+			addrs, err := k8s.PodAddrs(&corev1.PodList{Items: tt.Pods}, tt.Args, l)
 			if err != nil {
 				t.Fatalf("err: %s", err)
 			}
