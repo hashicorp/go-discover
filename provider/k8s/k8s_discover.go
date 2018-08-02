@@ -7,10 +7,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/go-homedir"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	// Register all known auth mechanisms since we might be authenticating
@@ -48,21 +50,35 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-k8s: invalid provider " + args["provider"])
 	}
 
-	// Get the kubeconfig path. If it is not set, set the default path.
+	// Get the configuration. This can come from multiple sources. We first
+	// try kubeconfig it is set directly, then we fall back to in-cluster
+	// auth. Finally, we try the default kubeconfig path.
 	kubeconfig := args["kubeconfig"]
 	if kubeconfig == "" {
+		// If kubeconfig is empty, let's first try the default directory.
+		// This is must faster than trying in-cluster auth so we try this
+		// first.
 		dir, err := homedir.Dir()
 		if err != nil {
 			return nil, fmt.Errorf("discover-k8s: error retrieving home directory: %s", err)
 		}
-
 		kubeconfig = filepath.Join(dir, ".kube", "config")
 	}
 
-	// Get the kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return nil, fmt.Errorf("discover-k8s: error loading kubeconfig: %s", err)
+	// First try to get the configuration from the kubeconfig value
+	config, configErr := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if configErr != nil {
+		configErr = fmt.Errorf("discover-k8s: error loading kubeconfig: %s", configErr)
+
+		// kubeconfig failed, fall back and try in-cluster config. We do
+		// this as the fallback since this makes network connections and
+		// is much slower to fail.
+		var err error
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			return nil, multierror.Append(configErr, fmt.Errorf(
+				"discover-k8s: error loading in-cluster config: %s", err))
+		}
 	}
 
 	// Initialize the clientset
