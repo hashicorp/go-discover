@@ -44,6 +44,12 @@ func (p *Provider) Help() string {
      2. Use path from KUBECONFIG environment variable.
      3. Use default path of $HOME/.kube/config
 
+    By default, the Pod IP is used to join. The "host_network" option may
+    be set to use the Host IP. No port is used by default. Pods may set
+    an annotation 'hashicorp/consul-auto-join-port' to a named port or
+    an integer value. If the value matches a named port, that port will
+    be used to join.
+
     Note that if "host_network" is set to true, then only pods that have
     a HostIP available will be selected. If a port annotation exists, then
     the port must be exposed via a HostPort as well, otherwise the pod will
