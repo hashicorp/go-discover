@@ -15,7 +15,7 @@ var _ discover.ProviderWithUserAgent = (*packet.Provider)(nil)
 func TestAddrsDefault(t *testing.T) {
 	args := discover.Config{
 		"provider":   "packet",
-		"auth_token": os.Getenv("PACKET_TOKEN"),
+		"auth_token": os.Getenv("PACKET_AUTH_TOKEN"),
 		"project":    os.Getenv("PACKET_PROJECT"),
 	}
 
@@ -44,7 +44,7 @@ func TestAddrsDefault(t *testing.T) {
 func TestAddrsPublicV6(t *testing.T) {
 	args := discover.Config{
 		"provider":     "packet",
-		"auth_token":   os.Getenv("PACKET_TOKEN"),
+		"auth_token":   os.Getenv("PACKET_AUTH_TOKEN"),
 		"project":      os.Getenv("PACKET_PROJECT"),
 		"address_type": "public_v6",
 	}
@@ -74,7 +74,7 @@ func TestAddrsPublicV6(t *testing.T) {
 func TestAddrsPublicV4(t *testing.T) {
 	args := discover.Config{
 		"provider":     "packet",
-		"auth_token":   os.Getenv("PACKET_TOKEN"),
+		"auth_token":   os.Getenv("PACKET_AUTH_TOKEN"),
 		"project":      os.Getenv("PACKET_PROJECT"),
 		"address_type": "public_v4",
 	}
