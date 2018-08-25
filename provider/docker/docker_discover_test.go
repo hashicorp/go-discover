@@ -43,6 +43,9 @@ func createContainer(t *testing.T, cli *client.Client, ctx context.Context, labe
 }
 
 func TestAddrs(t *testing.T) {
+	if os.Getenv("DOCKER_ENV") == "" {
+		t.Skip("Skipping Docker test in non-docker env")
+	}
 
 	ctx := context.Background()
 
