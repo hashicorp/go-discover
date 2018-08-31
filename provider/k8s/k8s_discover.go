@@ -23,7 +23,7 @@ import (
 const (
 	// AnnotationKeyPort is the annotation name of the field that specifies
 	// the port name or number to append to the address.
-	AnnotationKeyPort = "hashicorp.com/consul-auto-join-port"
+	AnnotationKeyPort = "consul.hashicorp.com/auto-join-port"
 )
 
 type Provider struct{}
