@@ -144,7 +144,8 @@ d := discover.Discover{
 }
 
 // ...
-`
+```
+
 For complete API documentation, see
 [GoDoc](https://godoc.org/github.com/hashicorp/go-discover). The configuration
 for the supported providers is documented in the
