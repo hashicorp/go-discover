@@ -4,11 +4,11 @@ provider "google" {
 }
 
 provider "kubernetes" {
-  host = "https://${google_container_cluster.cluster.endpoint}"
-  client_certificate = "${base64decode(google_container_cluster.cluster.master_auth.0.client_certificate)}"
-  client_key = "${base64decode(google_container_cluster.cluster.master_auth.0.client_key)}"
+  host                   = "https://${google_container_cluster.cluster.endpoint}"
+  client_certificate     = "${base64decode(google_container_cluster.cluster.master_auth.0.client_certificate)}"
+  client_key             = "${base64decode(google_container_cluster.cluster.master_auth.0.client_key)}"
   cluster_ca_certificate = "${base64decode(google_container_cluster.cluster.master_auth.0.cluster_ca_certificate)}"
-  load_config_file = false
+  load_config_file       = false
 }
 
 provider "local" {

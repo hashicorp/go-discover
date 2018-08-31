@@ -14,6 +14,7 @@ resource "google_container_cluster" "cluster" {
 
 resource "local_file" "kubeconfig" {
   filename = "${path.module}/kubeconfig.yaml"
+
   content = <<EOF
 apiVersion: v1
 clusters:
