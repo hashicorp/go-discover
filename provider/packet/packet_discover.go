@@ -124,7 +124,7 @@ func includeExcludeArgs(s string) ([]string, []string) {
 	for _, localstring := range strings.Split(s, ",") {
 		if strings.HasPrefix(localstring, "!") {
 			exclude = append(exclude, localstring[1:])
-		} else {
+		} else if len(localstring) > 0 {
 			include = append(include, localstring)
 		}
 	}
