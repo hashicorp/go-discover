@@ -67,6 +67,8 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.2.1 // indirect
 	k8s.io/api v0.0.0-20180806132203-61b11ee65332
-	k8s.io/apimachinery v0.0.0-20180821005732-488889b0007f
-	k8s.io/client-go v8.0.0+incompatible
+	k8s.io/apimachinery v0.0.0-20181204150028-eb8c8024849b
+	k8s.io/client-go v8.0.0+incompatible // indirect
+	k8s.io/klog v0.1.0 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )
