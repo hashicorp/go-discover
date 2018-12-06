@@ -23,7 +23,7 @@ func (p *Provider) SetUserAgent(s string) {
 
 func (p *Provider) Help() string {
 	return `Microsoft Azure:
-
+   env:		what env the Azure Cloud is: {pub,cn,us,de} default is pub
    provider:          "azure"
    tenant_id:         The id of the tenant
    client_id:         The id of the client
@@ -53,6 +53,23 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-azure: invalid provider " + args["provider"])
 	}
 
+	env :=  args["env"]
+	var cloud = azure.PublicCloud
+	if len(env)>0  {
+		switch env {
+			case "pub" :
+				cloud = azure.PublicCloud
+			case "cn":
+				cloud = azure.ChinaCloud
+			case "us":
+				cloud = azure.USGovernmentCloud
+			case "de":
+				cloud = azure.GermanCloud
+			default:
+				cloud = azure.PublicCloud
+		}
+	}
+
 	if l == nil {
 		l = log.New(ioutil.Discard, "", 0)
 	}
@@ -71,19 +88,20 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	vmScaleSet := args["vm_scale_set"]
 
 	// Only works for the Azure PublicCLoud for now; no ability to test other Environment
-	oauthConfig, err := adal.NewOAuthConfig(azure.PublicCloud.ActiveDirectoryEndpoint, tenantID)
+	oauthConfig, err := adal.NewOAuthConfig(cloud.ActiveDirectoryEndpoint, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}
 
 	// Get the ServicePrincipalToken for use searching the NetworkInterfaces
-	sbt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, azure.PublicCloud.ResourceManagerEndpoint)
+	sbt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, cloud.ResourceManagerEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}
 
 	// Setup the client using autorest; followed the structure from Terraform
-	vmnet := network.NewInterfacesClient(subscriptionID)
+	//vmnet := network.NewInterfacesClient(subscriptionID)
+	vmnet := network.NewInterfacesClientWithBaseURI(cloud.ResourceManagerEndpoint, subscriptionID)
 	vmnet.Sender = autorest.CreateSender(autorest.WithLogging(l))
 	vmnet.Authorizer = autorest.NewBearerAuthorizer(sbt)
 
