@@ -29,8 +29,8 @@ func (p *Provider) Help() string {
 	auth_token:     Packet authentication token. Required
 	url:            Packet REST URL. Optional
 	address_type:   "private_v4", "public_v4" or "public_v6". Defaults to "private_v4". Optional
-	facility:       Filter for specific facility (Examples: "ewr1,ams1" (include),  "!ewr1,!nrt1" (exclude))
-	tag:            Filter by tag (Examples: "tag1,tag2" (include), "!tag3,!tag4" (exclude))
+	facility:       Filter for specific facility (Examples: "ewr1,ams1")
+	tag:            Filter by tag (Examples: "tag1,tag2")
 	
 	Variables can also be provided by environmental variables:
 	export PACKET_PROJECT for project
@@ -53,8 +53,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		addressType = "private_v4"
 	}
 
-	includeFacilities, excludeFacilities := includeExcludeArgs(packetFacilities)
-	includeTags, excludeTags := includeExcludeArgs(packetTags)
+	includeFacilities := includeArgs(packetFacilities)
+	includeTags := includeArgs(packetTags)
 
 	c, err := client(p.userAgent, packetURL, authToken)
 	if err != nil {
@@ -75,14 +75,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var addrs []string
 	for _, d := range devices {
 
-		if Include(excludeFacilities, d.Facility.Code) {
-			continue
-		}
 		if len(includeFacilities) > 0 && !Include(includeFacilities, d.Facility.Code) {
-			continue
-		}
-
-		if Any(d.Tags, func(v string) bool { return Include(excludeTags, v) }) {
 			continue
 		}
 
@@ -118,17 +111,14 @@ func argsOrEnv(args map[string]string, key, env string) string {
 	return os.Getenv(env)
 }
 
-func includeExcludeArgs(s string) ([]string, []string) {
+func includeArgs(s string) []string {
 	var include []string
-	var exclude []string
 	for _, localstring := range strings.Split(s, ",") {
-		if strings.HasPrefix(localstring, "!") {
-			exclude = append(exclude, localstring[1:])
-		} else if len(localstring) > 0 {
+		if len(localstring) > 0 {
 			include = append(include, localstring)
 		}
 	}
-	return include, exclude
+	return include
 }
 
 // Index returns the first index of the target string t, or -1 if no match is found.

@@ -163,68 +163,6 @@ func TestAddrsFacilityIncludeMulti(t *testing.T) {
 	}
 }
 
-func TestAddrsFacilityExclude(t *testing.T) {
-	args := discover.Config{
-		"provider":     "packet",
-		"auth_token":   os.Getenv("PACKET_AUTH_TOKEN"),
-		"project":      os.Getenv("PACKET_PROJECT"),
-		"address_type": "private_v4",
-		"facility":     "!ewr1",
-	}
-
-	if args["auth_token"] == "" {
-		t.Skip("Packet credentials missing")
-	}
-
-	if args["project"] == "" {
-		t.Skip("Packet project UUID missing")
-	}
-
-	p := packet.Provider{}
-
-	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := p.Addrs(args, l)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(addrs) != 3 {
-		t.Fatalf("bad: %v", addrs)
-	}
-}
-
-func TestAddrsFacilityExcludeMulti(t *testing.T) {
-	args := discover.Config{
-		"provider":     "packet",
-		"auth_token":   os.Getenv("PACKET_AUTH_TOKEN"),
-		"project":      os.Getenv("PACKET_PROJECT"),
-		"address_type": "private_v4",
-		"facility":     "!ewr1,!sjc1",
-	}
-
-	if args["auth_token"] == "" {
-		t.Skip("Packet credentials missing")
-	}
-
-	if args["project"] == "" {
-		t.Skip("Packet project UUID missing")
-	}
-
-	p := packet.Provider{}
-
-	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := p.Addrs(args, l)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(addrs) != 2 {
-		t.Fatalf("bad: %v", addrs)
-	}
-}
-
 func TestAddrsTagInclude(t *testing.T) {
 	args := discover.Config{
 		"provider":     "packet",
@@ -263,37 +201,6 @@ func TestAddrsTagIncludeMulti(t *testing.T) {
 		"project":      os.Getenv("PACKET_PROJECT"),
 		"address_type": "private_v4",
 		"tag":          "tag1,tag2",
-	}
-
-	if args["auth_token"] == "" {
-		t.Skip("Packet credentials missing")
-	}
-
-	if args["project"] == "" {
-		t.Skip("Packet project UUID missing")
-	}
-
-	p := packet.Provider{}
-
-	l := log.New(os.Stderr, "", log.LstdFlags)
-	addrs, err := p.Addrs(args, l)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(addrs) != 3 {
-		t.Fatalf("bad: %v", addrs)
-	}
-}
-
-func TestAddrsTagExclude(t *testing.T) {
-	args := discover.Config{
-		"provider":     "packet",
-		"auth_token":   os.Getenv("PACKET_AUTH_TOKEN"),
-		"project":      os.Getenv("PACKET_PROJECT"),
-		"address_type": "private_v4",
-		"tag":          "!tag2",
 	}
 
 	if args["auth_token"] == "" {
