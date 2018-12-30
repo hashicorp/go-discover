@@ -16,8 +16,10 @@ import (
 func main() {
 	var quiet bool
 	var help bool
+	var json bool
 	flag.BoolVar(&quiet, "q", false, "no verbose output")
 	flag.BoolVar(&help, "h", false, "print help")
+	flag.BoolVar(&json, "json", false, "output response as json")
 	flag.Parse()
 
 	d := &discover.Discover{}
@@ -42,5 +44,10 @@ func main() {
 	if err != nil {
 		l.Fatal(err)
 	}
-	fmt.Println(strings.Join(addrs, " "))
+	switch addrs.(type) {
+	case string:
+		fmt.Println(addrs)
+	case []string:
+		fmt.Println(strings.Join(addrs.([]string), " "))
+	}
 }
