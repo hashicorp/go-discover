@@ -154,6 +154,9 @@ sub-package.
 
 ## Testing
 
+**Note: Due to the `go.sum` checksum errors referenced in [#68](https://github.com/hashicorp/go-discover/issues/68), 
+you will need Go 1.11.4+ to build/test go-discover.**
+
 Configuration tests can be run with Go:
 
 ```
