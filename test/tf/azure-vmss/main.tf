@@ -23,15 +23,3 @@ module "vmss" {
   location       = "${azurerm_resource_group.test.location}"
   subnet_id      = "${module.network.subnet_id}"
 }
-
-output "public_ip" {
-  value = "${module.vmss.public_ip}"
-}
-
-output "vm_scale_set" {
-  value = "${module.vmss.vm_scale_set}"
-}
-
-output "resource_group" {
-  value = "${azurerm_resource_group.test.name}"
-}
