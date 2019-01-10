@@ -1,5 +1,6 @@
+# pin azure provider for https://github.com/terraform-providers/terraform-provider-azurerm/pull/2035
 provider "azurerm" {
-  version = "~> 1.3"
+  version = "~> 1.16.0"
 }
 
 provider "random" {
