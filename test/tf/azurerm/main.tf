@@ -57,15 +57,3 @@ module "vm03" {
   location            = "${azurerm_resource_group.test.location}"
   subnet_id           = "${module.network.subnet_id}"
 }
-
-output "public_ips" {
-  value = ["${module.vm01.public_ip}", "${module.vm02.public_ip}", "${module.vm03.public_ip}"]
-}
-
-output "private_ips" {
-  value = ["${module.vm01.private_ip}", "${module.vm02.private_ip}", "${module.vm03.private_ip}"]
-}
-
-output "tagged_ips" {
-  value = ["${module.vm01.private_ip}", "${module.vm02.private_ip}"]
-}
