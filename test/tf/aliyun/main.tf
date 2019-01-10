@@ -1,4 +1,6 @@
-provider "alicloud" {}
+provider "alicloud" {
+  version = "1.24.0"
+}
 
 resource "alicloud_instance" "test" {
   count           = 2
