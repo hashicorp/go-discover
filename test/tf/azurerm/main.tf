@@ -7,7 +7,7 @@ provider "random" {
 }
 
 variable "prefix" {
-  default = "go-discover"
+  default = "go-discover-azurerm"
 }
 
 resource "azurerm_resource_group" "test" {

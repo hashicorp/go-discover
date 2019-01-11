@@ -1,5 +1,5 @@
 variable "prefix" {
-  default = "go-discover"
+  default = "go-discover-azure-vmss"
 }
 
 resource "azurerm_resource_group" "test" {
