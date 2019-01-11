@@ -1,5 +1,5 @@
 provider "google" {
-  version = "~> 1.10"
+  version = "~> 1.20.0"
 }
 
 resource "google_compute_instance" "tagged" {
