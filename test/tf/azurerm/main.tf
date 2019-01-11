@@ -3,11 +3,11 @@ provider "azurerm" {
 }
 
 provider "random" {
-  version = "~> 1.2"
+  version = "~> 2.0.0"
 }
 
 variable "prefix" {
-  default = "go-discover"
+  default = "go-discover-azurerm"
 }
 
 resource "azurerm_resource_group" "test" {
