@@ -1,5 +1,5 @@
 provider "digitalocean" {
-  version = "~> 0.1"
+  version = "~> 1.1.0"
 }
 
 resource "digitalocean_tag" "test" {
