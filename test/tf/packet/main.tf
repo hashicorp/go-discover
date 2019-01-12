@@ -1,4 +1,10 @@
-provider "packet" {}
+provider "packet" {
+  version = "~> 1.2.5"
+}
+
+provider "random" {
+  version = "~> 2.0.0"
+}
 
 variable "facility" {
   default = ["ewr1", "sjc1", "ams1", "nrt1"]
@@ -28,8 +34,4 @@ resource "packet_device" "discover-packet01" {
   operating_system = "ubuntu_16_04"
   billing_cycle    = "hourly"
   project_id       = "${packet_project.project.id}"
-}
-
-output "project_id" {
-  value = "${packet_project.project.id}"
 }
