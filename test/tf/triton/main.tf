@@ -1,4 +1,6 @@
-provider "triton" {}
+provider "triton" {
+  version = "~> 0.5.0"
+}
 
 data "triton_image" "image" {
   name    = "base-64-lts"
@@ -16,6 +18,7 @@ resource "triton_machine" "test" {
 }
 
 resource "triton_machine" "test_tagged" {
+  count    = 2
   package  = "g4-highcpu-128M"
   image    = "${data.triton_image.image.id}"
   networks = ["${data.triton_network.public.id}"]
