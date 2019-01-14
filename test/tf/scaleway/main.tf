@@ -1,6 +1,7 @@
 //Configuring the provider
 provider "scaleway" {
-  region = "${var.region}"
+  version = "~> 1.8.0"
+  region  = "${var.region}"
 }
 
 resource "scaleway_server" "test" {
