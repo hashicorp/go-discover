@@ -14,8 +14,9 @@ variable "tags" {
   default = ["tag1", "tag1", "tag2", "tag3"]
 }
 
-resource "packet_project" "project" {
-  name = "go-discover:packet-project-${element(random_string.vm_name_suffix.*.result, count.index)}"
+variable "packet_project" {
+  description = "Existing packet project"
+  default     = ""
 }
 
 resource "random_string" "vm_name_suffix" {
@@ -33,5 +34,5 @@ resource "packet_device" "discover-packet01" {
   tags             = ["${element(var.tags, count.index)}"]
   operating_system = "ubuntu_16_04"
   billing_cycle    = "hourly"
-  project_id       = "${packet_project.project.id}"
+  project_id       = "${var.packet_project}"
 }
