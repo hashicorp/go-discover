@@ -16,7 +16,6 @@ variable "tags" {
 
 variable "packet_project" {
   description = "Existing packet project"
-  default     = ""
 }
 
 resource "random_string" "vm_name_suffix" {
