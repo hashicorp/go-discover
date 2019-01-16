@@ -160,33 +160,33 @@ workflows:
   acceptance:
     jobs:
       - go-test
-      - alicloud-provider:
-          requires:
-            - go-test
-      - aws-provider:
-          requires:
-            - go-test
+      # - alicloud-provider:
+      #     requires:
+      #       - go-test
+      # - aws-provider:
+      #     requires:
+      #       - go-test
       - azure-vmss-provider:
           requires:
             - go-test
-      - azurerm-provider:
-          requires:
-            - go-test
-      - digitalocean-provider:
-          requires:
-            - go-test
-      - gce-provider:
-          requires:
-            - go-test
-      - k8s-provider:
-          requires:
-            - go-test
-      - packet-provider:
-          requires:
-            - go-test
-      - scaleway-provider:
-          requires:
-            - go-test
-      - triton-provider:
-          requires:
-            - go-test
+      # - azurerm-provider:
+      #     requires:
+      #       - go-test
+      # - digitalocean-provider:
+      #     requires:
+      #       - go-test
+      # - gce-provider:
+      #     requires:
+      #       - go-test
+      # - k8s-provider:
+      #     requires:
+      #       - go-test
+      # - packet-provider:
+      #     requires:
+      #       - go-test
+      # - scaleway-provider:
+      #     requires:
+      #       - go-test
+      # - triton-provider:
+      #     requires:
+      #       - go-test
