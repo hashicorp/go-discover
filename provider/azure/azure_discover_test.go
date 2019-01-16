@@ -15,7 +15,6 @@ var _ discover.ProviderWithUserAgent = (*azure.Provider)(nil)
 func TestTagAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "azure",
-		"resource_group":    "go-discover-azurerm-dev",
 		"tag_name":          "consul",
 		"tag_value":         "server",
 		"subscription_id":   os.Getenv("ARM_SUBSCRIPTION_ID"),
@@ -48,7 +47,7 @@ func TestVmScaleSetAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "azure",
 		"resource_group":    "go-discover-azure-vmss-dev",
-		"vm_scale_set":      "go-discover-01-vmss",
+		"vm_scale_set":      "go-discover-azure-vmss-01-scale-set",
 		"subscription_id":   os.Getenv("ARM_SUBSCRIPTION_ID"),
 		"tenant_id":         os.Getenv("ARM_TENANT_ID"),
 		"client_id":         os.Getenv("ARM_CLIENT_ID"),
