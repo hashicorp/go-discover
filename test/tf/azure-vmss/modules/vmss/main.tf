@@ -35,7 +35,7 @@ resource "azurerm_lb_backend_address_pool" "bpepool" {
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "${var.name}-vmss"
+  name                = "${var.name}-scale-set"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
   upgrade_policy_mode = "Manual"
