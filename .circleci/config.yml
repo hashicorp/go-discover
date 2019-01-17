@@ -58,6 +58,7 @@ commands:
           working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
           command: terraform apply --auto-approve
 
+      - run: sleep 10
       # run acceptance tests
       - when:
           condition: << parameters.provider-go-test-tags >>
@@ -78,7 +79,8 @@ commands:
       # teardown infrastructure
       - run:
           working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
-          command: terraform destroy --force
+          command: echo "tf destroy"
+          #          command: terraform destroy --force
           when: always
 
 jobs:
