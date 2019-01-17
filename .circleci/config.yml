@@ -1,0 +1,200 @@
+version: 2.1
+
+# reusable 'executor' object for jobs
+executors:
+  go:
+    docker:
+      - image: circleci/golang:1.11.4
+    environment:
+      - TEST_RESULTS: /tmp/test-results  # path to where test results are saved
+
+# reusable 'commands' to be added as a step in jobs
+commands:
+  tf-install:
+    description: Install Terraform binary
+    parameters:
+      version:
+        type: string
+        default: 0.11.11
+      os:
+        type: string
+        default: linux
+      arch:
+        type: string
+        default: amd64
+    steps:
+      - run:
+          name: download Terraform
+          command: |
+            curl -L -o /tmp/terraform.zip \
+            https://releases.hashicorp.com/terraform/<< parameters.version >>/terraform_<< parameters.version >>_<< parameters.os >>_<< parameters.arch >>.zip
+      - run: unzip -d /go/bin /tmp/terraform.zip
+
+  acctest:
+    description: Run acceptance tests for cloud providers
+    parameters:
+      provider-test-infra-dir:
+        type: string
+      provider-go-test-dir:
+        type: string
+      provider-go-test-tags:
+        type: string
+        default: ""
+    steps:
+      - tf-install
+      - checkout
+
+      - run:
+          name: install junit and setup test path
+          command: |
+            go get github.com/jstemmer/go-junit-report
+            mkdir -p /tmp/test-results
+
+      # spin up infrastructure
+      - run:
+          working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
+          command: terraform init
+      - run:
+          working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
+          command: terraform apply --auto-approve
+
+      # run acceptance tests
+      - when:
+          condition: << parameters.provider-go-test-tags >>
+          steps:
+            - run: go test -run << parameters.provider-go-test-tags >> -v ./provider/<< parameters.provider-go-test-dir >> | tee ${TEST_RESULTS}/results.out
+      - unless:
+          condition: << parameters.provider-go-test-tags >>
+          steps:
+            - run: go test -v ./provider/<< parameters.provider-go-test-dir >> | tee ${TEST_RESULTS}/results.out
+
+      # generate XML results
+      - run:
+          command: go-junit-report < ${TEST_RESULTS}/results.out > ${TEST_RESULTS}/results.xml
+          when: always
+
+      # store test results for CircleCI
+      - store_test_results:
+          path: /tmp/test-results
+
+      # teardown infrastructure
+      - run:
+          working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
+          command: terraform destroy --force
+          when: always
+
+jobs:
+  go-test:
+    executor: go
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-test-v1-{{ checksum "go.sum" }}
+      - run: go test -v
+      - save_cache:
+          key: go-mod-test-v1-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod
+  alicloud-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: aliyun
+          provider-go-test-dir: aliyun
+  aws-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: aws
+          provider-go-test-dir: aws
+  azure-vmss-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: azure-vmss
+          provider-go-test-dir: azure
+          provider-go-test-tags: TestVmScaleSetAddrs
+  azurerm-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: azurerm
+          provider-go-test-dir: azure
+          provider-go-test-tags: TestTagAddrs
+  digitalocean-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: digitalocean
+          provider-go-test-dir: digitalocean
+  gce-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: gce
+          provider-go-test-dir: gce
+  k8s-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: k8s
+          provider-go-test-dir: k8s
+  packet-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: packet
+          provider-go-test-dir: packet
+
+  scaleway-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: scaleway
+          provider-go-test-dir: scaleway
+  triton-provider:
+    executor: go
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "3e:c7:ee:67:a5:e7:bc:eb:be:b8:9a:0e:ee:fb:e2:33"
+      - acctest:
+          provider-test-infra-dir: triton
+          provider-go-test-dir: triton
+
+workflows:
+  version: 2
+  acceptance:
+    jobs:
+      - go-test
+      - alicloud-provider:
+          requires:
+            - go-test
+      - aws-provider:
+          requires:
+            - go-test
+      - azure-vmss-provider:
+          requires:
+            - go-test
+      - azurerm-provider:
+          requires:
+            - go-test
+      - digitalocean-provider:
+          requires:
+            - go-test
+      - gce-provider:
+          requires:
+            - go-test
+      - k8s-provider:
+          requires:
+            - go-test
+      - packet-provider:
+          requires:
+            - go-test
+      - scaleway-provider:
+          requires:
+            - go-test
+      - triton-provider:
+          requires:
+            - go-test
