@@ -1,6 +1,5 @@
-# pin azure provider for https://github.com/terraform-providers/terraform-provider-azurerm/pull/2035
 provider "azurerm" {
-  version = "~> 1.16.0"
+  version = "~> 1.21.0"
 }
 
 provider "random" {
@@ -72,6 +71,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name                                   = "${var.name}-ipc"
+      primary                                = true
       subnet_id                              = "${var.subnet_id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
     }
