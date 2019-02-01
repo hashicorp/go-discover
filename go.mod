@@ -4,7 +4,6 @@ require (
 	cloud.google.com/go v0.26.0 // indirect
 	github.com/Azure/azure-sdk-for-go v16.0.0+incompatible
 	github.com/Azure/go-autorest v10.7.0+incompatible
-	github.com/Sirupsen/logrus v1.0.6 // indirect
 	github.com/abdullin/seq v0.0.0-20160510034733-d5467c17e7af // indirect
 	github.com/aws/aws-sdk-go v1.15.24
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -38,11 +37,11 @@ require (
 	github.com/onsi/gomega v1.4.1 // indirect
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/pkg/errors v0.8.0 // indirect
+	github.com/pkg/errors v0.8.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
-	github.com/sirupsen/logrus v1.0.6 // indirect
+	github.com/sirupsen/logrus v1.0.6
 	github.com/smartystreets/assertions v0.0.0-20180820201707-7c9eb446e3cf // indirect
 	github.com/smartystreets/goconvey v0.0.0-20180222194500-ef6db91d284a // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
@@ -50,7 +49,6 @@ require (
 	github.com/stretchr/testify v1.2.2 // indirect
 	github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9 // indirect
 	github.com/vmware/govmomi v0.18.0
-	github.com/vmware/vic v1.4.1
 	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac // indirect
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
 	golang.org/x/oauth2 v0.0.0-20170807180024-9a379c6b3e95
