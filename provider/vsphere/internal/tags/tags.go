@@ -23,8 +23,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -67,7 +67,7 @@ func (c *RestClient) CreateTagIfNotExist(ctx context.Context, name string, descr
 	if err == nil {
 		return id, nil
 	}
-	Logger.Debugf("Created tag %s failed for %s", errors.WithStack(err))
+	Logger.Debugf("Created tag %s failed for %s", name, errors.WithStack(err))
 	// if already exists, query back
 	if strings.Contains(err.Error(), ErrAlreadyExists) {
 		tagObjs, err := c.GetTagByNameForCategory(ctx, name, categoryID)
@@ -125,7 +125,7 @@ func (c *RestClient) GetTag(ctx context.Context, id string) (*Tag, error) {
 	stream, _, status, err := c.call(ctx, "GET", fmt.Sprintf("%s/id:%s", TagURL, id), nil, nil)
 
 	if status != http.StatusOK || err != nil {
-		Logger.Debugf("Get tag failed with status code: %s, error message: %s", status, errors.WithStack(err))
+		Logger.Debugf("Get tag failed with status code: %d, error message: %s", status, errors.WithStack(err))
 		return nil, errors.Wrapf(err, "Status code: %d", status)
 	}
 
@@ -160,7 +160,7 @@ func (c *RestClient) DeleteTag(ctx context.Context, id string) error {
 	_, _, status, err := c.call(ctx, "DELETE", fmt.Sprintf("%s/id:%s", TagURL, id), nil, nil)
 
 	if status != http.StatusOK || err != nil {
-		Logger.Debugf("Delete tag failed with status code: %s, error message: %s", status, errors.WithStack(err))
+		Logger.Debugf("Delete tag failed with status code: %d, error message: %s", status, errors.WithStack(err))
 		return errors.Wrapf(err, "Status code: %d", status)
 	}
 	return nil
@@ -172,7 +172,7 @@ func (c *RestClient) ListTags(ctx context.Context) ([]string, error) {
 	stream, _, status, err := c.call(ctx, "GET", TagURL, nil, nil)
 
 	if status != http.StatusOK || err != nil {
-		Logger.Debugf("Get tags failed with status code: %s, error message: %s", status, errors.WithStack(err))
+		Logger.Debugf("Get tags failed with status code: %d, error message: %s", status, errors.WithStack(err))
 		return nil, errors.Wrapf(err, "Status code: %d", status)
 	}
 
@@ -189,7 +189,7 @@ func (c *RestClient) ListTagsForCategory(ctx context.Context, id string) ([]stri
 	stream, _, status, err := c.call(ctx, "POST", fmt.Sprintf("%s/id:%s?~action=list-tags-for-category", TagURL, id), spec, nil)
 
 	if status != http.StatusOK || err != nil {
-		Logger.Debugf("List tags for category failed with status code: %s, error message: %s", status, errors.WithStack(err))
+		Logger.Debugf("List tags for category failed with status code: %d, error message: %s", status, errors.WithStack(err))
 		return nil, errors.Wrapf(err, "Status code: %d", status)
 	}
 
