@@ -2,8 +2,9 @@
 	"comment": "",
 	"ignore": "test",
 	"package": [
-		{"path":"github.com/Sirupsen/logrus","checksumSHA1":"jc/kgOJNacek94rHKuFgIsjWwZw=","revision":"ea8897e79973357ba785ac2533559a6297e83c44","revisionTime":"2018-05-23T07:42:43Z"},
+		{"path":"github.com/hashicorp/vic/pkg/vsphere/tags","checksumSHA1":"X/h8Dt3bUaLOmS21SkLX6jWb1hQ=","revision":"b15179225d21a06e2a9e7bfcfc6d2e9225c978fb","revisionTime":"2019-02-15T17:41:16Z","version":"v1.5.10","versionExact":"v1.5.10"},
 		{"path":"github.com/pkg/errors","checksumSHA1":"ljd3FhYRJ91cLZz3wsH9BQQ2JbA=","revision":"816c9085562cd7ee03e7f8188a1cfd942858cded","revisionTime":"2018-03-11T21:45:15Z"},
+		{"path":"github.com/sirupsen/logrus","checksumSHA1":"vRcu8DLpEnhOuaZ/M8iGl2CRG8Y=","revision":"3e01752db0189b9157070a0e1668a620f9a85da2","revisionTime":"2018-07-21T07:00:01Z","version":"v1.0.6","versionExact":"v1.0.6"},
 		{"path":"github.com/vmware/govmomi","checksumSHA1":"d9wuJiM8kohvnjoHIRJcaYH8Bhw=","revision":"ae91c0ee0a326f320a5458d206fc751f319e1cf9","revisionTime":"2018-05-25T20:17:32Z"},
 		{"path":"github.com/vmware/govmomi/find","checksumSHA1":"xFi1dbYQR8VwSRojdJMdvRGOmIw=","revision":"ae91c0ee0a326f320a5458d206fc751f319e1cf9","revisionTime":"2018-05-25T20:17:32Z"},
 		{"path":"github.com/vmware/govmomi/list","checksumSHA1":"J3JrwZagGYMX6oNMkdsUFf8hHo8=","revision":"ae91c0ee0a326f320a5458d206fc751f319e1cf9","revisionTime":"2018-05-25T20:17:32Z"},
@@ -21,7 +22,6 @@
 		{"path":"github.com/vmware/govmomi/vim25/soap","checksumSHA1":"QxjgzpmtHAg2pNHffZMnEPkYDLM=","revision":"ae91c0ee0a326f320a5458d206fc751f319e1cf9","revisionTime":"2018-05-25T20:17:32Z"},
 		{"path":"github.com/vmware/govmomi/vim25/types","checksumSHA1":"F58FP8qS+yAPVSCUPRsv2lhkfA0=","revision":"ae91c0ee0a326f320a5458d206fc751f319e1cf9","revisionTime":"2018-05-25T20:17:32Z"},
 		{"path":"github.com/vmware/govmomi/vim25/xml","checksumSHA1":"6XLRzLEvncx5ORtvBjp41KfRTjc=","revision":"ae91c0ee0a326f320a5458d206fc751f319e1cf9","revisionTime":"2018-05-25T20:17:32Z"},
-		{"path":"github.com/vmware/vic/pkg/vsphere/tags","checksumSHA1":"ZLGAwcBpN5I+RNzoxt5pTssyobU=","revision":"7f6f2126d3ec4971408f4419d66a3cc945bd7ac6","revisionTime":"2018-06-02T01:19:01Z"},
 		{"path":"golang.org/x/crypto/ssh/terminal","checksumSHA1":"BGm8lKZmvJbf/YOJLeL1rw2WVjA=","revision":"5ba7f63082460102a45837dbd1827e10f9479ac0","revisionTime":"2018-05-30T15:49:09Z"},
 		{"path":"golang.org/x/sys/unix","checksumSHA1":"VUb+SqeoloAw1A2Jz9IzkDNs06c=","revision":"c11f84a56e43e20a78cee75a7c034031ecf57d1f","revisionTime":"2018-05-25T13:55:20Z"},
 		{"path":"golang.org/x/sys/windows","checksumSHA1":"m5QCvoZ2KaoLTG9VWjYNonM08b8=","revision":"c11f84a56e43e20a78cee75a7c034031ecf57d1f","revisionTime":"2018-05-25T13:55:20Z"}
