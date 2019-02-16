@@ -39,6 +39,7 @@ func TestConfigParse(t *testing.T) {
 		{`key="\`, nil, errors.New(`key: unterminated escape sequence`)},
 		{`key=a key=b`, nil, errors.New(`key: duplicate key`)},
 		{`key key2`, nil, errors.New(`key: missing '='`)},
+		{`secret_acccess_key=fpOfcHQJAQBczjAxiVpeyLmX1M0M0KPBST+GU2GvEN4=`, nil, errors.New(`secret_acccess_key: - equals in key's value, enclosing quotes needed`)},
 	}
 
 	for _, tt := range tests {
