@@ -12,6 +12,31 @@ import (
 var _ discover.Provider = (*azure.Provider)(nil)
 var _ discover.ProviderWithUserAgent = (*azure.Provider)(nil)
 
+func TestTagAddrsWithEnv(t *testing.T) {
+	args := discover.Config{
+		"provider":  "azure",
+		"tag_name":  "consul",
+		"tag_value": "server",
+	}
+
+	if os.Getenv("ARM_SUBSCRIPTION_ID") == "" || os.Getenv("ARM_CLIENT_ID") == "" || os.Getenv("ARM_CLIENT_SECRET") == "" || os.Getenv("ARM_TENANT_ID") == "" {
+		t.Skip("Azure Enviornmental credentials missing")
+	}
+
+	if args["environment"] == "" {
+		t.Log("Environments other than Public not supported at the moment")
+	}
+
+	p := &azure.Provider{}
+	l := log.New(os.Stderr, "", log.LstdFlags)
+	addrs, err := p.Addrs(args, l)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(addrs) != 2 {
+		t.Fatalf("bad: %v", addrs)
+	}
+}
 func TestTagAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "azure",
