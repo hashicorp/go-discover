@@ -20,6 +20,7 @@ func TestConfigParse(t *testing.T) {
 		{` key=a    key2=b `, Config{"key": "a", "key2": "b"}, nil},
 		{` key = a   key2 = b `, Config{"key": "a", "key2": "b"}, nil},
 		{`  "k e \\\" y" = "a \" b" key2=c`, Config{`k e \" y`: `a " b`, "key2": "c"}, nil},
+		{`secret_access_key="fpOfcHQJAQBczjAxiVpeyLmX1M0M0KPBST+GU2GvEN4="`, Config{"secret_access_key": "fpOfcHQJAQBczjAxiVpeyLmX1M0M0KPBST+GU2GvEN4="}, nil},
 
 		{`provider=aws foo`, nil, errors.New(`foo: missing '='`)},
 		{`project_name=Test zone_pattern=us-(?west|east).+ tag_value="consul server" credentials_file=xxx`,
@@ -39,7 +40,7 @@ func TestConfigParse(t *testing.T) {
 		{`key="\`, nil, errors.New(`key: unterminated escape sequence`)},
 		{`key=a key=b`, nil, errors.New(`key: duplicate key`)},
 		{`key key2`, nil, errors.New(`key: missing '='`)},
-		{`secret_access_key=fpOfcHQJAQBczjAxiVpeyLmX1M0M0KPBST+GU2GvEN4=`, nil, errors.New(`secret_access_key: - equals in key's value, enclosing quotes needed`)},
+		{`secret_access_key=fpOfcHQJAQBczjAxiVpeyLmX1M0M0KPBST+GU2GvEN4=`, nil, errors.New(`secret_access_key: - equals in key's value, enclosing double-quote needed secret_access_key="value-with-=-symbol"`)},
 	}
 
 	for _, tt := range tests {
