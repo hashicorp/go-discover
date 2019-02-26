@@ -78,7 +78,7 @@ func parse(in string) (Config, error) {
 				state = stateEqual
 			default:
 				if val == "" {
-					return nil, fmt.Errorf("%s: - equals in key's value, enclosing quotes needed", key)
+					return nil, fmt.Errorf("%s: - equals in key's value, enclosing double-quote needed %s=\"value-with-=-symbol\"", key, key)
 				}
 				return nil, fmt.Errorf("%s: error with key=value pair %s", key, val)
 			}
