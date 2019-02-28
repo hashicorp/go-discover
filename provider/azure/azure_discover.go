@@ -60,10 +60,10 @@ func (p *Provider) Help() string {
 
 // argsOrEnv allows you to pick an environmental variable for a setting if the arg is not set
 func argsOrEnv(args map[string]string, key, env string) string {
-  if value, ok := args[key]; ok {
-    return value
-  }
-  return os.Getenv(env)
+	if value, ok := args[key]; ok {
+		return value
+	}
+	return os.Getenv(env)
 }
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
@@ -95,10 +95,29 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}
 
-	// Get the ServicePrincipalToken for use searching the NetworkInterfaces
-	sbt, err := adal.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, azure.PublicCloud.ResourceManagerEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("discover-azure: %s", err)
+	var sbt *adal.ServicePrincipalToken
+
+	// use the client id and secret, otherwise fall back to msi
+	if clientID != "" && secretKey != "" {
+		// Get the ServicePrincipalToken for use searching the NetworkInterfaces
+		sbt, err = adal.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, azure.PublicCloud.ResourceManagerEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("discover-azure: %s", err)
+		}
+	} else {
+		// get the msi endpoint
+		endpoint := argsOrEnv(args, "msi_endpoint", "ARM_MSI_ENDPOINT")
+		if endpoint == "" {
+			msiEndpoint, err := adal.GetMSIVMEndpoint()
+			if err != nil {
+				return nil, fmt.Errorf("Error determining MSI Endpoint: ensure the VM has MSI enabled, or configure the MSI Endpoint. Error: %s", err)
+			}
+			endpoint = msiEndpoint
+		}
+		sbt, err = adal.NewServicePrincipalTokenFromMSI(endpoint, "https://management.azure.com/")
+		if err != nil {
+			return nil, fmt.Errorf("discover-azure: %s", err)
+		}
 	}
 
 	// Setup the client using autorest; followed the structure from Terraform
