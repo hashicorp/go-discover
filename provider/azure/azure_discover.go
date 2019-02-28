@@ -54,7 +54,7 @@ func (p *Provider) Help() string {
 
    When using Virtual Machine Scale Sets the only role action needed is Microsoft.Compute/virtualMachineScaleSets/*/read.
 
-   It is recommended you make a dedicated key used only for auto-joining.
+   If the Consul agent is running on an Azure instance it is recommended you use a MSI, otherwise it is recommended you make a dedicated key used only for auto-joining.
 `
 }
 
