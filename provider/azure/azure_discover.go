@@ -98,23 +98,23 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var sbt *adal.ServicePrincipalToken
 
 	// use the client id and secret, otherwise fall back to msi
-	if clientID != "" && secretKey != "" {
+	if clientID != "" && secretKey != "" && tenantID != "" {
+		l.Printf("[DEBUG] discover-azure: Getting token for CliendId and Key")
 		// Get the ServicePrincipalToken for use searching the NetworkInterfaces
 		sbt, err = adal.NewServicePrincipalToken(*oauthConfig, clientID, secretKey, azure.PublicCloud.ResourceManagerEndpoint)
 		if err != nil {
 			return nil, fmt.Errorf("discover-azure: %s", err)
 		}
 	} else {
-		// get the msi endpoint
-		endpoint := argsOrEnv(args, "msi_endpoint", "ARM_MSI_ENDPOINT")
-		if endpoint == "" {
-			msiEndpoint, err := adal.GetMSIVMEndpoint()
-			if err != nil {
-				return nil, fmt.Errorf("Error determining MSI Endpoint: ensure the VM has MSI enabled, or configure the MSI Endpoint. Error: %s", err)
-			}
-			endpoint = msiEndpoint
+
+		l.Printf("[DEBUG] discover-azure: ClientID or key not specified, getting MSI tokens")
+
+		msiEndpoint, err := adal.GetMSIVMEndpoint()
+		if err != nil {
+			return nil, fmt.Errorf("Error determining MSI Endpoint: ensure the VM has MSI enabled, or configure the MSI Endpoint. Error: %s", err)
 		}
-		sbt, err = adal.NewServicePrincipalTokenFromMSI(endpoint, "https://management.azure.com/")
+
+		sbt, err = adal.NewServicePrincipalTokenFromMSI(msiEndpoint, "https://management.azure.com/")
 		if err != nil {
 			return nil, fmt.Errorf("discover-azure: %s", err)
 		}
