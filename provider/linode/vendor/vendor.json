@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "W2Jo2pjiNAE7oFI4j9HLb3tEZ3k=",
+			"path": "github.com/linode/linodego",
+			"revision": "42d84d42f3f28fe1fe1823c58c11715241eda24e",
+			"revisionTime": "2019-02-05T19:19:13Z"
+		}
+	],
+	"rootPath": "github.com/hashicorp/go-discover/provider/linode"
+}
