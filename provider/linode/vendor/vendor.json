@@ -3,10 +3,22 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "W2Jo2pjiNAE7oFI4j9HLb3tEZ3k=",
+			"checksumSHA1": "jm8r8aj8JP35ocqQ2bwoHgy6wpM=",
 			"path": "github.com/linode/linodego",
 			"revision": "42d84d42f3f28fe1fe1823c58c11715241eda24e",
 			"revisionTime": "2019-02-05T19:19:13Z"
+		},
+		{
+			"checksumSHA1": "j6leSoJatxWHJGLjRxIjZ8GbaDQ=",
+			"path": "golang.org/x/net/publicsuffix",
+			"revision": "16b79f2e4e95ea23b2bf9903c9809ff7b013ce85",
+			"revisionTime": "2019-03-01T08:36:47Z"
+		},
+		{
+			"checksumSHA1": "iwwCOtfdXj5RGjQThilFlGzUNTc=",
+			"path": "gopkg.in/resty.v1",
+			"revision": "fa5875c0caa5c260ab78acec5a244215a730247f",
+			"revisionTime": "2019-02-28T07:26:48Z"
 		}
 	],
 	"rootPath": "github.com/hashicorp/go-discover/provider/linode"

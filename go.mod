@@ -30,6 +30,7 @@ require (
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
+	github.com/linode/linodego v0.7.1
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
@@ -52,7 +53,6 @@ require (
 	github.com/vmware/govmomi v0.18.0
 	github.com/vmware/vic v1.4.1
 	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac // indirect
-	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
 	golang.org/x/oauth2 v0.0.0-20170807180024-9a379c6b3e95
 	golang.org/x/sync v0.0.0-20170927054112-8e0aa688b654 // indirect
 	golang.org/x/sys v0.0.0-20180828065106-d99a578cf41b // indirect
@@ -64,6 +64,7 @@ require (
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
+	gopkg.in/resty.v1 v1.12.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.2.1 // indirect
 	k8s.io/api v0.0.0-20180806132203-61b11ee65332
