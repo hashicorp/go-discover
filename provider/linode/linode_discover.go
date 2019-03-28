@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/linode/linodego"
 	"golang.org/x/oauth2"
@@ -37,7 +35,7 @@ func (p *Provider) Help() string {
     tag_name:     The tag name to filter on
     address_type: "private_v4", "public_v4", "private_v6" or "public_v6". (default: "private_v4")
 
-    Variables can also be provided by environment variables:
+    Variables can also be proivdedby environment variables:
     export LINODE_TOKEN for api_token
 `
 }
@@ -71,8 +69,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		filters.Tag = tagName
 	}
 
-	jsonFilters, _ := json.Marshal(filters)
-	filterOpt := linodego.ListOptions{Filter: string(jsonFilters)}
+	json_filters, _ := json.Marshal(filters)
+	filterOpt := linodego.ListOptions{Filter: string(json_filters)}
 
 	linodes, err := client.ListInstances(context.Background(), &filterOpt)
 	if err != nil {
@@ -81,47 +79,41 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	var addrs []string
 	for _, linode := range linodes {
-		if linodeAddrs, err := getLinodeAddresses(client, addressType, linode); err == nil {
-			addrs = append(addrs, linodeAddrs...)
-		} else {
-			return nil, err
+		addr, err := client.GetInstanceIPAddresses(context.Background(), linode.ID)
+		if err != nil {
+			return nil, fmt.Errorf("discover-linode: Fetching Linode IP address for instance %v failed: %s", linode.ID, err)
+		}
+
+		switch addressType {
+		case "public_v4":
+			if len(addr.IPv4.Public) == 0 {
+				break
+			}
+			addrs = append(addrs, addr.IPv4.Public[0].Address)
+		case "private_v4":
+			if len(addr.IPv4.Private) == 0 {
+				break
+			}
+			addrs = append(addrs, addr.IPv4.Private[0].Address)
+		case "public_v6":
+			if addr.IPv6.SLAAC.Address == "" {
+				break
+			}
+			addrs = append(addrs, addr.IPv6.SLAAC.Address)
+		case "private_v6":
+			if addr.IPv6.LinkLocal.Address == "" {
+				break
+			}
+			addrs = append(addrs, addr.IPv6.LinkLocal.Address)
+		default:
+			if len(addr.IPv4.Private) == 0 {
+				break
+			}
+			addrs = append(addrs, addr.IPv4.Private[0].Address)
 		}
 	}
 
 	return addrs, nil
-}
-
-func getLinodeAddresses(client linodego.Client, addressType string, linode linodego.Instance) (addresses []string, err error) {
-	switch addressType {
-	case "public_v4":
-		for _, ip := range linode.IPv4 {
-			if !privateIP(*ip) {
-				addresses = append(addresses, ip.String())
-			}
-		}
-	case "public_v6":
-		v6Addr := strings.SplitN(linode.IPv6, "/", 2)
-		if len(v6Addr) > 0 {
-			addresses = append(addresses, v6Addr[0])
-		}
-	case "private_v6":
-		var addr *linodego.InstanceIPAddressResponse
-		if addr, err = client.GetInstanceIPAddresses(context.Background(), linode.ID); err == nil {
-			if addr.IPv6.LinkLocal.Address != "" {
-				addresses = append(addresses, addr.IPv6.LinkLocal.Address)
-			}
-		} else {
-			err = fmt.Errorf("discover-linode: Fetching Linode IP address for instance %v failed: %s", linode.ID, err)
-		}
-	// private_v4
-	default:
-		for _, ip := range linode.IPv4 {
-			if privateIP(*ip) {
-				addresses = append(addresses, ip.String())
-			}
-		}
-	}
-	return addresses, err
 }
 
 func getLinodeClient(userAgent, apiToken string) linodego.Client {
@@ -134,9 +126,8 @@ func getLinodeClient(userAgent, apiToken string) linodego.Client {
 	}
 
 	client := linodego.NewClient(oauth2Client)
-	if userAgent != "" {
-		client.SetUserAgent(userAgent)
-	}
+
+	client.SetUserAgent(userAgent)
 
 	return client
 }
@@ -146,18 +137,4 @@ func argsOrEnv(args map[string]string, key, env string) string {
 		return value
 	}
 	return os.Getenv(env)
-}
-
-// privateIP determines if an IP is for private use (RFC1918)
-// https://stackoverflow.com/a/41273687
-func privateIP(ip net.IP) bool {
-	return ipInCIDR(ip, "10.0.0.0/8") || ipInCIDR(ip, "172.16.0.0/12") || ipInCIDR(ip, "192.168.0.0/16")
-}
-
-func ipInCIDR(ip net.IP, CIDR string) bool {
-	_, ipNet, err := net.ParseCIDR(CIDR)
-	if err != nil {
-		return false
-	}
-	return ipNet.Contains(ip)
 }
