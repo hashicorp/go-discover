@@ -35,7 +35,7 @@ func (p *Provider) Help() string {
     tag_name:     The tag name to filter on
     address_type: "private_v4", "public_v4", "private_v6" or "public_v6". (default: "private_v4")
 
-    Variables can also be proivdedby environment variables:
+    Variables can also be provided by environment variables:
     export LINODE_TOKEN for api_token
 `
 }
@@ -69,8 +69,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		filters.Tag = tagName
 	}
 
-	json_filters, _ := json.Marshal(filters)
-	filterOpt := linodego.ListOptions{Filter: string(json_filters)}
+	jsonFilters, _ := json.Marshal(filters)
+	filterOpt := linodego.ListOptions{Filter: string(jsonFilters)}
 
 	linodes, err := client.ListInstances(context.Background(), &filterOpt)
 	if err != nil {
@@ -127,7 +127,9 @@ func getLinodeClient(userAgent, apiToken string) linodego.Client {
 
 	client := linodego.NewClient(oauth2Client)
 
-	client.SetUserAgent(userAgent)
+	if userAgent != "" {
+		client.SetUserAgent(userAgent)
+	}
 
 	return client
 }
