@@ -12,7 +12,7 @@ import (
 var _ discover.Provider = (*linode.Provider)(nil)
 var _ discover.ProviderWithUserAgent = (*linode.Provider)(nil)
 
-func TestAddrsTagedDefault(t *testing.T) {
+func TestAddrsTaggedDefault(t *testing.T) {
 	args := discover.Config{
 		"provider":  "linode",
 		"api_token": os.Getenv("LINODE_TOKEN"),
