@@ -21,8 +21,7 @@ func (p *Provider) Help() string {
 
     provider:          "aws"
     region:            The AWS region. Default to region of instance.
-    tag_key:           The tag key to filter on
-    tag_value:         The tag value to filter on
+    tag_filters:       The tag key value pairs used to filter on.
     addr_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
@@ -31,6 +30,19 @@ func (p *Provider) Help() string {
     running on AWS instance it is recommended you use an IAM role, otherwise it is
     recommended you make a dedicated IAM user and access key used only for auto-joining.
 `
+}
+
+type Filters []*ec2.Filter
+
+func (f *Filters) Expand(tagFilters map[string]string) Filters {
+	for tagKey, tagValue := range tagFilters {
+		append(*f, &ec2.Filter{
+			Name:   aws.String("tag:" + tagKey),
+			Values: []*string{aws.String(tagValue)},
+		})
+	}
+
+	return *f
 }
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
@@ -43,8 +55,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	region := args["region"]
-	tagKey := args["tag_key"]
-	tagValue := args["tag_value"]
+	tagFilters := args["tag_filters"]
 	addrType := args["addr_type"]
 	accessKey := args["access_key_id"]
 	secretKey := args["secret_access_key"]
@@ -59,7 +70,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		addrType = "private_v4"
 	}
 
-	log.Printf("[DEBUG] discover-aws: Using region=%s tag_key=%s tag_value=%s addr_type=%s", region, tagKey, tagValue, addrType)
+	log.Printf("[DEBUG] discover-aws: Using region=%s tag_filters=%s addr_type=%s", region, tagFilters, addrType)
 	if accessKey == "" && secretKey == "" {
 		log.Printf("[DEBUG] discover-aws: No static credentials")
 		log.Printf("[DEBUG] discover-aws: Using environment variables, shared credentials or instance role")
@@ -95,18 +106,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}),
 	})
 
-	l.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
+	l.Printf("[INFO] discover-aws: Filter instances with %s", tagFilters)
+	filters := make(Filters, len(tagFilters))
+
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
-		Filters: []*ec2.Filter{
-			&ec2.Filter{
-				Name:   aws.String("tag:" + tagKey),
-				Values: []*string{aws.String(tagValue)},
-			},
-			&ec2.Filter{
-				Name:   aws.String("instance-state-name"),
-				Values: []*string{aws.String("running")},
-			},
-		},
+		Filters: filters.Expand(tagFilters),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("discover-aws: DescribeInstancesInput failed: %s", err)
