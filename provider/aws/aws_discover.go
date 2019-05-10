@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -13,6 +14,41 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
+
+// TagFilterMap a map for all the tags used to filter instances
+type TagFilterMap map[string]string
+
+// CreateTagFilterMap creates a map for the key values listed on tagFilters
+func CreateTagFilterMap(tagFilters string) TagFilterMap {
+	tagFilterMap := make(TagFilterMap)
+
+	for _, item := range strings.Split(tagFilters, ",") {
+		keyValue := strings.Split(item, "=")
+		tagFilterMap[keyValue[0]] = keyValue[1]
+	}
+
+	return tagFilterMap
+}
+
+// an alias for a slice of filters
+type awsFilters []*ec2.Filter
+
+// expand a parsed map[string]string to tag filters list for aws
+func (f *awsFilters) expand(tagFilterMap TagFilterMap) awsFilters {
+	for tagKey, tagValue := range tagFilterMap {
+		*f = append(*f, &ec2.Filter{
+			Name:   aws.String("tag:" + tagKey),
+			Values: []*string{aws.String(tagValue)},
+		})
+	}
+
+	*f = append(*f, &ec2.Filter{
+		Name:   aws.String("instance-state-name"),
+		Values: []*string{aws.String("running")},
+	})
+
+	return *f
+}
 
 type Provider struct{}
 
@@ -30,19 +66,6 @@ func (p *Provider) Help() string {
     running on AWS instance it is recommended you use an IAM role, otherwise it is
     recommended you make a dedicated IAM user and access key used only for auto-joining.
 `
-}
-
-type Filters []*ec2.Filter
-
-func (f *Filters) Expand(tagFilters map[string]string) Filters {
-	for tagKey, tagValue := range tagFilters {
-		append(*f, &ec2.Filter{
-			Name:   aws.String("tag:" + tagKey),
-			Values: []*string{aws.String(tagValue)},
-		})
-	}
-
-	return *f
 }
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
@@ -107,10 +130,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	})
 
 	l.Printf("[INFO] discover-aws: Filter instances with %s", tagFilters)
-	filters := make(Filters, len(tagFilters))
+	tagFilterMap := CreateTagFilterMap(tagFilters)
+	filters := make(awsFilters, len(tagFilterMap))
 
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
-		Filters: filters.Expand(tagFilters),
+		Filters: filters.expand(tagFilterMap),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("discover-aws: DescribeInstancesInput failed: %s", err)
