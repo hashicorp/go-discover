@@ -38,6 +38,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
   upgrade_policy_mode = "Manual"
+  overprovision       = false
 
   sku {
     name     = "${var.size}"
