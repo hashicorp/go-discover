@@ -30,11 +30,11 @@ func CreateTagFilterMap(tagFilters string) TagFilterMap {
 	return tagFilterMap
 }
 
-// an alias for a slice of filters
-type AwsFilters []*ec2.Filter
+// Filters an alias for a slice of filters for instances
+type Filters []*ec2.Filter
 
 // Expand a parsed map[string]string to tag filters list for aws
-func (f *AwsFilters) Expand(tagFilterMap TagFilterMap) AwsFilters {
+func (f *Filters) Expand(tagFilterMap TagFilterMap) Filters {
 	for tagKey, tagValue := range tagFilterMap {
 		*f = append(*f, &ec2.Filter{
 			Name:   aws.String("tag:" + tagKey),
@@ -131,7 +131,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	l.Printf("[INFO] discover-aws: Filter instances with %s", tagFilters)
 	tagFilterMap := CreateTagFilterMap(tagFilters)
-	filters := make(AwsFilters, len(tagFilterMap))
+	filters := make(Filters, len(tagFilterMap))
 
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
 		Filters: filters.Expand(tagFilterMap),
