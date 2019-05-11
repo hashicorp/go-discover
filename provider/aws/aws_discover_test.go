@@ -49,5 +49,16 @@ func TestCreateTagFilterMap(t *testing.T) {
 
 		t.Fatalf("The result of %v does not match %v", check, answer)
 	}
+}
 
+func TestAwsFilters(t *testing.T) {
+	tagFilters := "type=server,environment=dev,service=consul"
+
+	tagFilterMap := aws.CreateTagFilterMap(tagFilters)
+
+	check := aws.AwsFilters{}
+
+	if check.Expand(tagFilterMap) == nil {
+		t.Fatalf("Could not create an AwsFilters struct")
+	}
 }
