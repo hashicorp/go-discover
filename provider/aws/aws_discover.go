@@ -65,6 +65,12 @@ func (p *Provider) Help() string {
     The only required IAM permission is 'ec2:DescribeInstances'. If the Consul agent is
     running on AWS instance it is recommended you use an IAM role, otherwise it is
     recommended you make a dedicated IAM user and access key used only for auto-joining.
+
+    When using tag_filters, please make sure to add comma (,) when adding multiple
+    key-value pairs, use an equal sign (=) without spacing the key-value pairs, and to
+    quote the listing for the tag_filters.
+
+    Example: "provider=aws tag_filters=\"env=dev,service=consul\" addr_type=private_v6"
 `
 }
 
