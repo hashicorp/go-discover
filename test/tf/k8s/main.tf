@@ -3,7 +3,8 @@ resource "random_id" "suffix" {
 }
 
 data "google_container_engine_versions" "main" {
-  zone = "${var.zone}"
+  zone           = "${var.zone}"
+  version_prefix = "1.11."
 }
 
 resource "google_container_cluster" "cluster" {
