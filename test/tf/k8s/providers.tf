@@ -1,6 +1,6 @@
 provider "google" {
   project = "${var.project}"
-  version = "~> 1.20.0"
+  version = "~> 2.2.0"
 }
 
 provider "kubernetes" {
