@@ -4,9 +4,10 @@ version: 2.1
 executors:
   go:
     docker:
-      - image: circleci/golang:1.11.4
+      - image: circleci/golang:1.12.5
     environment:
       - TEST_RESULTS: /tmp/test-results  # path to where test results are saved
+      - GOTESTSUM_RELEASE: 0.3.4
 
 # reusable 'commands' to be added as a step in jobs
 commands:
@@ -15,7 +16,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 0.11.11
+        default: 0.11.13
       os:
         type: string
         default: linux
@@ -44,11 +45,11 @@ commands:
       - tf-install
       - checkout
 
-      - run:
-          name: install junit and setup test path
-          command: |
-            go get github.com/jstemmer/go-junit-report
-            mkdir -p /tmp/test-results
+      # make test result directory
+      - run: mkdir -p $TEST_RESULTS
+
+      # update gotestsum
+      - run: curl -sSL "https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_RELEASE}/gotestsum_${GOTESTSUM_RELEASE}_linux_amd64.tar.gz" | sudo tar --overwrite -xz -C /usr/local/bin gotestsum
 
       # spin up infrastructure
       - run:
@@ -62,11 +63,11 @@ commands:
       - when:
           condition: << parameters.provider-go-test-tags >>
           steps:
-            - run: go test -run << parameters.provider-go-test-tags >> -v ./provider/<< parameters.provider-go-test-dir >> | tee ${TEST_RESULTS}/results.out
+            - run: gotestsum --format=short-verbose --junitfile $TEST_RESULTS/results.xml -- -run << parameters.provider-go-test-tags >> ./provider/<< parameters.provider-go-test-dir >>
       - unless:
           condition: << parameters.provider-go-test-tags >>
           steps:
-            - run: go test -v ./provider/<< parameters.provider-go-test-dir >> | tee ${TEST_RESULTS}/results.out
+            - run: gotestsum --format=short-verbose --junitfile $TEST_RESULTS/results.xml -- ./provider/<< parameters.provider-go-test-dir >>
 
       # generate XML results
       - run:
@@ -90,10 +91,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - go-mod-test-v1-{{ checksum "go.sum" }}
+            - go-mod-v1-{{ checksum "go.mod" }}
       - run: go test -v
       - save_cache:
-          key: go-mod-test-v1-{{ checksum "go.sum" }}
+          key: go-mod-v1-{{ checksum "go.mod" }}
           paths:
             - /go/pkg/mod
   alicloud-provider:
