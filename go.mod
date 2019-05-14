@@ -10,6 +10,7 @@ require (
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/digitalocean/godo v1.1.1
+	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gogo/protobuf v1.1.1 // indirect
