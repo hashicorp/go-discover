@@ -69,11 +69,6 @@ commands:
           steps:
             - run: gotestsum --format=short-verbose --junitfile $TEST_RESULTS/results.xml -- ./provider/<< parameters.provider-go-test-dir >>
 
-      # generate XML results
-      - run:
-          command: go-junit-report < ${TEST_RESULTS}/results.out > ${TEST_RESULTS}/results.xml
-          when: always
-
       # store test results for CircleCI
       - store_test_results:
           path: /tmp/test-results
