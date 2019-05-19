@@ -4,3 +4,4 @@ cmd/discover/discover
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
+.vscode/
