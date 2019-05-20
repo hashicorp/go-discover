@@ -40,6 +40,7 @@ but aren't automatically registered. If you want to support these providers,
 register them manually:
 
  * Kubernetes [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/k8s/k8s_discover.go#L32-L51)
+ * Oracle Cloud Infrastructure [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/oci/oci_discover.go#L27-L39)
 
 HashiCorp maintains acceptance tests that regularly allocate and run tests with
 real resources to verify the behavior of several of these providers. Those
