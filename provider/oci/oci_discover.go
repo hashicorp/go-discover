@@ -24,19 +24,19 @@ type Config struct{
 func (p *Provider) Help() string {
 	return `Oracle Cloud Infrastructure:
 
-		provider:        "oci"
-		tag_namespace:   The namespace of the tag
+    provider:        "oci"
+    tag_namespace:   The namespace of the tag
     tag_key:         The tag key to filter on
     tag_value:       The tag value to filter on
     addr_type:       "private" or "public". Defaults to "private".
     tenancy_ocid:    The Tenancy OCID of the OCI account.
-		user_ocid:       The OCID of the user to use.
-		key_fingerprint: The fingerprint of the key associated with the user.
-		region:          The OCI region. Default to region of instance.
+    user_ocid:       The OCID of the user to use.
+    key_fingerprint: The fingerprint of the key associated with the user.
+    region:          The OCI region. Default to region of instance.
     
-		Values for tenancy_ocid, user_ocid, key_fingerprint, and region can be omitted if these
-		are supplied in ~/.oci/config as described at
-		https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm#FileNameandLocation.		
+    Values for tenancy_ocid, user_ocid, key_fingerprint, and region can be omitted if these
+    are supplied in ~/.oci/config as described at
+    https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm#FileNameandLocation.		
 `
 }
 
