@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"testing"
+	"fmt"
+	"os/user"
 
 	discover "github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/oci"
@@ -64,6 +66,15 @@ var tests = []struct {
 }
 
 func TestAddrs(t *testing.T) {
+	usr, err := user.Current()
+	if err != nil {
+		t.Error(err)
+	}
+	
+	if _, err := os.Stat(fmt.Sprintf("%s/.oci/config", usr.HomeDir)); os.IsNotExist(err) {
+		t.Skip("OCI config file missing.")
+	}
+	
 	p := &oci.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
 	for _, test := range tests {

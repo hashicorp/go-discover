@@ -134,6 +134,12 @@ jobs:
       - acctest:
           provider-test-infra-dir: gce
           provider-go-test-dir: gce
+  oci-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: oci
+          provider-go-test-dir: oci
   k8s-provider:
     executor: go
     steps:
@@ -187,6 +193,9 @@ workflows:
           requires:
             - go-test
       - k8s-provider:
+          requires:
+            - go-test
+      - oci-provider:
           requires:
             - go-test
       - packet-provider:
