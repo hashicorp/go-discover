@@ -71,7 +71,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		}		
 	}
 
-	query := fmt.Sprintf("query instance resources where (%s%s%s)", tagNamespace, tagKey, tagValue)
+	query := fmt.Sprintf("query instance resources where (lifecycleState = 'RUNNING' && %s%s%s)", tagNamespace, tagKey, tagValue)
 
 	addrType := args["addr_type"]
 
