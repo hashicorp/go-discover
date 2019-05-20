@@ -153,11 +153,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				l.Printf("[INFO] discover-oci: Vnic %s on instance %s has private ip %s", *vnic.Id, *inst.Identifier, *vnic.PrivateIp)
 				addrs = append(addrs, *vnic.PrivateIp)
 			case "public":
-				if *vnic.PublicIp != "" {
+				if vnic.PublicIp != nil {
 					l.Printf("[INFO] discover-oci: Vnic %s on instance %s has public ip %s", *vnic.Id, *inst.Identifier, *vnic.PublicIp)
 					addrs = append(addrs, *vnic.PublicIp)
 				} else {
-					l.Printf("[INFO] discover-oci: Vnic %s on instance %s has public ip %s", *vnic.Id, *inst.Identifier, *vnic.PublicIp)
+					l.Printf("[INFO] discover-oci: Vnic %s on instance %s has no public ip. Skipping.", *vnic.Id, *inst.Identifier)
 				}
 			}			
 		}

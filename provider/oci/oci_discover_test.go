@@ -9,67 +9,71 @@ import (
 	"github.com/hashicorp/go-discover/provider/oci"
 )
 
+var tests = []struct {
+	name      string
+	config    discover.Config
+	addrCount int
+}{
+	{
+		"freeform",
+		discover.Config{
+			"provider" : "oci",
+			"tag_key"  : "discover",
+			"tag_value": "me",
+		},
+		1,
+	},
+	{
+		"defined",
+		discover.Config{
+			"provider"     : "oci",
+			"tag_namespace": "defined",
+			"tag_key"      : "discover",
+			"tag_value"    : "me",
+		},
+		2,
+	},
+	{
+		"freePartial",
+		discover.Config{
+			"provider": "oci",
+			"tag_key" : "discover",
+		},
+		1,
+	},
+	{
+		"definedPartial",
+		discover.Config{
+			"provider"     : "oci",
+			"tag_namespace": "defined",
+			"tag_key"      : "discover",
+		},
+		2,
+	},
+	{
+		"definedPublic",
+		discover.Config{
+			"provider"     : "oci",
+			"tag_namespace": "defined",
+			"tag_key"      : "discover",
+			"tag_value"    : "me",
+			"addr_type"    : "public",
+		},
+		1,
+	},
+}
+
 func TestAddrs(t *testing.T) {
-	freeform := discover.Config{
-		"provider" : "oci",
-		"tag_key"  : "discover",
-		"tag_value": "me",
-	}
-
-	defined := discover.Config{
-		"provider"     : "oci",
-		"tag_namespace": "defined",
-		"tag_key"      : "discover",
-		"tag_value"    : "me",
-	}
-
-	freePartial := discover.Config{
-		"provider": "oci",
-		"tag_key" : "discover",
-	}
-
-	definedPartial := discover.Config{
-		"provider"     : "oci",
-		"tag_namespace": "defined",
-		"tag_key"      : "discover",
-	}
-
 	p := &oci.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
-	
-	// Testing freeform tags
-	addrs, err := p.Addrs(freeform, l)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(addrs) != 1 {
-		t.Fatalf("bad: %v", addrs)
-	}
-
-	// Testing defined tags
-	addrs, err = p.Addrs(defined, l)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(addrs) != 2 {
-		t.Fatalf("bad: %v", addrs)
-	}
-
-	// Testing freeform partial tags
-	addrs, err = p.Addrs(freePartial, l)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(addrs) != 1 {
-		t.Fatalf("bad: %v", addrs)
-	}
-
-	// Testing defined partial tags
-	addrs, err = p.Addrs(definedPartial, l)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(addrs) != 2 {
-		t.Fatalf("bad: %v", addrs)
+	for _, test := range tests {
+		l.Printf("[INFO] Begin Test: %s", test.name)
+		addrs, err := p.Addrs(test.config, l)
+		if err != nil {
+			t.Error(err)
+		}
+		if len(addrs) != test.addrCount {
+			t.Errorf("bad: %v", addrs)
+		}
 	}
 }
