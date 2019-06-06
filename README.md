@@ -70,6 +70,9 @@ provider=mdns service=consul domain=local
 # Microsoft Azure
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...
 
+# Oracle Cloud Infrastructure
+provicder=oci tag_namespace=... tag_name=... tag_value=... addr_type=...
+
 # Openstack
 provider=os tag_key=consul tag_value=server username=... password=... auth_url=...
 

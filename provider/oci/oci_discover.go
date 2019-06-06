@@ -24,17 +24,20 @@ type Config struct{
 func (p *Provider) Help() string {
 	return `Oracle Cloud Infrastructure:
 
-    provider:        "oci"
-    tag_namespace:   The namespace of the tag
-    tag_key:         The tag key to filter on
-    tag_value:       The tag value to filter on
-    addr_type:       "private" or "public". Defaults to "private".
-    tenancy_ocid:    The Tenancy OCID of the OCI account.
-    user_ocid:       The OCID of the user to use.
-    key_fingerprint: The fingerprint of the key associated with the user.
-    region:          The OCI region. Default to region of instance.
+    provider:               "oci"
+    tag_namespace:          The namespace of the tag
+    tag_key:                The tag key to filter on
+    tag_value:              The tag value to filter on
+    addr_type:              "private" or "public". Defaults to "private".
+    tenancy_ocid:           The Tenancy OCID of the OCI account.
+    user_ocid:              The OCID of the user to use.
+    key_fingerprint:        The fingerprint of the key associated with the user.
+		region:                 The OCI region. Default to region of instance.
+		private_key:            The key to use for authentication as a string. Mutually exclusive with private_key_file.
+		private_key_file:       The file containing the key to use for authentication. Mutually exclusive with private_key.
+		private_key_passphrase: The passphrase for the private key if one is required.
     
-    Values for tenancy_ocid, user_ocid, key_fingerprint, and region can be omitted if these
+    Values for tenancy_ocid, user_ocid, key_fingerprint, region, and private_key* can be omitted if these
     are supplied in ~/.oci/config as described at
     https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm#FileNameandLocation.		
 `
@@ -42,7 +45,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "oci" {
-		return nil, fmt.Errorf("discover-oci: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("[ERROR] discover-oci: invalid provider " + args["provider"])
 	}
 
 	if l == nil {
@@ -76,14 +79,31 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	addrType := args["addr_type"]
 
 	var config common.ConfigurationProvider
-	// if args["tenancy_ocid"] == "" || args["user_ocid"] == "" || args["key_fingerprint"] == "" || args["region"] == "" {
-		// log.Printf("[DEBUG] discover-oci: Incomplete static configuration provided")
-		l.Printf("[DEBUG] discover-oci: Using default values from ~/.oci/config")
+	if args["tenancy_ocid"] == "" || args["user_ocid"] == "" || args["key_fingerprint"] == "" || args["region"] == "" {
+		l.Printf("[DEBUG] discover-oci: Incomplete static configuration provided. Falling back to defaults.")
 		config = common.DefaultConfigProvider()
-	// } else {
-	// 	log.Printf("[DEBUG] discover-oci: Static configuration provided")
-	// 	config = Config{args["tenancy_ocid"], args["user_ocid"], args["key_fingerprint"], args["region"]}
-	// }
+	} else {
+		log.Printf("[DEBUG] discover-oci: Static configuration provided")
+		var privateKey string
+		if args["private_key"] != "" {
+			privateKey = args["private_key"]
+		} else {
+			buff, err := ioutil.ReadFile(args["private_key_file"])
+			if err != nil {
+				return nil, fmt.Errorf("[ERROR] discover-oci: Problem reading key file: %s", err)
+			}
+			privateKey = string(buff)
+		}
+		privateKeyPassphrase := args["private_key_passphrase"]
+		config = common.NewRawConfigurationProvider(
+			args["tenancy_ocid"],
+			args["user_ocid"],
+			args["region"],
+			args["key_fingerprint"],
+			privateKey,
+			&privateKeyPassphrase,
+		)
+	}
 	
 	if addrType != "private" && addrType != "public" {
 		l.Printf("[INFO] discover-oci: Address type: %s. Falling back to 'private'", addrType)
@@ -95,7 +115,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-oci: Creating session...")
 	search, err := resourcesearch.NewResourceSearchClientWithConfigurationProvider(config)
 	if err != nil {
-		return nil, fmt.Errorf("discover-oci: NewResourceSearchClientWithConfigurationProvider failed: %s", err)
+		return nil, fmt.Errorf("[ERROR] discover-oci: %s", err)
 	}
 
 	l.Printf("[INFO] discover-oci: Filter instances with %s=%s", args["tag_key"], args["tag_value"])
@@ -106,7 +126,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("discover-oci: SearchResources failed: %s", err)
+		return nil, fmt.Errorf("[ERROR] discover-oci: SearchResources failed: %s", err)
 	}
 
 	l.Printf("[DEBUG] discover-oci: Found %d resources", len(instances.Items))
@@ -115,7 +135,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[DEBUG] discover-oci: Found instance %s", *inst.Identifier)
 		compute, err := core.NewComputeClientWithConfigurationProvider(config)
 		if err != nil {
-			return nil, fmt.Errorf("discover-oci: NewComputeClientWithConfigurationProvider failed: %s", err)
+			return nil, fmt.Errorf("[ERROR] discover-oci: %s", err)
 		}
 
 		attachments, err := compute.ListVnicAttachments(
@@ -126,7 +146,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			},
 		)
 		if err != nil {
-			return nil, fmt.Errorf("discover-oci: ListVnicAttachments failed: %s", err)
+			return nil, fmt.Errorf("[ERROR] discover-oci: ListVnicAttachments failed: %s", err)
 		}
 
 		l.Printf("[DEBUG] discover-oci: Instance %s has %d vnics", *inst.Identifier, len(attachments.Items))
@@ -135,7 +155,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			l.Printf("[DEBUG] discover-oci: Checking vnic %s on Instance %s", *attachment.VnicId, *inst.Identifier)
 			vnet, err := core.NewVirtualNetworkClientWithConfigurationProvider(config)
 			if err != nil {
-				return nil, fmt.Errorf("discover-oci: NewVirtualNetworkClientWithConfigurationProvider failed: %s", err)
+				return nil, fmt.Errorf("[ERROR] discover-oci: %s", err)
 			}
 
 			vnic, err := vnet.GetVnic(
@@ -145,7 +165,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				},
 			)
 			if err != nil {
-				return nil, fmt.Errorf("discover-oci: GetVnic failed: %s", err)
+				return nil, fmt.Errorf("[ERROR] discover-oci: GetVnic failed: %s", err)
 			}
 
 			switch addrType {
@@ -165,20 +185,4 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	l.Printf("[DEBUG] discover-oci: Found ip addresses: %v", addrs)
 	return addrs, nil
-}
-
-func (c Config) TenancyOCID() (string, error) {
-	return c.tenancyOcid, nil
-}
-
-func (c Config) UserOCID() (string, error) {
-	return c.userOcid, nil
-}
-
-func (c Config) KeyFingerprint() (string, error) {
-	return c.keyFingerprint, nil
-}
-
-func (c Config) Region() (string, error) {
-	return c.region, nil
 }

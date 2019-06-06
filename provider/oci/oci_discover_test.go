@@ -4,8 +4,6 @@ import (
 	"log"
 	"os"
 	"testing"
-	"fmt"
-	"os/user"
 
 	discover "github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/oci"
@@ -19,62 +17,83 @@ var tests = []struct {
 	{
 		"freeform",
 		discover.Config{
-			"provider" : "oci",
-			"tag_key"  : "discover",
-			"tag_value": "me",
+			"provider"              : "oci",
+			"tenancy_ocid"          : os.Getenv("OCI_TENANCY_OCID"),
+			"user_ocid"             : os.Getenv("OCI_USER_OCID"),
+			"region"                : os.Getenv("OCI_REGION"),
+			"key_fingerprint"       : os.Getenv("OCI_KEY_FINGERPRINT"),
+			"private_key"           : os.Getenv("OCI_PRIVATE_KEY"),
+			"private_key_passphrase": os.Getenv("OCI_PRIVATE_KEY_PASSPHRASE"),
+			"tag_key"               : "discover",
+			"tag_value"             : "me",
 		},
 		1,
 	},
 	{
 		"defined",
 		discover.Config{
-			"provider"     : "oci",
-			"tag_namespace": "defined",
-			"tag_key"      : "discover",
-			"tag_value"    : "me",
+			"provider"              : "oci",
+			"tenancy_ocid"          : os.Getenv("OCI_TENANCY_OCID"),
+			"user_ocid"             : os.Getenv("OCI_USER_OCID"),
+			"region"                : os.Getenv("OCI_REGION"),
+			"key_fingerprint"       : os.Getenv("OCI_KEY_FINGERPRINT"),
+			"private_key"           : os.Getenv("OCI_PRIVATE_KEY"),
+			"private_key_passphrase": os.Getenv("OCI_PRIVATE_KEY_PASSPHRASE"),
+			"tag_namespace"         : "defined",
+			"tag_key"               : "discover",
+			"tag_value"             : "me",
 		},
 		2,
 	},
 	{
 		"freePartial",
 		discover.Config{
-			"provider": "oci",
-			"tag_key" : "discover",
+			"provider"              : "oci",
+			"tenancy_ocid"          : os.Getenv("OCI_TENANCY_OCID"),
+			"user_ocid"             : os.Getenv("OCI_USER_OCID"),
+			"region"                : os.Getenv("OCI_REGION"),
+			"key_fingerprint"       : os.Getenv("OCI_KEY_FINGERPRINT"),
+			"private_key"           : os.Getenv("OCI_PRIVATE_KEY"),
+			"private_key_passphrase": os.Getenv("OCI_PRIVATE_KEY_PASSPHRASE"),
+			"tag_key"               : "discover",
 		},
 		1,
 	},
 	{
 		"definedPartial",
 		discover.Config{
-			"provider"     : "oci",
-			"tag_namespace": "defined",
-			"tag_key"      : "discover",
+			"provider"              : "oci",
+			"tenancy_ocid"          : os.Getenv("OCI_TENANCY_OCID"),
+			"user_ocid"             : os.Getenv("OCI_USER_OCID"),
+			"region"                : os.Getenv("OCI_REGION"),
+			"key_fingerprint"       : os.Getenv("OCI_KEY_FINGERPRINT"),
+			"private_key"           : os.Getenv("OCI_PRIVATE_KEY"),
+			"private_key_passphrase": os.Getenv("OCI_PRIVATE_KEY_PASSPHRASE"),
+			"tag_namespace"         : "defined",
+			"tag_key"               : "discover",
 		},
 		2,
 	},
 	{
 		"definedPublic",
 		discover.Config{
-			"provider"     : "oci",
-			"tag_namespace": "defined",
-			"tag_key"      : "discover",
-			"tag_value"    : "me",
-			"addr_type"    : "public",
+			"provider"              : "oci",
+			"tenancy_ocid"          : os.Getenv("OCI_TENANCY_OCID"),
+			"user_ocid"             : os.Getenv("OCI_USER_OCID"),
+			"region"                : os.Getenv("OCI_REGION"),
+			"key_fingerprint"       : os.Getenv("OCI_KEY_FINGERPRINT"),
+			"private_key"           : os.Getenv("OCI_PRIVATE_KEY"),
+			"private_key_passphrase": os.Getenv("OCI_PRIVATE_KEY_PASSPHRASE"),
+			"tag_namespace"         : "defined",
+			"tag_key"               : "discover",
+			"tag_value"             : "me",
+			"addr_type"             : "public",
 		},
 		1,
 	},
 }
 
 func TestAddrs(t *testing.T) {
-	usr, err := user.Current()
-	if err != nil {
-		t.Error(err)
-	}
-	
-	if _, err := os.Stat(fmt.Sprintf("%s/.oci/config", usr.HomeDir)); os.IsNotExist(err) {
-		t.Skip("OCI config file missing.")
-	}
-	
 	p := &oci.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
 	for _, test := range tests {
