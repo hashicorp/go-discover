@@ -94,6 +94,14 @@ var tests = []struct {
 }
 
 func TestAddrs(t *testing.T) {
+	if os.Getenv("OCI_TENANCY_OCID")    == "" ||
+		 os.Getenv("OCI_USER_OCID")       == "" ||
+		 os.Getenv("OCI_REGION")          == "" ||
+		 os.Getenv("OCI_KEY_FINGERPRINT") == "" ||
+		 os.Getenv("OCI_PRIVATE_KEY")     == "" {
+			t.Skip("OCI credentials missing.")
+	}
+	
 	p := &oci.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
 	for _, test := range tests {
