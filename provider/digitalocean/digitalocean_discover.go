@@ -41,7 +41,36 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-func listDropletsByTag(c *godo.Client, tagNames []string) ([]godo.Droplet, error) {
+func tagExist(tag string, tagList []string) bool {
+	for _, check := range tagList {
+		if check == tag {
+			return true
+		}
+	}
+
+	return false
+}
+
+func listDropletsByTags(c *godo.Client, tagNames string) ([]godo.Droplet, error) {
+	tagList := strings.Split(tagNames, ",")
+	first, tagList := tagList[0], tagList[1:]
+
+	if dropletList, err := listDropletsByTag(c, first); err != nil {
+		return nil, err
+	} else {
+		for _, tag := range tagList {
+			for _, droplet := range dropletList {
+				if !tagExist(tag, droplet.Tags) {
+					droplet = godo.Droplet{}
+				}
+			}
+		}
+
+		return dropletList, nil
+	}
+}
+
+func listDropletsByTag(c *godo.Client, tagName string) ([]godo.Droplet, error) {
 	dropletList := []godo.Droplet{}
 	pageOpt := &godo.ListOptions{
 		Page:    1,
@@ -97,7 +126,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		client.UserAgent = p.userAgent
 	}
 
-	droplets, err := listDropletsByTag(client, tagNames)
+	droplets, err := listDropletsByTags(client, tagNames)
 	if err != nil {
 		return nil, fmt.Errorf("discover-digitalocean: %s", err)
 	}
