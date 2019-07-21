@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
@@ -24,7 +25,7 @@ func (p *Provider) Help() string {
 
     provider:  "digitalocean"
     region:    The DigitalOcean region to filter on
-    tag_name:  The tag name to filter on
+    tag_names:  The tag name to filter on
     api_token: The DigitalOcean API token to use
 `
 }
@@ -40,7 +41,7 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-func listDropletsByTag(c *godo.Client, tagName string) ([]godo.Droplet, error) {
+func listDropletsByTag(c *godo.Client, tagNames []string) ([]godo.Droplet, error) {
 	dropletList := []godo.Droplet{}
 	pageOpt := &godo.ListOptions{
 		Page:    1,
@@ -82,9 +83,9 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	region := args["region"]
-	tagName := args["tag_name"]
+	tagNames := args["tag_names"]
 	apiToken := args["api_token"]
-	l.Printf("[DEBUG] discover-digitalocean: Using region=%s tag_name=%s", region, tagName)
+	l.Printf("[DEBUG] discover-digitalocean: Using region=%s tag_names=%s", region, tagNames)
 
 	tokenSource := &TokenSource{
 		AccessToken: apiToken,
@@ -96,7 +97,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		client.UserAgent = p.userAgent
 	}
 
-	droplets, err := listDropletsByTag(client, tagName)
+	droplets, err := listDropletsByTag(client, tagNames)
 	if err != nil {
 		return nil, fmt.Errorf("discover-digitalocean: %s", err)
 	}
