@@ -41,32 +41,54 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-func tagExist(tag string, tagList []string) bool {
-	for _, check := range tagList {
-		if check == tag {
-			return true
+type TagSet map[string]bool
+
+func newTagSet(tagList []string) TagSet {
+	tagSet := make(TagSet)
+
+	for _, tag := range tagList {
+		tagSet[tag] = false
+	}
+
+	return tagSet
+}
+
+func tagAllExist(copiedSet TagSet, tagList []string) bool {
+	for _, tag := range tagList {
+		if _, exist := copiedSet[tag]; exist {
+			copiedSet[tag] = true
 		}
 	}
 
-	return false
+	for _, truthy := range copiedSet {
+		if !truthy {
+			return false
+		}
+	}
+
+	return true
 }
 
 func listDropletsByTags(c *godo.Client, tagNames string) ([]godo.Droplet, error) {
 	tagList := strings.Split(tagNames, ",")
-	first, tagList := tagList[0], tagList[1:]
+	droplets := []godo.Droplet{}
 
-	if dropletList, err := listDropletsByTag(c, first); err != nil {
+	if dropletList, err := listDropletsByTag(c, tagList[0]); err != nil {
 		return nil, err
 	} else {
-		for _, tag := range tagList {
+		if len(tagList) > 1 {
+			tagSet := newTagSet(tagList)
+
 			for _, droplet := range dropletList {
-				if !tagExist(tag, droplet.Tags) {
-					droplet = godo.Droplet{}
+				if tagAllExist(tagSet, droplet.Tags) {
+					droplets = append(droplets, droplet)
 				}
 			}
+		} else {
+			droplets = dropletList
 		}
 
-		return dropletList, nil
+		return droplets, nil
 	}
 }
 
