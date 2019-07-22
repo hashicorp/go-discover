@@ -142,7 +142,17 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			if privateIP != "" {
 				l.Printf("[INFO] discover-digitalocean: Found instance %s (%d) with private IP: %s", d.Name, d.ID, privateIP)
 				addrs = append(addrs, privateIP)
+			} else {
+				publicIP, err := d.PublicIPv4()
+				if err != nil {
+					return nil, fmt.Errorf("discover-digitalocean: %s", err)
+				}
+				if publicIP != "" {
+					l.Printf("[INFO] discover-digitalocean: Found instance %s (%d) with public IP: %s", d.Name, d.ID, publicIP)
+					addrs = append(addrs, publicIP)
+				}
 			}
+
 		}
 	}
 
