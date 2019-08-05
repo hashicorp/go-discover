@@ -26,7 +26,9 @@ func (p *Provider) Help() string {
     addr_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
-    endpoint_url:      The endpoint URL of EC2 to use
+    endpoint_url:      The endpoint URL of EC2 to use. If not set the AWS client will set
+                       this value, which defaults to the ec2 public dns for the specified
+                       region.
 
     The only required IAM permission is 'ec2:DescribeInstances'. If the Consul agent is
     running on AWS instance it is recommended you use an IAM role, otherwise it is
