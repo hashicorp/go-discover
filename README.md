@@ -32,6 +32,7 @@ function.
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/triton/triton_discover.go#L17-L27)
+ * UCloud [Config_options](https://github.com/hashicorp/go-discover/blob/master/provider/ucloud/ucloud_discover.go#L20-L34)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/vsphere/vsphere_discover.go#L148-L155)
  * Packet [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/packet/packet_discover.go#L25-L35)
 
@@ -80,6 +81,9 @@ provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
 
 # Triton
 provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_id=... tag_key=consul-role tag_value=server
+
+# UCloud
+provider=ucloud region=cn-sh2 zone=cn-sh2-02 project_id=... vpc_id=... subnet_id=... tag=... access_key_id=... access_key_secret=...
 
 # vSphere
 provider=vsphere category_name=consul-role tag_name=consul-server host=... user=... password=... insecure_ssl=[true|false]

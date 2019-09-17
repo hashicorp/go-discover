@@ -5,11 +5,13 @@ require (
 	github.com/Azure/azure-sdk-for-go v16.0.0+incompatible
 	github.com/Azure/go-autorest v10.7.0+incompatible
 	github.com/abdullin/seq v0.0.0-20160510034733-d5467c17e7af // indirect
+	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/aws/aws-sdk-go v1.15.24
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/digitalocean/godo v1.1.1
+	github.com/dimchansky/utfbom v1.1.0 // indirect
+	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gogo/protobuf v1.1.1 // indirect
@@ -40,17 +42,16 @@ require (
 	github.com/onsi/gomega v1.4.1 // indirect
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/pkg/errors v0.8.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prashantv/gostub v1.0.0
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
-	github.com/sirupsen/logrus v1.0.6 // indirect
 	github.com/smartystreets/assertions v0.0.0-20180820201707-7c9eb446e3cf // indirect
 	github.com/smartystreets/goconvey v0.0.0-20180222194500-ef6db91d284a // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
 	github.com/spf13/pflag v1.0.2 // indirect
-	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/stretchr/testify v1.2.2
 	github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9 // indirect
+	github.com/ucloud/ucloud-sdk-go v0.11.0
 	github.com/vmware/govmomi v0.18.0
 	golang.org/x/oauth2 v0.0.0-20170807180024-9a379c6b3e95
 	golang.org/x/text v0.3.0 // indirect
@@ -68,3 +69,5 @@ require (
 	k8s.io/apimachinery v0.0.0-20180821005732-488889b0007f
 	k8s.io/client-go v8.0.0+incompatible
 )
+
+go 1.13
