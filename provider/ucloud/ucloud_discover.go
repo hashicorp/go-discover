@@ -29,7 +29,7 @@ func (p *Provider) Help() string {
 	zone:                        The UCloud zone
 	vpc_id:                      Target instance's vpc id
 	subnet_id:                   Target instnace's subnet id
-
+	ip_type:                     "Private"/"BGP" (for mainland China)/"Internation" (for international), default to "Private"
 `
 }
 
@@ -55,6 +55,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	accessKeySecret := argsOrEnv(args, "access_key_secret", "UCLOUD_PRIVATE_KEY", discardLogger)
 	vpcID := args["vpc_id"]
 	subnetID := args["subnet_id"]
+	ipType := args["ip_type"]
+	if ipType == "" {
+		ipType = "Private"
+	}
+	if ipType != "Private" && ipType != "BGP" && ipType != "Internation" {
+		l.Printf("[DEBUG] discover-ucloud: invalid ip_type:%s", ipType)
+		return nil, fmt.Errorf("invalid ip_type:%s", ipType)
+	}
 	l.Printf("[DEBUG] discover-ucloud: Using region=%s zone=%s project_id=%s vpc_id=%s subnet_id=%s tag=%s ", region, zone, projectId, vpcID, subnetID, tag)
 	cfg := newConfig(projectId, region, zone)
 	credential := newCredential(accessKeyID, accessKeySecret)
@@ -78,9 +86,9 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	linq.From(response.UHostSet).Where(runningHost).Select(func(i interface{}) interface{} {
 		instance := i.(uhost.UHostInstanceSet)
-		privateIp := linq.From(instance.IPSet).FirstWith(privateIPSet).(uhost.UHostIPSet).IP
-		l.Printf("[DEBUG] discover-ucloud: Instance %s has innner ip %s ", instance.UHostId, privateIp)
-		return privateIp
+		ip := linq.From(instance.IPSet).FirstWith(filterIPBy(ipType)).(uhost.UHostIPSet).IP
+		l.Printf("[DEBUG] discover-ucloud: Instance %s has innner ip %s ", instance.UHostId, ip)
+		return ip
 	}).ToSlice(&addrs)
 
 	l.Printf("[DEBUG] discover-ucloud: Found %d running instances", len(addrs))
@@ -148,8 +156,10 @@ var runningHost = func(i interface{}) bool {
 	return i.(uhost.UHostInstanceSet).State == "Running"
 }
 
-var privateIPSet = func(ipSet interface{}) bool {
-	return ipSet.(uhost.UHostIPSet).Type == "Private"
+func filterIPBy(ipType string) func(ipSet interface{}) bool {
+	return func(ipSet interface{}) bool {
+		return ipSet.(uhost.UHostIPSet).Type == ipType
+	}
 }
 
 var discardLogger = log.New(ioutil.Discard, "", 0)

@@ -133,6 +133,66 @@ func TestAddrs_With_Optional_Configs(t *testing.T) {
 	assert.Equal(t, 2, len(addrs))
 }
 
+func TestAddrs_Get_BGP_IP(t *testing.T) {
+	p := new(ucloud.Provider)
+	stub := gostub.Stub(&ucloud.GetFromEnv, func(_ string) string {
+		panic("Should Not Read Env Here")
+	})
+	defer stub.Reset()
+
+	if !allRequiredEnvPresent() {
+		t.Skip("missing required env")
+	}
+
+	config := discover.Config{
+		"provider":          "ucloud",
+		"region":            os.Getenv("UCLOUD_REGION"),
+		"project_id":        os.Getenv("UCLOUD_PROJECT_ID"),
+		"tag":               "UCloud",
+		"access_key_id":     os.Getenv("UCLOUD_PUBLIC_KEY"),
+		"access_key_secret": os.Getenv("UCLOUD_PRIVATE_KEY"),
+		"ip_type":           "BGP",
+	}
+
+	addrs, err := p.Addrs(config, l)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(addrs))
+	for _, addr := range addrs {
+		assert.False(t, isPrivateIP(addr))
+	}
+}
+
+func TestAddrs_Invalid_IP_Type(t *testing.T) {
+	p := new(ucloud.Provider)
+	stub := gostub.Stub(&ucloud.GetFromEnv, func(_ string) string {
+		panic("Should Not Read Env Here")
+	})
+	defer stub.Reset()
+
+	if !allRequiredEnvPresent() {
+		t.Skip("missing required env")
+	}
+
+	config := discover.Config{
+		"provider":          "ucloud",
+		"region":            os.Getenv("UCLOUD_REGION"),
+		"project_id":        os.Getenv("UCLOUD_PROJECT_ID"),
+		"tag":               "UCloud",
+		"access_key_id":     os.Getenv("UCLOUD_PUBLIC_KEY"),
+		"access_key_secret": os.Getenv("UCLOUD_PRIVATE_KEY"),
+		"ip_type":           "invalid",
+	}
+
+	addrs, err := p.Addrs(config, l)
+	assert.Nil(t, addrs)
+	assert.NotNil(t, err)
+	assert.True(t, strings.Contains(err.Error(), "ip_type"))
+}
+
+func isPrivateIP(addr string) bool {
+	return strings.HasPrefix(addr, "10.")
+}
+
 func allRequiredEnvPresent() bool {
 	return !(os.Getenv("UCLOUD_REGION") == "" || os.Getenv("UCLOUD_PROJECT_ID") == "" || os.Getenv("UCLOUD_PUBLIC_KEY") == "" || os.Getenv("UCLOUD_PRIVATE_KEY") == "")
 }
