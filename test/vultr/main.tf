@@ -1,5 +1,5 @@
 provider "vultr" {
-
+  api_key = ""
 }
 
 resource "vultr_server" "test" {
