@@ -5,12 +5,12 @@ import (
         "fmt"
         "io/ioutil"
         "log"
-	"strconv"
+	"context"
 
-        "github.com/oogy/govultr"
+        "github.com/vultr/govultr"
 )
 
-type Provider struct { 
+type Provider struct {
 
 	userAgent string
 
@@ -25,13 +25,13 @@ func (p *Provider) Help() string {
 
     provider: "vultr"
     region: The Vultr region to filter on
-    tag_name: The tag name to filter on 
+    tag_name: The tag name to filter on
     api_token: The Vultr API Token to use
 `
 }
 
 func listServersByTag(c *govultr.Client, tagName string) ([]govultr.Server, error) {
-	servers, err := c.GetServersByTag(tagName)
+	servers, err := c.Server.ListByTag(context.Background(), tagName)
 
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	apiToken := args["api_token"]
 	l.Printf("[DEBUG] discover-vultr: Using region=%s tag_name=%s", region, tagName)
 
-	client := govultr.NewClient(apiToken, nil)
+	client := govultr.NewClient(nil, apiToken)
 
 	servers, err := listServersByTag(client, tagName)
 	if err != nil{
@@ -65,10 +65,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var privateIP string
 
 	for _, s := range servers {
-		if strconv.Itoa(s.RegionID) == region || region == "" {
+		if s.RegionID == region || region == "" {
 			privateIP = s.InternalIP
 			if privateIP != "" {
-				l.Printf("[INFO] discover-vultr: Found instance %s (%s) with private IP: %s", s.Name, s.ID, privateIP)
+				l.Printf("[INFO] discover-vultr: Found instance %s (%s) with private IP: %s", s.Label, s.InstanceID, privateIP)
 				addrs = append(addrs, privateIP)
 			}
 		}

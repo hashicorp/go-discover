@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-discover/provider/softlayer"
 	"github.com/hashicorp/go-discover/provider/triton"
 	"github.com/hashicorp/go-discover/provider/vsphere"
+	"github.com/hashicorp/go-discover/provider/vultr"
 )
 
 // Provider has lookup functions for meta data in a
@@ -57,6 +58,7 @@ var Providers = map[string]Provider{
 	"triton":       &triton.Provider{},
 	"vsphere":      &vsphere.Provider{},
 	"packet":       &packet.Provider{},
+	"vultr":       &vultr.Provider{},
 }
 
 // Discover looks up metadata in different cloud environments.
