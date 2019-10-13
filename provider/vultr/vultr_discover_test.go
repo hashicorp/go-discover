@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	discover "github.com/oogy/go-discover"
-	"github.com/oogy/go-discover/provider/vultr"
+	discover "github.com/hashicorp/go-discover"
+	"github.com/hashicorp/go-discover/provider/vultr"
 )
 
 var _ discover.Provider = (*vultr.Provider)(nil)
@@ -23,7 +23,7 @@ func TestAddrs(t *testing.T) {
 		"api_token": os.Getenv("VULTR_API_KEY"),
 	}
 	if args["api_token"] == "" {
-		t.Skip("Vultr API Key Missing(I know)")
+		t.Skip("Vultr API Key Missing")
 	}
 
 	l := log.New(os.Stderr, "", log.LstdFlags)
