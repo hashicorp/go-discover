@@ -1,4 +1,3 @@
-// Package digitalocean provides node discovery for DigitalOcean.
 package vultr
 
 import (
