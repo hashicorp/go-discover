@@ -146,13 +146,18 @@ jobs:
       - acctest:
           provider-test-infra-dir: packet
           provider-go-test-dir: packet
-
   scaleway-provider:
     executor: go
     steps:
       - acctest:
           provider-test-infra-dir: scaleway
           provider-go-test-dir: scaleway
+  tencentcloud-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: tencentcloud
+          provider-go-test-dir: tencentcloud
   triton-provider:
     executor: go
     steps:
@@ -196,5 +201,8 @@ workflows:
           requires:
             - go-test
       - triton-provider:
+          requires:
+            - go-test
+      - tencentcloud-provider:
           requires:
             - go-test
