@@ -7,7 +7,7 @@ import (
 
 	discover "github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/tencentcloud"
-	"github.com/likexian/gokit/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var _ discover.Provider = (*tencentcloud.Provider)(nil)
@@ -32,6 +32,6 @@ func TestAddrs(t *testing.T) {
 	l := log.New(os.Stderr, "", log.LstdFlags)
 
 	addrs, err := p.Addrs(args, l)
-	assert.Nil(t, err)
-	assert.Len(t, addrs, 2)
+	require.NoError(t, err)
+	require.Equal(t, len(addrs), 2)
 }

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/likexian/gokit/assert"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
@@ -69,7 +68,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		addressType = "private_v4"
 	}
 
-	if !assert.IsContains([]string{"private_v4", "public_v4"}, addressType) {
+	if addressType != "private_v4" && addressType != "public_v4" {
 		l.Printf("[DEBUG] discover-tencentcloud: Address type %s invalid", addressType)
 		return nil, fmt.Errorf("discover-tencentcloud: invalid address_type " + addressType)
 	}
@@ -84,10 +83,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	cpf.HttpProfile.ReqMethod = "POST"
 	cpf.HttpProfile.ReqTimeout = 300
 	cpf.Language = "en-US"
-
 	cvmClient, _ := cvm.NewClient(credential, region, cpf)
-	if p.userAgent != "" {
-	}
 
 	l.Printf("[DEBUG] discover-tencentcloud: Filter instances with %s=%s", tagKey, tagValue)
 	request := cvm.NewDescribeInstancesRequest()
