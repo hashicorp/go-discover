@@ -59,7 +59,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if ipType == "" {
 		ipType = "Private"
 	}
-	if ipType != "Private" && ipType != "BGP" && ipType != "Internation" {
+	if !ipTypeEqual(ipType, "Private") && !ipTypeEqual(ipType, "Bgp") && !ipTypeEqual(ipType, "Internation") {
 		l.Printf("[DEBUG] discover-ucloud: invalid ip_type:%s", ipType)
 		return nil, fmt.Errorf("invalid ip_type:%s", ipType)
 	}
@@ -158,8 +158,12 @@ var runningHost = func(i interface{}) bool {
 
 func filterIPBy(ipType string) func(ipSet interface{}) bool {
 	return func(ipSet interface{}) bool {
-		return ipSet.(uhost.UHostIPSet).Type == ipType
+		return ipTypeEqual(ipSet.(uhost.UHostIPSet).Type, ipType)
 	}
+}
+
+func ipTypeEqual(ipType, expected string) bool {
+	return strings.EqualFold(ipType, expected)
 }
 
 var discardLogger = log.New(ioutil.Discard, "", 0)
