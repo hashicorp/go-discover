@@ -31,6 +31,7 @@ function.
  * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/os/os_discover.go#L23-L38)
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/softlayer/softlayer_discover.go#L16-L25)
+ * TencentCloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/tencentcloud/tencentcloud_discover.go#L23-L37)
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/triton/triton_discover.go#L17-L27)
  * UCloud [Config_options](https://github.com/hashicorp/go-discover/blob/master/provider/ucloud/ucloud_discover.go#L20-L34)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/vsphere/vsphere_discover.go#L148-L155)
@@ -78,6 +79,9 @@ provider=scaleway organization=my-org tag_name=consul-server token=... region=..
 
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
+
+# TencentCloud
+provider=tencentcloud region=ap-guangzhou tag_key=consul tag_value=... access_key_id=... access_key_secret=...
 
 # Triton
 provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_id=... tag_key=consul-role tag_value=server
