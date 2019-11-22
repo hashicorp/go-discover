@@ -151,7 +151,7 @@ func TestAddrs_Get_BGP_IP(t *testing.T) {
 		"tag":               "UCloud",
 		"access_key_id":     os.Getenv("UCLOUD_PUBLIC_KEY"),
 		"access_key_secret": os.Getenv("UCLOUD_PRIVATE_KEY"),
-		"ip_type":           "BgP",
+		"ip_type":           "BGP",
 	}
 
 	addrs, err := p.Addrs(config, l)
