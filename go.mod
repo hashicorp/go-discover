@@ -5,7 +5,6 @@ require (
 	github.com/Azure/azure-sdk-for-go v16.0.0+incompatible
 	github.com/Azure/go-autorest v10.7.0+incompatible
 	github.com/abdullin/seq v0.0.0-20160510034733-d5467c17e7af // indirect
-	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/aws/aws-sdk-go v1.15.24
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect

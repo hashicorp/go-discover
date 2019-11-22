@@ -3,7 +3,6 @@ package ucloud
 
 import (
 	"fmt"
-	"github.com/ahmetb/go-linq"
 	"github.com/ucloud/ucloud-sdk-go/services/uhost"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 	"github.com/ucloud/ucloud-sdk-go/ucloud/auth"
@@ -83,18 +82,29 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if err != nil {
 		return nil, fmt.Errorf("discover-ucloud: DescribeUHostInstance failed: %s", err)
 	}
-	var addrs []string
-
-	linq.From(response.UHostSet).Where(runningHost).Select(func(i interface{}) interface{} {
-		instance := i.(uhost.UHostInstanceSet)
-		ip := linq.From(instance.IPSet).FirstWith(filterIPBy(ipType)).(uhost.UHostIPSet).IP
-		l.Printf("[DEBUG] discover-ucloud: Instance %s has innner ip %s ", instance.UHostId, ip)
-		return ip
-	}).ToSlice(&addrs)
+	addrs := readAddrs(response, ipType, l)
 
 	l.Printf("[DEBUG] discover-ucloud: Found %d running instances", len(addrs))
 	l.Printf("[DEBUG] discover-ucloud: Found ip addresses: %v", addrs)
 	return addrs, nil
+}
+
+func readAddrs(response *uhost.DescribeUHostInstanceResponse, ipType string, l *log.Logger) []string {
+	var addrs []string
+	for _, instance := range response.UHostSet {
+		if !runningHost(instance) {
+			continue
+		}
+		ipSet := instance.IPSet
+		for _, ipSet := range ipSet {
+			if ipTypeEqual(ipSet.Type, ipType) {
+				ip := ipSet.IP
+				l.Printf("[DEBUG] discover-ucloud: Instance %s has ip %s ", instance.UHostId, ip)
+				addrs = append(addrs, ip)
+			}
+		}
+	}
+	return addrs
 }
 
 func invalidIpType(ipType string) bool {
@@ -164,14 +174,8 @@ var GetFromEnv = func(env string) string {
 	return os.Getenv(env)
 }
 
-var runningHost = func(i interface{}) bool {
-	return i.(uhost.UHostInstanceSet).State == "Running"
-}
-
-func filterIPBy(ipType string) func(ipSet interface{}) bool {
-	return func(ipSet interface{}) bool {
-		return ipTypeEqual(ipSet.(uhost.UHostIPSet).Type, ipType)
-	}
+var runningHost = func(i uhost.UHostInstanceSet) bool {
+	return i.State == "Running"
 }
 
 func ipTypeEqual(ipType, expected string) bool {
