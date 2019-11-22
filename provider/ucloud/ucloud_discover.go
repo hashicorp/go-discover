@@ -24,8 +24,8 @@ func (p *Provider) Help() string {
     region(required):            The UCloud region (env UCLOUD_REGION)
     tag(required):               The tag value to filter on
 	project_id(required):        The UCloud project id (env UCLOUD_PROJECT_ID)
-    access_key_id(required):     The UCloud public key to use (env UCLOUD_PUBLIC_KEY)
-    access_key_secret(required): The UCloud private key to use (env UCLOUD_PRIVATE_KEY)
+    public_key(required):        The UCloud public key to use (env UCLOUD_PUBLIC_KEY)
+    private_key(required):       The UCloud private key to use (env UCLOUD_PRIVATE_KEY)
 	zone:                        The UCloud zone
 	vpc_id:                      Target instance's vpc id
 	subnet_id:                   Target instnace's subnet id
@@ -51,15 +51,15 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if err != nil {
 		return nil, err
 	}
-	accessKeyID := argsOrEnv(args, "access_key_id", "UCLOUD_PUBLIC_KEY", discardLogger)
-	accessKeySecret := argsOrEnv(args, "access_key_secret", "UCLOUD_PRIVATE_KEY", discardLogger)
+	accessKeyID := argsOrEnv(args, "public_key", "UCLOUD_PUBLIC_KEY", discardLogger)
+	accessKeySecret := argsOrEnv(args, "private_key", "UCLOUD_PRIVATE_KEY", discardLogger)
 	vpcID := args["vpc_id"]
 	subnetID := args["subnet_id"]
 	ipType := args["ip_type"]
 	if ipType == "" {
 		ipType = "Private"
 	}
-	if !ipTypeEqual(ipType, "private") && !ipTypeEqual(ipType, "bgp") && !ipTypeEqual(ipType, "international") {
+	if invalidIpType(ipType) {
 		l.Printf("[DEBUG] discover-ucloud: invalid ip_type:%s", ipType)
 		return nil, fmt.Errorf("invalid ip_type:%s", ipType)
 	}
@@ -95,6 +95,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-ucloud: Found %d running instances", len(addrs))
 	l.Printf("[DEBUG] discover-ucloud: Found ip addresses: %v", addrs)
 	return addrs, nil
+}
+
+func invalidIpType(ipType string) bool {
+	return !ipTypeEqual(ipType, "private") && !ipTypeEqual(ipType, "bgp") && !ipTypeEqual(ipType, "international")
 }
 
 func rewriteIpTypeForFilter(ipType string) string {

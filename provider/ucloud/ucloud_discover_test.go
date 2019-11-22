@@ -78,12 +78,12 @@ func TestAddrs(t *testing.T) {
 	}
 
 	config := discover.Config{
-		"provider":          "ucloud",
-		"region":            os.Getenv("UCLOUD_REGION"),
-		"project_id":        os.Getenv("UCLOUD_PROJECT_ID"),
-		"tag":               "UCloud",
-		"access_key_id":     os.Getenv("UCLOUD_PUBLIC_KEY"),
-		"access_key_secret": os.Getenv("UCLOUD_PRIVATE_KEY"),
+		"provider":    "ucloud",
+		"region":      os.Getenv("UCLOUD_REGION"),
+		"project_id":  os.Getenv("UCLOUD_PROJECT_ID"),
+		"tag":         "UCloud",
+		"public_key":  os.Getenv("UCLOUD_PUBLIC_KEY"),
+		"private_key": os.Getenv("UCLOUD_PRIVATE_KEY"),
 	}
 
 	addrs, err := p.Addrs(config, l)
@@ -145,13 +145,13 @@ func TestAddrs_Get_BGP_IP(t *testing.T) {
 	}
 
 	config := discover.Config{
-		"provider":          "ucloud",
-		"region":            os.Getenv("UCLOUD_REGION"),
-		"project_id":        os.Getenv("UCLOUD_PROJECT_ID"),
-		"tag":               "UCloud",
-		"access_key_id":     os.Getenv("UCLOUD_PUBLIC_KEY"),
-		"access_key_secret": os.Getenv("UCLOUD_PRIVATE_KEY"),
-		"ip_type":           "BGP",
+		"provider":    "ucloud",
+		"region":      os.Getenv("UCLOUD_REGION"),
+		"project_id":  os.Getenv("UCLOUD_PROJECT_ID"),
+		"tag":         "UCloud",
+		"public_key":  os.Getenv("UCLOUD_PUBLIC_KEY"),
+		"private_key": os.Getenv("UCLOUD_PRIVATE_KEY"),
+		"ip_type":     "BGP",
 	}
 
 	addrs, err := p.Addrs(config, l)
@@ -174,13 +174,13 @@ func TestAddrs_Invalid_IP_Type(t *testing.T) {
 	}
 
 	config := discover.Config{
-		"provider":          "ucloud",
-		"region":            os.Getenv("UCLOUD_REGION"),
-		"project_id":        os.Getenv("UCLOUD_PROJECT_ID"),
-		"tag":               "UCloud",
-		"access_key_id":     os.Getenv("UCLOUD_PUBLIC_KEY"),
-		"access_key_secret": os.Getenv("UCLOUD_PRIVATE_KEY"),
-		"ip_type":           "invalid",
+		"provider":    "ucloud",
+		"region":      os.Getenv("UCLOUD_REGION"),
+		"project_id":  os.Getenv("UCLOUD_PROJECT_ID"),
+		"tag":         "UCloud",
+		"public_key":  os.Getenv("UCLOUD_PUBLIC_KEY"),
+		"private_key": os.Getenv("UCLOUD_PRIVATE_KEY"),
+		"ip_type":     "invalid",
 	}
 
 	addrs, err := p.Addrs(config, l)

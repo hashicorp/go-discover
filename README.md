@@ -87,7 +87,7 @@ provider=tencentcloud region=ap-guangzhou tag_key=consul tag_value=... access_ke
 provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_id=... tag_key=consul-role tag_value=server
 
 # UCloud
-provider=ucloud region=cn-sh2 zone=cn-sh2-02 project_id=... vpc_id=... subnet_id=... tag=... access_key_id=... access_key_secret=... ip_type=BGP
+provider=ucloud region=cn-sh2 zone=cn-sh2-02 project_id=... vpc_id=... subnet_id=... tag=... public_key=... private_key=... ip_type=bgp
 
 # vSphere
 provider=vsphere category_name=consul-role tag_name=consul-server host=... user=... password=... insecure_ssl=[true|false]
