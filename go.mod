@@ -5,12 +5,13 @@ require (
 	github.com/Azure/azure-sdk-for-go v16.0.0+incompatible
 	github.com/Azure/go-autorest v10.7.0+incompatible
 	github.com/abdullin/seq v0.0.0-20160510034733-d5467c17e7af // indirect
-	github.com/aws/aws-sdk-go v1.15.24
+	github.com/aws/aws-sdk-go v1.25.41
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/digitalocean/godo v1.1.1
 	github.com/dimchansky/utfbom v1.1.0 // indirect
+	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gogo/protobuf v1.1.1 // indirect
@@ -32,6 +33,7 @@ require (
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
+	github.com/likexian/gokit v0.20.16
 	github.com/linode/linodego v0.7.1
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -51,6 +53,7 @@ require (
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
 	github.com/spf13/pflag v1.0.2 // indirect
 	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go v3.0.83+incompatible
 	github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9 // indirect
 	github.com/vmware/govmomi v0.18.0
 	github.com/vultr/govultr v0.1.4
@@ -69,4 +72,5 @@ require (
 	k8s.io/api v0.0.0-20180806132203-61b11ee65332
 	k8s.io/apimachinery v0.0.0-20180821005732-488889b0007f
 	k8s.io/client-go v8.0.0+incompatible
+	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
 )
