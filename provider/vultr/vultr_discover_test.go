@@ -29,10 +29,10 @@ func TestAddrs(t *testing.T) {
 	l := log.New(os.Stderr, "", log.LstdFlags)
 	p := &vultr.Provider{}
 	addrs, err = p.Addrs(args, l)
-	if err != nil{
+	if err != nil {
 		t.Fatal(err)
 	}
-	if len(addrs) != 2{
+	if len(addrs) != 2 {
 		t.Fatalf("bad: %v", addrs)
 	}
 }

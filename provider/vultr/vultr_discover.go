@@ -1,18 +1,16 @@
 package vultr
 
 import (
-        "fmt"
-        "io/ioutil"
-        "log"
 	"context"
+	"fmt"
+	"io/ioutil"
+	"log"
 
-        "github.com/vultr/govultr"
+	"github.com/vultr/govultr"
 )
 
 type Provider struct {
-
 	userAgent string
-
 }
 
 func (p *Provider) SetUserAgent(s string) {
@@ -39,7 +37,7 @@ func listServersByTag(c *govultr.Client, tagName string) ([]govultr.Server, erro
 	return servers, nil
 }
 
-func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error){
+func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "vultr" {
 		return nil, fmt.Errorf("discover-vultr: invalid provider " + args["privder"])
 	}
@@ -56,7 +54,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	client := govultr.NewClient(nil, apiToken)
 
 	servers, err := listServersByTag(client, tagName)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("discover-vultr: %s", err)
 	}
 
@@ -75,4 +73,3 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-vultr: Found ip addresses: %v", addrs)
 	return addrs, nil
 }
-
