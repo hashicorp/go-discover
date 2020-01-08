@@ -41,6 +41,7 @@ but aren't automatically registered. If you want to support these providers,
 register them manually:
 
  * Kubernetes [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/k8s/k8s_discover.go#L32-L51)
+ * Oracle Cloud Infrastructure [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/oci/oci_discover.go#L27-L39)
 
 HashiCorp maintains acceptance tests that regularly allocate and run tests with
 real resources to verify the behavior of several of these providers. Those
@@ -69,6 +70,9 @@ provider=mdns service=consul domain=local
 
 # Microsoft Azure
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...
+
+# Oracle Cloud Infrastructure
+provicder=oci tag_namespace=... tag_name=... tag_value=... addr_type=... tenancy_ocid=... user_ocid=... key_fingerprint=... region=... private_key_file=... private_key_passphrase=...
 
 # Openstack
 provider=os tag_key=consul tag_value=server username=... password=... auth_url=...
