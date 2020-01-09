@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	discover "github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/aws"
 )
@@ -13,8 +14,7 @@ func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":          "aws",
 		"region":            os.Getenv("AWS_REGION"),
-		"tag_key":           "consul",
-		"tag_value":         "server",
+		"tag_filters":       "consul=server",
 		"access_key_id":     os.Getenv("AWS_ACCESS_KEY_ID"),
 		"secret_access_key": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
@@ -31,5 +31,34 @@ func TestAddrs(t *testing.T) {
 	}
 	if len(addrs) != 2 {
 		t.Fatalf("bad: %v", addrs)
+	}
+}
+
+func TestCreateTagFilterMap(t *testing.T) {
+	tagFilters := "type=server,environment=dev,service=consul"
+
+	answer := aws.TagFilterMap{
+		"type":        "server",
+		"environment": "dev",
+		"service":     "consul",
+	}
+
+	check := aws.CreateTagFilterMap(tagFilters)
+
+	if !cmp.Equal(check, answer) {
+
+		t.Fatalf("The result of %v does not match %v", check, answer)
+	}
+}
+
+func TestFilters(t *testing.T) {
+	tagFilters := "type=server,environment=dev,service=consul"
+
+	tagFilterMap := aws.CreateTagFilterMap(tagFilters)
+
+	check := aws.Filters{}
+
+	if check.Expand(tagFilterMap) == nil {
+		t.Fatalf("Could not create an Filters struct")
 	}
 }

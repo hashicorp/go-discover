@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -14,6 +15,41 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
+// TagFilterMap a map for all the tags used to filter instances
+type TagFilterMap map[string]string
+
+// CreateTagFilterMap creates a map for the key values listed on tagFilters
+func CreateTagFilterMap(tagFilters string) TagFilterMap {
+	tagFilterMap := make(TagFilterMap)
+
+	for _, item := range strings.Split(tagFilters, ",") {
+		keyValue := strings.Split(item, "=")
+		tagFilterMap[keyValue[0]] = keyValue[1]
+	}
+
+	return tagFilterMap
+}
+
+// Filters an alias for a slice of filters for instances
+type Filters []*ec2.Filter
+
+// Expand a parsed map[string]string to tag filters list for aws
+func (f *Filters) Expand(tagFilterMap TagFilterMap) Filters {
+	for tagKey, tagValue := range tagFilterMap {
+		*f = append(*f, &ec2.Filter{
+			Name:   aws.String("tag:" + tagKey),
+			Values: []*string{aws.String(tagValue)},
+		})
+	}
+
+	*f = append(*f, &ec2.Filter{
+		Name:   aws.String("instance-state-name"),
+		Values: []*string{aws.String("running")},
+	})
+
+	return *f
+}
+
 type Provider struct{}
 
 func (p *Provider) Help() string {
@@ -21,8 +57,7 @@ func (p *Provider) Help() string {
 
     provider:          "aws"
     region:            The AWS region. Default to region of instance.
-    tag_key:           The tag key to filter on
-    tag_value:         The tag value to filter on
+    tag_filters:       The tag key value pairs used to filter on.
     addr_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
@@ -30,6 +65,12 @@ func (p *Provider) Help() string {
     The only required IAM permission is 'ec2:DescribeInstances'. If the Consul agent is
     running on AWS instance it is recommended you use an IAM role, otherwise it is
     recommended you make a dedicated IAM user and access key used only for auto-joining.
+
+    When using tag_filters, please make sure to add comma (,) when adding multiple
+    key-value pairs, use an equal sign (=) without spacing the key-value pairs, and to
+    quote the listing for the tag_filters.
+
+    Example: "provider=aws tag_filters=\"env=dev,service=consul\" addr_type=private_v6"
 `
 }
 
@@ -43,8 +84,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	region := args["region"]
-	tagKey := args["tag_key"]
-	tagValue := args["tag_value"]
+	tagFilters := args["tag_filters"]
 	addrType := args["addr_type"]
 	accessKey := args["access_key_id"]
 	secretKey := args["secret_access_key"]
@@ -59,7 +99,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		addrType = "private_v4"
 	}
 
-	log.Printf("[DEBUG] discover-aws: Using region=%s tag_key=%s tag_value=%s addr_type=%s", region, tagKey, tagValue, addrType)
+	log.Printf("[DEBUG] discover-aws: Using region=%s tag_filters=%s addr_type=%s", region, tagFilters, addrType)
 	if accessKey == "" && secretKey == "" {
 		log.Printf("[DEBUG] discover-aws: No static credentials")
 		log.Printf("[DEBUG] discover-aws: Using environment variables, shared credentials or instance role")
@@ -95,18 +135,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}),
 	})
 
-	l.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
+	l.Printf("[INFO] discover-aws: Filter instances with %s", tagFilters)
+	tagFilterMap := CreateTagFilterMap(tagFilters)
+	filters := make(Filters, len(tagFilterMap))
+
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
-		Filters: []*ec2.Filter{
-			&ec2.Filter{
-				Name:   aws.String("tag:" + tagKey),
-				Values: []*string{aws.String(tagValue)},
-			},
-			&ec2.Filter{
-				Name:   aws.String("instance-state-name"),
-				Values: []*string{aws.String("running")},
-			},
-		},
+		Filters: filters.Expand(tagFilterMap),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("discover-aws: DescribeInstancesInput failed: %s", err)
