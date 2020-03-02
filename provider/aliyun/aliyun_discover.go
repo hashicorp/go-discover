@@ -6,8 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/denverdino/aliyungo/common"
-	"github.com/denverdino/aliyungo/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 )
 
 type Provider struct {
@@ -61,23 +60,26 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 	l.Printf("[INFO] discover-aliyun: Region is %s", region)
 
-	svc := ecs.NewClient(accessKeyID, accessKeySecret)
-
-	if p.userAgent != "" {
-		svc.SetUserAgent(p.userAgent)
+	svc, err := ecs.NewClientWithAccessKey(region, accessKeyID, accessKeySecret)
+	if err != nil {
+		return nil, fmt.Errorf("discover-aliyun: NewClientWithAccessKey failed: %s", err)
 	}
 
 	l.Printf("[INFO] discover-aliyun: Filter instances with %s=%s", tagKey, tagValue)
-	resp, err := svc.DescribeInstancesWithRaw(&ecs.DescribeInstancesArgs{
-		RegionId: common.Region(region),
-		Status:   ecs.Running,
-		Tag: map[string]string{
-			tagKey: tagValue,
+	request := &ecs.DescribeInstancesRequest{
+		Status: "Running",
+		Tag: &[]ecs.DescribeInstancesTag{ecs.DescribeInstancesTag{
+			Key:   tagKey,
+			Value: tagValue,
 		}},
-	)
+	}
+	if p.userAgent != "" {
+		request.AppendUserAgent("go-discover", p.userAgent)
+	}
 
+	resp, err := svc.DescribeInstances(request)
 	if err != nil {
-		return nil, fmt.Errorf("discover-aliyun: DescribeInstancesWithRaw failed: %s", err)
+		return nil, fmt.Errorf("discover-aliyun: DescribeInstances failed: %s", err)
 	}
 
 	l.Printf("[DEBUG] discover-aliyun: Found total %d instances", resp.TotalCount)
