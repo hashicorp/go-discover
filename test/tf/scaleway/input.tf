@@ -1,7 +1,12 @@
 variable "region" {
-  default = "par1"
+  default = "fr-par"
+}
+
+variable "zone" {
+  default = "fr-par-1"
 }
 
 variable "image" {
-  default = "aecaed73-51a5-4439-a127-6d8229847145"
+  default = "ubuntu-bionic"
 }
+

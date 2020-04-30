@@ -11,9 +11,10 @@ variable "instance_type" {
 }
 
 variable "tag" {
-  type = "map"
+  type = map(string)
 
   default = {
     "consul" = "test"
   }
 }
+

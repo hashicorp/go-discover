@@ -3,23 +3,37 @@ resource "random_id" "suffix" {
 }
 
 data "google_container_engine_versions" "main" {
-  zone = "${var.zone}"
+  location = var.zone
+}
+
+resource "random_password" "k8s_auth_pw" {
+  length  = 32
+  special = true
 }
 
 resource "google_container_cluster" "cluster" {
   name               = "consul-k8s-${random_id.suffix.dec}"
-  project            = "${var.project}"
+  project            = var.project
   enable_legacy_abac = true
   initial_node_count = 5
-  zone               = "${var.zone}"
-  min_master_version = "${data.google_container_engine_versions.main.latest_master_version}"
-  node_version       = "${data.google_container_engine_versions.main.latest_node_version}"
+  location           = var.zone
+  min_master_version = data.google_container_engine_versions.main.latest_master_version
+  node_version       = data.google_container_engine_versions.main.latest_node_version
+
+  master_auth {
+    username = "go-discover"
+    password = random_password.k8s_auth_pw.result
+
+    client_certificate_config {
+      issue_client_certificate = false
+    }
+  }
 }
 
 resource "local_file" "kubeconfig" {
   filename = "${path.module}/kubeconfig.yaml"
 
-  content = <<EOF
+  sensitive_content = <<EOF
 apiVersion: v1
 clusters:
 - cluster:
@@ -37,9 +51,10 @@ preferences: {}
 users:
 - name: terraform
   user:
-    username: ${google_container_cluster.cluster.master_auth.0.username}
-    password: ${google_container_cluster.cluster.master_auth.0.password}
+    username: ${google_container_cluster.cluster.master_auth[0].username}
+    password: ${google_container_cluster.cluster.master_auth[0].password}
 EOF
+
 }
 
 resource "kubernetes_pod" "valid" {
@@ -48,7 +63,7 @@ resource "kubernetes_pod" "valid" {
   metadata {
     name = "valid-${count.index}"
 
-    labels {
+    labels = {
       app = "valid"
     }
   }
@@ -67,7 +82,7 @@ resource "kubernetes_pod" "invalid" {
   metadata {
     name = "invalid-${count.index}"
 
-    labels {
+    labels = {
       app = "invalid"
     }
   }
@@ -79,3 +94,4 @@ resource "kubernetes_pod" "invalid" {
     }
   }
 }
+

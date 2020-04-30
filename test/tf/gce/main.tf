@@ -1,5 +1,5 @@
 provider "google" {
-  version = "~> 1.20.0"
+  version = "~> 3.19.0"
 }
 
 resource "google_compute_instance" "tagged" {
@@ -51,3 +51,4 @@ resource "google_compute_instance" "untagged" {
     scopes = ["https://www.googleapis.com/auth/compute.readonly"]
   }
 }
+

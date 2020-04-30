@@ -15,7 +15,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 0.11.11
+        default: 0.12.24
       os:
         type: string
         default: linux
@@ -40,6 +40,9 @@ commands:
       provider-go-test-tags:
         type: string
         default: ""
+      provider-tf-apply:
+        type: string
+        default: "terraform apply -auto-approve"
     steps:
       - tf-install
       - checkout
@@ -56,7 +59,7 @@ commands:
           command: terraform init
       - run:
           working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
-          command: terraform apply --auto-approve
+          command: << parameters.provider-tf-apply >>
 
       # run acceptance tests
       - when:
@@ -140,6 +143,10 @@ jobs:
       - acctest:
           provider-test-infra-dir: k8s
           provider-go-test-dir: k8s
+          # We have to apply in two stages because an output of the resource of one provider is then used as the input
+          # to the k8s provider. Specifically we are getting auth information from the GKE cluster into the k8s provider.
+          # https://www.terraform.io/docs/providers/kubernetes/index.html#stacking-with-managed-kubernetes-cluster-resources
+          provider-tf-apply: "terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve"
   packet-provider:
     executor: go
     steps:
