@@ -4,7 +4,7 @@ version: 2.1
 executors:
   go:
     docker:
-      - image: circleci/golang:1.11.4
+      - image: circleci/golang:1.14.2
     environment:
       - TEST_RESULTS: /tmp/test-results  # path to where test results are saved
 
@@ -44,12 +44,6 @@ commands:
       - tf-install
       - checkout
 
-      - run:
-          name: install junit and setup test path
-          command: |
-            go get github.com/jstemmer/go-junit-report
-            mkdir -p /tmp/test-results
-
       # spin up infrastructure
       - run:
           working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>
@@ -62,18 +56,15 @@ commands:
       - when:
           condition: << parameters.provider-go-test-tags >>
           steps:
-            - run: go test -run << parameters.provider-go-test-tags >> -v ./provider/<< parameters.provider-go-test-dir >> | tee ${TEST_RESULTS}/results.out
+            - run: gotestsum -f standard-quiet --junitfile /tmp/test-results/results.xml -- \
+                -run << parameters.provider-go-test-tags >> \
+                -v ./provider/<< parameters.provider-go-test-dir >>
       - unless:
           condition: << parameters.provider-go-test-tags >>
           steps:
-            - run: go test -v ./provider/<< parameters.provider-go-test-dir >> | tee ${TEST_RESULTS}/results.out
+            - run: gotestsum -f standard-quiet --junitfile /tmp/test-results/results.xml -- \
+                -v ./provider/<< parameters.provider-go-test-dir >>
 
-      # generate XML results
-      - run:
-          command: go-junit-report < ${TEST_RESULTS}/results.out > ${TEST_RESULTS}/results.xml
-          when: always
-
-      # store test results for CircleCI
       - store_test_results:
           path: /tmp/test-results
 
@@ -88,14 +79,16 @@ jobs:
     executor: go
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - go-mod-test-v1-{{ checksum "go.sum" }}
-      - run: go test -v
-      - save_cache:
-          key: go-mod-test-v1-{{ checksum "go.sum" }}
-          paths:
-            - /go/pkg/mod
+      - run: go mod download
+      - run: gotestsum -f standard-verbose --junitfile /tmp/test-results/results.xml
+      - store_test_results:
+          path: /tmp/test-results
+      - run:
+          name: Check go mod tidy
+          command: |
+            go mod tidy
+            git diff --exit-code go.*
+
   alicloud-provider:
     executor: go
     steps:
