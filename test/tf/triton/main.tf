@@ -1,5 +1,5 @@
 provider "triton" {
-  version = "~> 0.5.0"
+  version = "~> 0.6.0"
 }
 
 data "triton_image" "image" {
@@ -13,17 +13,18 @@ data "triton_network" "public" {
 
 resource "triton_machine" "test" {
   package  = "g4-highcpu-128M"
-  image    = "${data.triton_image.image.id}"
-  networks = ["${data.triton_network.public.id}"]
+  image    = data.triton_image.image.id
+  networks = [data.triton_network.public.id]
 }
 
 resource "triton_machine" "test_tagged" {
   count    = 2
   package  = "g4-highcpu-128M"
-  image    = "${data.triton_image.image.id}"
-  networks = ["${data.triton_network.public.id}"]
+  image    = data.triton_image.image.id
+  networks = [data.triton_network.public.id]
 
-  tags {
+  tags = {
     consul-role = "server"
   }
 }
+

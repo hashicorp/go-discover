@@ -1,10 +1,14 @@
-variable "name" {}
+variable "name" {
+}
 
-variable "resource_group_name" {}
+variable "resource_group_name" {
+}
 
-variable "location" {}
+variable "location" {
+}
 
-variable "subnet_id" {}
+variable "subnet_id" {
+}
 
 variable "size" {
   default = "Standard_A1_v2"
@@ -15,6 +19,7 @@ variable "username" {
 }
 
 variable "tags" {
-  type    = "map"
+  type    = map(string)
   default = {}
 }
+

@@ -1,9 +1,9 @@
 resource "azurerm_virtual_machine" "main" {
   name                  = "${var.name}-vm"
-  location              = "${var.location}"
-  resource_group_name   = "${var.resource_group_name}"
-  network_interface_ids = ["${azurerm_network_interface.internal.id}"]
-  vm_size               = "${var.size}"
+  location              = var.location
+  resource_group_name   = var.resource_group_name
+  network_interface_ids = [azurerm_network_interface.internal.id]
+  vm_size               = var.size
 
   storage_image_reference {
     publisher = "Canonical"
@@ -20,9 +20,9 @@ resource "azurerm_virtual_machine" "main" {
   }
 
   os_profile {
-    computer_name  = "${var.name}"
-    admin_username = "${var.username}"
-    admin_password = "${random_string.password.result}"
+    computer_name  = var.name
+    admin_username = var.username
+    admin_password = random_string.password.result
   }
 
   os_profile_linux_config {
@@ -33,3 +33,4 @@ resource "azurerm_virtual_machine" "main" {
 resource "random_string" "password" {
   length = 16
 }
+

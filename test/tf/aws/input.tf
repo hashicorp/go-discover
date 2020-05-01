@@ -1,5 +1,5 @@
 provider "aws" {
-  version = "~> 1.15"
+  version = "~> 2.59.0"
 }
 
 variable "prefix" {
@@ -26,3 +26,4 @@ variable "subnet_cidr" {
   default     = "10.0.1.0/24"
   description = "subnet of the VPC"
 }
+
