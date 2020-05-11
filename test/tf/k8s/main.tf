@@ -53,6 +53,7 @@ users:
   user:
     username: ${google_container_cluster.cluster.master_auth[0].username}
     password: ${google_container_cluster.cluster.master_auth[0].password}
+
 EOF
 
 }
