@@ -18,7 +18,7 @@ resource "google_container_cluster" "cluster" {
   initial_node_count = 5
   location           = var.zone
   min_master_version = data.google_container_engine_versions.main.latest_master_version
-  node_version       = data.google_container_engine_versions.main.latest_node_version
+  node_version       = data.google_container_engine_versions.main.latest_master_version
 
   master_auth {
     username = "go-discover"
@@ -53,6 +53,7 @@ users:
   user:
     username: ${google_container_cluster.cluster.master_auth[0].username}
     password: ${google_container_cluster.cluster.master_auth[0].password}
+
 EOF
 
 }
