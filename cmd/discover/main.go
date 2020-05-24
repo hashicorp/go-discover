@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	discover "github.com/hashicorp/go-discover"
+	discover "github.com/SephVelut/go-discover"
 )
 
 func main() {
