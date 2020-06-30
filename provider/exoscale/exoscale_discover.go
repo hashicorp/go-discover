@@ -2,7 +2,6 @@
 package exoscale
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -88,24 +87,26 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		}
 	}
 
-	resp, err := client.RequestWithContext(context.Background(), egoscale.ListVirtualMachines{
+	req := egoscale.VirtualMachine{
 		ZoneID: zoneID,
 		Tags:   tags,
-	})
-	if err != nil {
-		return nil, err
 	}
 
-	instances := resp.(*egoscale.ListVirtualMachinesResponse).VirtualMachine
-
 	var addrs []string
-	for _, instance := range instances {
+	client.Paginate(req, func(resp interface{}, e error) bool {
+		if e != nil {
+			err = e
+			return false
+		}
+
+		instance := resp.(*egoscale.VirtualMachine)
+
 		ip := instance.IP().String()
 		if addrType == "public_v6" {
 			nic := instance.DefaultNic()
 			if nic != nil {
 				if nic.IP6Address.String() == "<nil>" {
-					continue
+					return true
 				}
 
 				ip = nic.IP6Address.String()
@@ -119,6 +120,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		)
 
 		addrs = append(addrs, ip)
+		return true
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	l.Printf("[DEBUG] discover-exoscale: Found ip addresses: %v", addrs)
