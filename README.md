@@ -24,6 +24,7 @@ function.
  * Aliyun (Alibaba) Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aliyun/aliyun_discover.go#L15-L28)
  * Amazon AWS [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/aws/aws_discover.go#L19-L33)
  * DigitalOcean [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/digitalocean/digitalocean_discover.go#L16-L24)
+ * Exoscale [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/exoscale/exoscale_discover.go#L24-L31)
  * Google Cloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/gce/gce_discover.go#L17-L37)
  * Linode [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/linode/linode_discover.go#L30-L41)
  * mDNS [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/mdns/mdns_provider.go#L19-L31)
@@ -57,6 +58,9 @@ provider=aws region=eu-west-1 tag_key=consul tag_value=... access_key_id=... sec
 
 # DigitalOcean
 provider=digitalocean region=... tag_name=... api_token=...
+
+# Exoscale
+provider=exoscale zone=... tag_key=consul tag_value=... api_key=... api_secret=...
 
 # Google Cloud
 provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credentials_file=...
