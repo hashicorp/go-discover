@@ -1,12 +1,18 @@
 version: 2.1
 
+locals:
+  ignore_prs: &ignore_prs
+    branches:
+      # Forked pull requests have CIRCLE_BRANCH set to pull/XXX
+      ignore: /pull\/[0-9]+/
+
 # reusable 'executor' object for jobs
 executors:
   go:
     docker:
       - image: circleci/golang:1.12.17
     environment:
-      - TEST_RESULTS: /tmp/test-results  # path to where test results are saved
+      - TEST_RESULTS: /tmp/test-results # path to where test results are saved
 
 # reusable 'commands' to be added as a step in jobs
 commands:
@@ -190,30 +196,40 @@ workflows:
       - alicloud-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - aws-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - azure-vmss-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - azurerm-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - digitalocean-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - gce-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - k8s-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - packet-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - scaleway-provider:
           requires:
             - go-test
+          filters: *ignore_prs
       - triton-provider:
           requires:
             - go-test
+          filters: *ignore_prs
