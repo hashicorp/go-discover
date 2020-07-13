@@ -143,6 +143,12 @@ jobs:
       - acctest:
           provider-test-infra-dir: digitalocean
           provider-go-test-dir: digitalocean
+  exoscale-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: exoscale
+          provider-go-test-dir: exoscale
   gce-provider:
     executor: go
     steps:
@@ -200,6 +206,9 @@ workflows:
           requires:
             - go-test
       - digitalocean-provider:
+          requires:
+            - go-test
+      - exoscale-provider:
           requires:
             - go-test
       - gce-provider:
