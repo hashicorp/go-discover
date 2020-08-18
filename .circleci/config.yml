@@ -187,6 +187,12 @@ jobs:
       - acctest:
           provider-test-infra-dir: triton
           provider-go-test-dir: triton
+  hcloud-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: hcloud
+          provider-go-test-dir: hcloud
 
 workflows:
   version: 2
@@ -230,6 +236,10 @@ workflows:
             - go-test
           filters: *ignore_prs
       - triton-provider:
+          requires:
+            - go-test
+          filters: *ignore_prs
+      - hcloud-provider:
           requires:
             - go-test
           filters: *ignore_prs

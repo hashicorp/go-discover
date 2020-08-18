@@ -35,6 +35,7 @@ function.
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/triton/triton_discover.go#L17-L27)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/vsphere/vsphere_discover.go#L148-L155)
  * Packet [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/packet/packet_discover.go#L25-L35)
+ * hcloud [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/hcloud/hcloud_discover.go#L15-L23)
 
 The following providers are implemented in the go-discover/provider subdirectory
 but aren't automatically registered. If you want to support these providers,
@@ -93,6 +94,9 @@ provider=packet auth_token=token project=uuid url=... address_type=...
 
 # Kubernetes
 provider=k8s label_selector="app = consul-server"
+
+# hcloud
+provider=hcloud api_token=token label_selector=...
 ```
 
 ## Command Line Tool Usage
