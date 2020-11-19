@@ -2,20 +2,18 @@
 package os
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 	"github.com/gophercloud/gophercloud/pagination"
+	"github.com/gophercloud/utils/terraform/auth"
+	"github.com/gophercloud/utils/terraform/mutexkv"
 )
 
 type Provider struct {
@@ -30,6 +28,7 @@ func (p *Provider) Help() string {
 	return `Openstack:
 
     provider:   "os"
+    cloud:	An entry in a clouds.yaml file to use. 
     auth_url:   The endpoint of OS identity
     project_id: The id of the project (tenant id)
     tag_key:    The tag key to filter on
@@ -38,6 +37,9 @@ func (p *Provider) Help() string {
     password:   The password of the provided user
     token:      The token to use
     insecure:   Sets if the api certificate shouldn't be check. Any value means true
+    application_credential_id: ID of the application credentials to be used.
+    application_credential_name: Name of the application credentials to be used
+    application_credential_secret: Secret for the given application credential ID/Name
 
     Variables can also be provided by environmental variables.
 `
@@ -52,12 +54,17 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l = log.New(ioutil.Discard, "", 0)
 	}
 
-	projectID := args["project_id"]
+	client, config, err := newClient(args, l)
+	if err != nil {
+		l.Printf("[DEBUG] Client Creation Error - %s", err)
+		return nil, err
+	}
+
+	projectID := config.TenantID
 	tagKey := args["tag_key"]
 	tagValue := args["tag_value"]
-	var err error
 
-	if projectID == "" { // Use the one on the instance if not provided either by parameter or env
+	if projectID == "" && config.Cloud == "" { // Use the one on the instance if not provided either by parameter or env
 		l.Printf("[INFO] discover-os: ProjectID not provided. Looking up in metadata...")
 		projectID, err = getProjectID()
 		if err != nil {
@@ -68,14 +75,6 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	log.Printf("[DEBUG] discover-os: Using project_id=%s tag_key=%s tag_value=%s", projectID, tagKey, tagValue)
-	client, err := newClient(args, l)
-	if err != nil {
-		return nil, err
-	}
-
-	if p.userAgent != "" {
-		client.UserAgent.Prepend(p.userAgent)
-	}
 
 	pager := servers.List(client, ListOpts{ListOpts: servers.ListOpts{Status: "ACTIVE"}, ProjectID: projectID})
 	if err := pager.Err; err != nil {
@@ -88,9 +87,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		if err != nil {
 			return false, err
 		}
+		
+		l.Printf("[INFO] discover-os: Filter instances with %s=%s", tagKey, tagValue)
 		for _, srv := range srvs {
 			for key, value := range srv.Metadata {
-				l.Printf("[INFO] discover-os: Filter instances with %s=%s", tagKey, tagValue)
 				if key == tagKey && value == tagValue {
 					// Loop over the server address and append any fixed one to the list
 					for _, v := range srv.Addresses {
@@ -117,68 +117,42 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	return addrs, nil
 }
 
-func newClient(args map[string]string, l *log.Logger) (*gophercloud.ServiceClient, error) {
-	username := argsOrEnv(args, "user_name", "OS_USERNAME")
-	password := argsOrEnv(args, "password", "OS_PASSWORD")
-	token := argsOrEnv(args, "token", "OS_AUTH_TOKEN")
-	url := argsOrEnv(args, "auth_url", "OS_AUTH_URL")
+func newClient(args map[string]string, l *log.Logger) (*gophercloud.ServiceClient, *auth.Config, error) {
+	config := auth.Config{
+		Cloud:            argsOrEnv(args, "cloud", "OS_CLOUD"),
+		DomainID:         argsOrEnv(args, "domain_id", "OS_DOMAIN_ID"),
+		DomainName:       argsOrEnv(args, "domain_name", "OS_DOMAIN_NAME"),
+		IdentityEndpoint: argsOrEnv(args, "auth_url", "OS_AUTH_URL"),
+		Password:         argsOrEnv(args, "password", "OS_PASSWORD"),
+
+		Token:                       argsOrEnv(args, "token", "OS_AUTH_TOKEN"),
+		TenantID:                    argsOrEnv(args, "project_id", "OS_PROJECT_ID"),
+		TenantName:                  argsOrEnv(args, "project_name", "OS_PROJECT_NAME"),
+		Username:                    argsOrEnv(args, "user_name", "OS_USERNAME"),
+		ApplicationCredentialID:     argsOrEnv(args, "application_credential_id", "OS_APPLICATION_CREDENTIAL_ID"),
+		ApplicationCredentialName:   argsOrEnv(args, "application_credential_name", "OS_APPLICATION_CREDENTIAL_NAME"),
+		ApplicationCredentialSecret: argsOrEnv(args, "application_credential_secret", "OS_APPLICATION_CREDENTIAL_SECRET"),
+		TerraformVersion:            "0.11",
+		SDKVersion:                  "1",
+		MutexKV:                     *(mutexkv.NewMutexKV()),
+	}
+
 	region := argsOrEnv(args, "region", "OS_REGION_NAME")
 	if region == "" {
 		region = "RegionOne"
 	}
-	projectID := argsOrEnv(args, "project_id", "OS_PROJECT_ID")
-	insecure := argsOrEnv(args, "insecure", "OS_INSECURE")
-	domain_id := argsOrEnv(args, "domain_id", "OS_DOMAIN_ID")
-	domain_name := argsOrEnv(args, "domain_name", "OS_DOMAIN_NAME")
 
-	if url == "" {
-		return nil, fmt.Errorf("discover-os: Auth url must be provided")
+	if argsOrEnv(args, "insecure", "OS_INSECURE") == "true" {
+		insecure := true
+		config.Insecure = &insecure
 	}
 
-	ao := gophercloud.AuthOptions{
-		DomainID:         domain_id,
-		DomainName:       domain_name,
-		IdentityEndpoint: url,
-		Username:         username,
-		Password:         password,
-		TokenID:          token,
-		TenantID:         projectID,
+	if err := config.LoadAndValidate(); err != nil {
+		return nil, nil, err
 	}
 
-	client, err := openstack.NewClient(ao.IdentityEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("discover-os: Client initialization failed: %s", err)
-	}
-
-	config := &tls.Config{InsecureSkipVerify: insecure != ""}
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       config,
-	}
-	transport.TLSClientConfig = config
-	client.HTTPClient = *http.DefaultClient
-	client.HTTPClient.Transport = transport
-
-	l.Printf("[DEBUG] discover-os: Authenticating...")
-	if err = openstack.Authenticate(client, ao); err != nil {
-		return nil, fmt.Errorf("discover-os: Authentication failed: %s", err)
-	}
-
-	l.Printf("[DEBUG] discover-os: Creating client...")
-	computeClient, err := openstack.NewComputeV2(client, gophercloud.EndpointOpts{Region: region})
-	if err != nil {
-		return nil, fmt.Errorf("discover-os: ComputeClient initialization failed: %s", err)
-	}
-	return computeClient, nil
+	client, _ := config.ComputeV2Client(config.Region)
+	return client, &config, nil
 }
 
 func argsOrEnv(args map[string]string, key, env string) string {
