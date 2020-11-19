@@ -13,7 +13,8 @@ require (
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
-	github.com/gophercloud/gophercloud v0.1.0
+	github.com/gophercloud/gophercloud v0.6.1-0.20191122030953-d8ac278c1c9d
+	github.com/gophercloud/utils v0.0.0-20201101202656-8677e053dcf1
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/mdns v1.0.1
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443
