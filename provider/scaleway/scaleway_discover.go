@@ -22,8 +22,8 @@ func (p *Provider) Help() string {
     tag_name:           The tag names to filter on (use "," as a separator)
     commercial_type:    The commercial type to filter on
     private_network_id: The private network id to filter on
-    token:              The Scaleway API access token
-    region:             The Scaleway region
+    token:              The Scaleway API secret key
+    zone:               The Scaleway zone (default fr-par-1)
     addr_type:          "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
 
 	The following location are looked for in that order:
