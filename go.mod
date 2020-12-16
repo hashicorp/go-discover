@@ -10,7 +10,6 @@ require (
 	github.com/aws/aws-sdk-go v1.25.41
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/digitalocean/godo v1.7.5
-	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gophercloud/gophercloud v0.1.0
@@ -22,10 +21,10 @@ require (
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
 	github.com/linode/linodego v0.7.1
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
+	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/sirupsen/logrus v1.0.6 // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d

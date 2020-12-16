@@ -13,18 +13,8 @@ var _ discover.Provider = (*scaleway.Provider)(nil)
 
 func TestAddrs(t *testing.T) {
 	args := discover.Config{
-		"provider":     "scaleway",
-		"organization": os.Getenv("SCALEWAY_ORGANIZATION"),
-		"token":        os.Getenv("SCALEWAY_TOKEN"),
-		"tag_name":     "consul-server",
-		"region":       os.Getenv("SCALEWAY_REGION"),
-	}
-	if args["organization"] == "" {
-		t.Skip("Scaleway organization missing")
-	}
-
-	if args["token"] == "" {
-		t.Skip("Scaleway token missing")
+		"provider":  "scaleway",
+		"addr_type": "private_v4",
 	}
 
 	p := &scaleway.Provider{}
@@ -33,7 +23,7 @@ func TestAddrs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(addrs) != 2 {
+	if len(addrs) == 0 {
 		t.Fatalf("bad: %v", addrs)
 	}
 }
