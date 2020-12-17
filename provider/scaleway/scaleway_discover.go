@@ -17,13 +17,15 @@ func (p *Provider) Help() string {
 	return `Scaleway:
 
     provider:           "scaleway"
+    secret_key:         The Scaleway API secret key
+    organization_id:    The Scaleway organization id
+    project_id          The Scaleway Project ID
+
     name:               The name of the instance to filter on
-    organization:       The Scaleway organization access key
-    tag_name:           The tag names to filter on (use "," as a separator)
-    commercial_type:    The commercial type to filter on
+    tag_name:           The tag names to filter on (use "," as a separator if you have several tags)
+    server_type:        The server type to filter on
     private_network_id: The private network id to filter on
-    token:              The Scaleway API secret key
-    zone:               The Scaleway zone (default fr-par-1)
+    zone:               The Scaleway zone. Defaults to "fr-par-1".
     addr_type:          "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
 
 	The following location are looked for in that order:
@@ -44,7 +46,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	addrType := args["addr_type"]
 	tagName := args["tag_name"]
-	commercialType := args["commercial_type"]
+	commercialType := args["server_type"]
 	privateNetwork := args["private_network_id"]
 	name := args["name"]
 
@@ -133,12 +135,12 @@ func newClient(args map[string]string, l *log.Logger) (*scw.Client, error) {
 	// Command line argument loading
 	argsProfile := &scw.Profile{}
 
-	projectID := args["project-id"]
+	projectID := args["project_id"]
 	if projectID != "" {
 		argsProfile.DefaultProjectID = scw.StringPtr(projectID)
 	}
 
-	secretKey := args["secret-key"]
+	secretKey := args["secret_key"]
 	if secretKey != "" {
 		argsProfile.SecretKey = scw.StringPtr(secretKey)
 	}
@@ -152,7 +154,7 @@ func newClient(args map[string]string, l *log.Logger) (*scw.Client, error) {
 		argsProfile.DefaultZone = scw.StringPtr(z.String())
 	}
 
-	organization := args["organization"]
+	organization := args["organization_id"]
 	if organization != "" {
 		argsProfile.DefaultOrganizationID = scw.StringPtr(organization)
 	}
@@ -165,7 +167,7 @@ func newClient(args map[string]string, l *log.Logger) (*scw.Client, error) {
 	l.Printf("[INFO] discover-scaleway: Zone is %q", *profile.DefaultZone)
 
 	opts := []scw.ClientOption{
-		scw.WithUserAgent(fmt.Sprintf("go-discover")),
+		scw.WithUserAgent("go-discover"),
 		scw.WithProfile(profile),
 	}
 
