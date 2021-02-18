@@ -17,6 +17,7 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/mdns v1.0.1
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443
+	github.com/hetznercloud/hcloud-go v1.23.1
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da // indirect
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62

@@ -155,6 +155,12 @@ jobs:
       - acctest:
           provider-test-infra-dir: gce
           provider-go-test-dir: gce
+  hcloud-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: hcloud
+          provider-go-test-dir: hcloud
   k8s-provider:
     executor: go
     steps:
@@ -214,6 +220,10 @@ workflows:
             - go-test
           filters: *ignore_prs
       - gce-provider:
+          requires:
+            - go-test
+          filters: *ignore_prs
+      - hcloud-provider:
           requires:
             - go-test
           filters: *ignore_prs
