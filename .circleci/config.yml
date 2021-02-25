@@ -165,6 +165,12 @@ jobs:
           # to the k8s provider. Specifically we are getting auth information from the GKE cluster into the k8s provider.
           # https://www.terraform.io/docs/providers/kubernetes/index.html#stacking-with-managed-kubernetes-cluster-resources
           provider-tf-apply: "terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve"
+  ksyun-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: ksyun
+          provider-go-test-dir: ksyun
   packet-provider:
     executor: go
     steps:

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-discover/provider/azure"
 	"github.com/hashicorp/go-discover/provider/digitalocean"
 	"github.com/hashicorp/go-discover/provider/gce"
+	"github.com/hashicorp/go-discover/provider/ksyun"
 	"github.com/hashicorp/go-discover/provider/linode"
 	"github.com/hashicorp/go-discover/provider/mdns"
 	"github.com/hashicorp/go-discover/provider/os"
@@ -50,6 +51,7 @@ var Providers = map[string]Provider{
 	"azure":        &azure.Provider{},
 	"digitalocean": &digitalocean.Provider{},
 	"gce":          &gce.Provider{},
+	"ksyun":        &ksyun.Provider{},
 	"linode":       &linode.Provider{},
 	"mdns":         &mdns.Provider{},
 	"os":           &os.Provider{},
