@@ -35,6 +35,7 @@ function.
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/triton/triton_discover.go#L17-L27)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/vsphere/vsphere_discover.go#L148-L155)
  * Packet [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/packet/packet_discover.go#L25-L35)
+ * Proxmox [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/proxmox/proxmox_discover.go#L14-L23)
 
 The following providers are implemented in the go-discover/provider subdirectory
 but aren't automatically registered. If you want to support these providers,
@@ -90,6 +91,9 @@ provider=vsphere category_name=consul-role tag_name=consul-server host=... user=
 
 # Packet
 provider=packet auth_token=token project=uuid url=... address_type=...
+
+# Proxmox
+provider=proxmox api_host=... api_token_id=... api_token_secret=... api_skip_tls_verify=[skip|verify] pool_name=...
 
 # Kubernetes
 provider=k8s label_selector="app = consul-server"
