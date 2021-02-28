@@ -44,21 +44,24 @@ func makeRequest(args discover.Config, apiPath string) (*http.Response, error) {
 	return res, nil
 }
 
-type node struct {
-	ID             string `json:"id"`
-	Level          string `json:"level"`
-	Node           string `json:"node"`
-	SSLFingerprint string `json:"ssl_fingerprint"`
-	Status         string `json:"status"`
-	Type           string `json:"type"`
+type member struct {
+	ID     string `json:"id"`
+	Node   string `json:"node"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+	Type   string `json:"type"`
+}
+
+type poolData struct {
+	Members []member `json:"members"`
 }
 
 type nodesAPIResponse struct {
-	Data []node `json:"data"`
+	Data poolData `json:"data"`
 }
 
-func getNodes(args discover.Config) ([]node, error) {
-	res, err := makeRequest(args, "/nodes")
+func getPoolMembers(args discover.Config) ([]member, error) {
+	res, err := makeRequest(args, "/pools/"+args["pool_name"])
 	if err != nil {
 		return nil, err
 	}
@@ -69,5 +72,5 @@ func getNodes(args discover.Config) ([]node, error) {
 		return nil, err
 	}
 
-	return nodes.Data, nil
+	return nodes.Data.Members, nil
 }
