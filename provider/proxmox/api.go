@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/hashicorp/go-discover"
 )
 
-func makeRequest(args discover.Config, apiPath string) (*http.Response, error) {
+// MakeRequest sends a GET request to the Proxmox API
+func MakeRequest(args map[string]string, apiPath string) (*http.Response, error) {
 	apiBase := "/api2/json"
 	apiURL, err := url.Parse(args["api_host"] + apiBase + apiPath)
 	if err != nil {
@@ -44,7 +43,8 @@ func makeRequest(args discover.Config, apiPath string) (*http.Response, error) {
 	return res, nil
 }
 
-type member struct {
+// Member represents the record of an entity in a Proxmox pool
+type Member struct {
 	ID     string `json:"id"`
 	Node   string `json:"node"`
 	Name   string `json:"name"`
@@ -54,15 +54,16 @@ type member struct {
 }
 
 type poolData struct {
-	Members []member `json:"members"`
+	Members []Member `json:"members"`
 }
 
 type nodesAPIResponse struct {
 	Data poolData `json:"data"`
 }
 
-func getPoolMembers(args discover.Config) ([]member, error) {
-	res, err := makeRequest(args, "/pools/"+args["pool_name"])
+// GetPoolMembers fetches the members of a pool from the Proxmox API
+func GetPoolMembers(args map[string]string) ([]Member, error) {
+	res, err := MakeRequest(args, "/pools/"+args["pool_name"])
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,8 @@ type statistics struct {
 	TxPackets int `json:"tx-packets"`
 }
 
-type networkInterface struct {
+// NetworkInterface represents a network interface fetched from the Proxmox API
+type NetworkInterface struct {
 	HardwareAddress string        `json:"hardware-address"`
 	IPAddresses     []ipAddresses `json:"ip-addresses"`
 	Name            string        `json:"name"`
@@ -101,15 +103,16 @@ type networkInterface struct {
 }
 
 type data struct {
-	Result []networkInterface `json:"result"`
+	Result []NetworkInterface `json:"result"`
 }
 
 type getNetworkInterfacesResponse struct {
 	Data data `json:"data"`
 }
 
-func getNetworkInterfaces(args discover.Config, node string, vmID string) ([]networkInterface, error) {
-	res, err := makeRequest(args, "/nodes/"+node+"/qemu/"+vmID+"/agent/network-get-interfaces")
+// GetNetworkInterfaces fetches the network interfaces of a specific VM from the Proxmox API
+func GetNetworkInterfaces(args map[string]string, node string, vmID string) ([]NetworkInterface, error) {
+	res, err := MakeRequest(args, "/nodes/"+node+"/qemu/"+vmID+"/agent/network-get-interfaces")
 	if err != nil {
 		return nil, err
 	}

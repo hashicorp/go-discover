@@ -1,4 +1,4 @@
-package proxmox
+package proxmox_test
 
 import (
 	"fmt"
@@ -8,9 +8,8 @@ import (
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
+	"github.com/hashicorp/go-discover/provider/proxmox"
 )
-
-var _ discover.Provider = (*Provider)(nil)
 
 var (
 	ipv4Regex, _ = regexp.Compile(`^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4})`)
@@ -32,7 +31,7 @@ func TestAddrs(t *testing.T) {
 	}
 
 	logger := log.New(os.Stderr, "", log.LstdFlags)
-	p := &Provider{}
+	p := &proxmox.Provider{}
 	addrs, err := p.Addrs(args, logger)
 	if err != nil {
 		t.Fatal(err)
@@ -69,7 +68,7 @@ func TestAddrsIPv6(t *testing.T) {
 	}
 
 	logger := log.New(os.Stderr, "", log.LstdFlags)
-	p := &Provider{}
+	p := &proxmox.Provider{}
 	addrs, err := p.Addrs(args, logger)
 	if err != nil {
 		t.Fatal(err)

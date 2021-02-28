@@ -1,4 +1,4 @@
-package proxmox
+package proxmox_test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
+	"github.com/hashicorp/go-discover/provider/proxmox"
 )
 
 func TestGetPoolMembers(t *testing.T) {
@@ -22,7 +23,7 @@ func TestGetPoolMembers(t *testing.T) {
 		t.Skip("Proxmox credentials missing")
 	}
 
-	members, err := getPoolMembers(args)
+	members, err := proxmox.GetPoolMembers(args)
 	if err != nil {
 		t.Fatalf("bad: %v", err)
 	}
@@ -47,13 +48,13 @@ func TestGetNetworkInterfaces(t *testing.T) {
 		t.Skip("Proxmox credentials missing")
 	}
 
-	members, err := getPoolMembers(args)
+	members, err := proxmox.GetPoolMembers(args)
 	if err != nil {
 		t.Fatalf("bad: %v", err)
 	}
 
 	for _, member := range members {
-		interfaces, err := getNetworkInterfaces(args, member.Node, fmt.Sprint(member.VMID))
+		interfaces, err := proxmox.GetNetworkInterfaces(args, member.Node, fmt.Sprint(member.VMID))
 		if err != nil {
 			t.Fatalf("bad: %v", err)
 		}

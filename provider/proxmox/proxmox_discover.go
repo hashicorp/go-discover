@@ -45,7 +45,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// Get all the members of the pool
 	l.Printf("[DEBUG] discover-proxmox: retrieveing members of pool: %s", args["pool_name"])
-	members, err := getPoolMembers(args)
+	members, err := GetPoolMembers(args)
 	l.Printf("[DEBUG] discover-proxmox: got %d members", len(members))
 	if err != nil {
 		return nil, fmt.Errorf("discover-proxmox: could not list pool members: %s", err)
@@ -53,10 +53,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// Get the network interfaces from just the members that at QEMU vm's
 	l.Print("[DEBUG] discover-proxmox: retrieveing network interfaces from members")
-	var interfaces []networkInterface
+	var interfaces []NetworkInterface
 	for _, member := range members {
 		if member.Type == "qemu" {
-			memberInterfaces, err := getNetworkInterfaces(args, member.Node, fmt.Sprint(member.VMID))
+			memberInterfaces, err := GetNetworkInterfaces(args, member.Node, fmt.Sprint(member.VMID))
 			if err != nil {
 				return nil, fmt.Errorf(
 					"discover-proxmox: could not get interfaces from pool member '%s' (ID: %d): %s",
