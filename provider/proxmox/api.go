@@ -50,6 +50,7 @@ type member struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`
 	Type   string `json:"type"`
+	VMID   int    `json:"vmid"`
 }
 
 type poolData struct {
@@ -73,4 +74,51 @@ func getPoolMembers(args discover.Config) ([]member, error) {
 	}
 
 	return nodes.Data.Members, nil
+}
+
+type ipAddresses struct {
+	IPAddress     string `json:"ip-address"`
+	IPAddressType string `json:"ip-address-type"`
+	Prefix        int    `json:"prefix"`
+}
+
+type statistics struct {
+	RxBytes   int `json:"rx-bytes"`
+	RxDropped int `json:"rx-dropped"`
+	RxErrs    int `json:"rx-errs"`
+	RxPackets int `json:"rx-packets"`
+	TxBytes   int `json:"tx-bytes"`
+	TxDropped int `json:"tx-dropped"`
+	TxErrs    int `json:"tx-errs"`
+	TxPackets int `json:"tx-packets"`
+}
+
+type networkInterface struct {
+	HardwareAddress string        `json:"hardware-address"`
+	IPAddresses     []ipAddresses `json:"ip-addresses"`
+	Name            string        `json:"name"`
+	Statistics      statistics    `json:"statistics"`
+}
+
+type data struct {
+	Result []networkInterface `json:"result"`
+}
+
+type getNetworkInterfacesResponse struct {
+	Data data `json:"data"`
+}
+
+func getNetworkInterfaces(args discover.Config, node string, vmID string) ([]networkInterface, error) {
+	res, err := makeRequest(args, "/nodes/"+node+"/qemu/"+vmID+"/agent/network-get-interfaces")
+	if err != nil {
+		return nil, err
+	}
+
+	var interfaces = new(getNetworkInterfacesResponse)
+	jsonErr := json.NewDecoder(res.Body).Decode(&interfaces)
+	if jsonErr != nil {
+		return nil, err
+	}
+
+	return interfaces.Data.Result, nil
 }
