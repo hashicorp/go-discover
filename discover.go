@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-discover/provider/aws"
 	"github.com/hashicorp/go-discover/provider/azure"
 	"github.com/hashicorp/go-discover/provider/digitalocean"
+	"github.com/hashicorp/go-discover/provider/equinixmetal"
 	"github.com/hashicorp/go-discover/provider/gce"
 	"github.com/hashicorp/go-discover/provider/linode"
 	"github.com/hashicorp/go-discover/provider/mdns"
@@ -59,6 +60,7 @@ var Providers = map[string]Provider{
 	"triton":       &triton.Provider{},
 	"vsphere":      &vsphere.Provider{},
 	"packet":       &packet.Provider{},
+	"equinixmetal": &equinixmetal.Provider{},
 }
 
 // Discover looks up metadata in different cloud environments.
