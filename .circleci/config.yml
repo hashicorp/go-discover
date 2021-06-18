@@ -207,7 +207,12 @@ jobs:
       - acctest:
           provider-test-infra-dir: triton
           provider-go-test-dir: triton
-
+  equinixmetal-provider:
+    executor: go
+    steps:
+      - acctest:
+          provider-test-infra-dir: equinixmetal
+          provider-go-test-dir: equinixmetal
 workflows:
   version: 2
   acceptance:
@@ -250,6 +255,10 @@ workflows:
             - go-test
           filters: *ignore_prs
       - triton-provider:
+          requires:
+            - go-test
+          filters: *ignore_prs
+      - equinixmetal-provider:
           requires:
             - go-test
           filters: *ignore_prs
