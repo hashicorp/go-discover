@@ -2,6 +2,7 @@ package packngo
 
 import (
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,9 +23,11 @@ func (t *Timestamp) UnmarshalJSON(data []byte) (err error) {
 	str := string(data)
 	i, err := strconv.ParseInt(str, 10, 64)
 	if err == nil {
-		t.Time = time.Unix(i, 0)
+		t.Time = time.Unix(i, 0).UTC()
 	} else {
-		t.Time, err = time.Parse(`"`+time.RFC3339+`"`, str)
+		if t.Time, err = time.ParseInLocation(time.RFC3339, strings.Trim(str, `"`), time.UTC); err != nil {
+			return err
+		}
 	}
 	return
 }

@@ -4,20 +4,21 @@ const facilityBasePath = "/facilities"
 
 // FacilityService interface defines available facility methods
 type FacilityService interface {
-	List() ([]Facility, *Response, error)
+	List(*ListOptions) ([]Facility, *Response, error)
 }
 
 type facilityRoot struct {
 	Facilities []Facility `json:"facilities"`
 }
 
-// Facility represents a Packet facility
+// Facility represents an Equinix Metal facility
 type Facility struct {
 	ID       string   `json:"id"`
 	Name     string   `json:"name,omitempty"`
 	Code     string   `json:"code,omitempty"`
 	Features []string `json:"features,omitempty"`
 	Address  *Address `json:"address,omitempty"`
+	Metro    *Metro   `json:"metro,omitempty"`
 	URL      string   `json:"href,omitempty"`
 }
 
@@ -39,11 +40,12 @@ type FacilityServiceOp struct {
 	client *Client
 }
 
-// List returns all available Packet facilities
-func (s *FacilityServiceOp) List() ([]Facility, *Response, error) {
+// List returns all facilities
+func (s *FacilityServiceOp) List(opts *ListOptions) ([]Facility, *Response, error) {
 	root := new(facilityRoot)
+	apiPathQuery := opts.WithQuery(facilityBasePath)
 
-	resp, err := s.client.DoRequest("GET", facilityBasePath, nil, root)
+	resp, err := s.client.DoRequest("GET", apiPathQuery, nil, root)
 	if err != nil {
 		return nil, resp, err
 	}

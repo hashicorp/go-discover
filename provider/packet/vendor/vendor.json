@@ -5,9 +5,9 @@
 		{
 			"checksumSHA1": "kItpnJu5G9MVC56waIyHLoQZt/s=",
 			"path": "github.com/packethost/packngo",
-			"revision": "b9cb5096f54c96687565b2f24be642483fb3fcf3",
-			"revisionTime": "2018-07-11T07:47:35Z"
+			"revision": "2e0421a3ecec0ce96df230128ee44669e8cd6e3a",
+			"revisionTime": "2021-05-20T00:32:48Z"
 		}
 	],
-	"rootPath": "github.com/hashicorp/go-discover/provider/packet"
+	"rootPath": "github.com/hashicorp/go-discover/provider/equinixmetal"
 }
