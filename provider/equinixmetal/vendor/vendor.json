@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "kItpnJu5G9MVC56waIyHLoQZt/s=",
+			"path": "github.com/packethost/packngo",
+			"revision": "2e0421a3ecec0ce96df230128ee44669e8cd6e3a",
+			"revisionTime": "2021-05-20T00:32:48Z"
+		}
+	],
+	"rootPath": "github.com/hashicorp/go-discover/provider/equinixmetal"
+}
