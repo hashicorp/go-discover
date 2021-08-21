@@ -26,6 +26,9 @@ func (p *Provider) Help() string {
     addr_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
+    endpoint_url:      The endpoint URL of EC2 to use. If not set the AWS client will set
+                       this value, which defaults to the ec2 public dns for the specified
+                       region.
 
     The only required IAM permission is 'ec2:DescribeInstances'. If the Consul agent is
     running on AWS instance it is recommended you use an IAM role, otherwise it is
@@ -48,6 +51,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	addrType := args["addr_type"]
 	accessKey := args["access_key_id"]
 	secretKey := args["secret_access_key"]
+	endpointURL := args["endpoint_url"]
 
 	if addrType != "private_v4" && addrType != "public_v4" && addrType != "public_v6" {
 		l.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addrType)
@@ -67,6 +71,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[DEBUG] discover-aws: Static credentials provided")
 	}
 
+	var endpoint *string
+	if endpointURL != "" {
+		log.Printf("[DEBUG] discover-aws: Using endpoint_url=%s", endpointURL)
+		endpoint = aws.String(endpointURL)
+	}
+
 	if region == "" {
 		l.Printf("[INFO] discover-aws: Region not provided. Looking up region in metadata...")
 		ec2meta := ec2metadata.New(session.New())
@@ -80,7 +90,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	l.Printf("[DEBUG] discover-aws: Creating session...")
 	svc := ec2.New(session.New(), &aws.Config{
-		Region: &region,
+		Region:   &region,
+		Endpoint: endpoint,
 		Credentials: credentials.NewChainCredentials(
 			[]credentials.Provider{
 				&credentials.StaticProvider{
