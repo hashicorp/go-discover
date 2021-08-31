@@ -148,7 +148,7 @@ import "github.com/hashicorp/go-discover/provider/k8s"
 // support discovery for all supported providers
 d := discover.Discover{}
 
-// support discovery for AWS and GCE only
+// support discovery for Kubernetes only
 d := discover.Discover{
 	Providers : map[string]discover.Provider{
 		"k8s": &k8s.Provider{},
