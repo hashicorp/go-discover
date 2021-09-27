@@ -71,11 +71,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	resp, err := svc.DescribeInstancesWithRaw(&ecs.DescribeInstancesArgs{
 		RegionId: common.Region(region),
 		Status:   ecs.Running,
-		Tag: []ecs.TagType{
-			{
-				Key:   tagKey,
-				Value: tagValue,
-			},
+		Tag: map[string]string{
+			tagKey: tagValue,
 		}},
 	)
 
