@@ -21,7 +21,7 @@ require (
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da // indirect
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
 	github.com/linode/linodego v0.7.1
-	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
