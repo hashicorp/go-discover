@@ -101,6 +101,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			addrs = append(addrs, t.A.String())
 		}
 	}
+	l.Printf("[DEBUG] discover-dns: found addrs %q", addrs)
 
 	return addrs, err
 }
