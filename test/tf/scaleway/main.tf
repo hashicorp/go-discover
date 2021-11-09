@@ -1,6 +1,5 @@
 //Configuring the provider
 provider "scaleway" {
-  version = "~> 1.15.0"
   region  = var.region
   zone    = var.zone
 }

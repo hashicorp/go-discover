@@ -21,7 +21,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 0.12.31
+        default: 0.13.7
       os:
         type: string
         default: linux
