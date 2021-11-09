@@ -21,7 +21,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 0.12.24
+        default: 0.12.31
       os:
         type: string
         default: linux
@@ -158,13 +158,21 @@ jobs:
   k8s-provider:
     executor: go
     steps:
+      - run:
+          name: Install gcloud
+          command: |
+            curl -o /go/google-cloud-sdk.tar.gz -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-363.0.0-linux-x86_64.tar.gz
+            tar -xf /go/google-cloud-sdk.tar.gz -C /go
+            /go/google-cloud-sdk/install.sh -q
+            echo 'export PATH=/go/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
+            echo "${GOOGLE_CREDENTIALS}" | /go/google-cloud-sdk/bin/gcloud auth activate-service-account --project=${GOOGLE_PROJECT} --key-file=-
       - acctest:
           provider-test-infra-dir: k8s
           provider-go-test-dir: k8s
           # We have to apply in two stages because an output of the resource of one provider is then used as the input
           # to the k8s provider. Specifically we are getting auth information from the GKE cluster into the k8s provider.
           # https://www.terraform.io/docs/providers/kubernetes/index.html#stacking-with-managed-kubernetes-cluster-resources
-          provider-tf-apply: "terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve"
+          provider-tf-apply: "terraform apply -target google_container_cluster.cluster -target null_resource.kubeconfig -auto-approve && terraform apply -auto-approve"
   packet-provider:
     executor: go
     steps:

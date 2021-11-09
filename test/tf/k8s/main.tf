@@ -6,60 +6,40 @@ data "google_container_engine_versions" "main" {
   location = var.zone
 }
 
-resource "random_password" "k8s_auth_pw" {
-  length  = 32
-  special = true
-}
-
 resource "google_container_cluster" "cluster" {
   name               = "consul-k8s-${random_id.suffix.dec}"
   project            = var.project
-  enable_legacy_abac = true
   initial_node_count = 5
   location           = var.zone
   min_master_version = data.google_container_engine_versions.main.latest_master_version
   node_version       = data.google_container_engine_versions.main.latest_master_version
+}
 
-  master_auth {
-    username = "go-discover"
-    password = random_password.k8s_auth_pw.result
+resource "null_resource" "kubeconfig" {
+  triggers = {
+    cluster = google_container_cluster.cluster.id
+  }
 
-    client_certificate_config {
-      issue_client_certificate = false
-    }
+  # On creation, we want to setup the kubectl credentials. The easiest way
+  # to do this is to shell out to gcloud.
+  provisioner "local-exec" {
+    command = "gcloud container clusters get-credentials --zone=${var.zone} ${google_container_cluster.cluster.name}"
+  }
+
+  # On destroy we want to try to clean up the kubectl credentials. This
+  # might fail if the credentials are already cleaned up or something so we
+  # want this to continue on failure. Generally, this works just fine since
+  # it only operates on local data.
+  provisioner "local-exec" {
+    when       = destroy
+    on_failure = continue
+    command    = "rm $HOME/.kube/config"
   }
 }
 
-resource "local_file" "kubeconfig" {
-  filename = "${path.module}/kubeconfig.yaml"
-
-  sensitive_content = <<EOF
-apiVersion: v1
-clusters:
-- cluster:
-    insecure-skip-tls-verify: true
-    server: https://${google_container_cluster.cluster.endpoint}
-  name: gke
-contexts:
-- context:
-    cluster: gke
-    user: terraform
-  name: default-context
-current-context: default-context
-kind: Config
-preferences: {}
-users:
-- name: terraform
-  user:
-    username: ${google_container_cluster.cluster.master_auth[0].username}
-    password: ${google_container_cluster.cluster.master_auth[0].password}
-
-EOF
-
-}
-
 resource "kubernetes_pod" "valid" {
-  count = 3
+  depends_on = [null_resource.kubeconfig]
+  count      = 3
 
   metadata {
     name = "valid-${count.index}"
@@ -78,7 +58,8 @@ resource "kubernetes_pod" "valid" {
 }
 
 resource "kubernetes_pod" "invalid" {
-  count = 2
+  depends_on = [null_resource.kubeconfig]
+  count      = 2
 
   metadata {
     name = "invalid-${count.index}"
@@ -95,4 +76,3 @@ resource "kubernetes_pod" "invalid" {
     }
   }
 }
-
