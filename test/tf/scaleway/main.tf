@@ -1,7 +1,7 @@
 //Configuring the provider
 provider "scaleway" {
-  region  = var.region
-  zone    = var.zone
+  region = var.region
+  zone   = var.zone
 }
 
 resource "scaleway_instance_server" "test" {

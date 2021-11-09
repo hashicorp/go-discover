@@ -1,6 +1,4 @@
-provider "packet" {
-  version = "~> 2.8.1"
-}
+provider "packet" {}
 
 provider "random" {
   version = "~> 2.2.1"
