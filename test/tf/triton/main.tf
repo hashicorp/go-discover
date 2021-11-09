@@ -1,6 +1,4 @@
-provider "triton" {
-  version = "~> 0.6.0"
-}
+provider "triton" {}
 
 data "triton_image" "image" {
   name    = "base-64-lts"
