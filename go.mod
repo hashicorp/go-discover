@@ -32,8 +32,6 @@ require (
 	github.com/vmware/govmomi v0.18.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.4.0
-	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
-	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/resty.v1 v1.12.0 // indirect
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
