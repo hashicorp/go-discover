@@ -48,6 +48,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	addrType := args["addr_type"]
 	accessKey := args["access_key_id"]
 	secretKey := args["secret_access_key"]
+	sessionToken := args["session_token"]
 
 	if addrType != "private_v4" && addrType != "public_v4" && addrType != "public_v6" {
 		l.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addrType)
@@ -87,6 +88,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 					Value: credentials.Value{
 						AccessKeyID:     accessKey,
 						SecretAccessKey: secretKey,
+						SessionToken:    sessionToken,
 					},
 				},
 				&credentials.EnvProvider{},
