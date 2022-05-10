@@ -53,6 +53,26 @@ commands:
       - tf-install
       - checkout
 
+      - when:
+          condition:
+            equal: [aws, << parameters.provider-test-infra-dir >>]
+          steps:
+            - run:
+                name: download and install AWS CLI
+                command: |
+                  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                  echo -e "${AWS_CLI_GPG_KEY}" | gpg --import
+                  curl -o awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig
+                  gpg --verify awscliv2.sig awscliv2.zip
+                  unzip awscliv2.zip
+                  sudo ./aws/install
+            - run:
+                name: set assume-role creds
+                command: |
+                  CREDENTIALS="$(aws sts assume-role --role-arn ${SERVICE_GO_DISCOVER_TESTS_ROLE_ARN} --role-session-name build-${CIRCLE_SHA1} | jq '.Credentials')"
+                  echo "export AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.AccessKeyId')" >> $BASH_ENV
+                  echo "export AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.SecretAccessKey')" >> $BASH_ENV
+                  echo "export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.SessionToken')" >> $BASH_ENV
       # spin up infrastructure
       - run:
           working_directory: ./test/tf/<< parameters.provider-test-infra-dir >>

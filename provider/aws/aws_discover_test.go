@@ -17,6 +17,7 @@ func TestAddrs(t *testing.T) {
 		"tag_value":         "server",
 		"access_key_id":     os.Getenv("AWS_ACCESS_KEY_ID"),
 		"secret_access_key": os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		"session_token":     os.Getenv("AWS_SESSION_TOKEN"),
 	}
 
 	if args["region"] == "" || args["access_key_id"] == "" || args["secret_access_key"] == "" {
