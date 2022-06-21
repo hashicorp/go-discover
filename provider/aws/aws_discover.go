@@ -26,6 +26,9 @@ func (p *Provider) Help() string {
     addr_type:         "private_v4", "public_v4" or "public_v6". Defaults to "private_v4".
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
+    endpoint:          The endpoint URL of EC2 to use. If not set the AWS client will set
+                       this value, which defaults to the ec2 public dns for the specified
+                       region
 
     The only required IAM permission is 'ec2:DescribeInstances'. If the Consul agent is
     running on AWS instance it is recommended you use an IAM role, otherwise it is
@@ -49,6 +52,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	accessKey := args["access_key_id"]
 	secretKey := args["secret_access_key"]
 	sessionToken := args["session_token"]
+	endpoint := args["endpoint"]
 
 	if addrType != "private_v4" && addrType != "public_v4" && addrType != "public_v6" {
 		l.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addrType)
@@ -80,7 +84,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[INFO] discover-aws: Region is %s", region)
 
 	l.Printf("[DEBUG] discover-aws: Creating session...")
-	svc := ec2.New(session.New(), &aws.Config{
+	config := aws.Config{
 		Region: &region,
 		Credentials: credentials.NewChainCredentials(
 			[]credentials.Provider{
@@ -95,7 +99,13 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				&credentials.SharedCredentialsProvider{},
 				defaults.RemoteCredProvider(*(defaults.Config()), defaults.Handlers()),
 			}),
-	})
+	}
+	if endpoint != "" {
+		l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
+		config.Endpoint = &endpoint
+	}
+
+	svc := ec2.New(session.New(), &config)
 
 	l.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
