@@ -76,7 +76,8 @@ resource "aws_ecs_task_definition" "task_def" {
       cpu : 256
       memory : 512
       essential : true
-      command : [ "while true; do sleep 30; done;" ]
+      entrypoint: [ "/bin/sh", "-c" ]
+      command: [ "while true; do sleep 30; done;" ]
     }
   ])
 }
