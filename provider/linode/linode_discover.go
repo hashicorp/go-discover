@@ -3,7 +3,6 @@ package linode
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,11 +12,6 @@ import (
 	"github.com/linode/linodego"
 	"golang.org/x/oauth2"
 )
-
-type Filter struct {
-	Region string `json:"region,omitempty"`
-	Tag    string `json:"tags,omitempty"`
-}
 
 type Provider struct {
 	userAgent string
@@ -33,6 +27,7 @@ func (p *Provider) Help() string {
     api_token:    The Linode API token to use
     region:       The Linode region to filter on
     tag_name:     The tag name to filter on
+    vlan_label:   The label of a attached VLAN
     address_type: "private_v4", "public_v4", "private_v6" or "public_v6". (default: "private_v4")
 
     Variables can also be provided by environment variables:
@@ -49,41 +44,47 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l = log.New(ioutil.Discard, "", 0)
 	}
 
-	addressType := args["address_type"]
 	region := args["region"]
 	tagName := args["tag_name"]
+	vlanLabel := args["vlan_label"]
+	addressType := args["address_type"]
 	apiToken := argsOrEnv(args, "api_token", "LINODE_TOKEN")
-	l.Printf("[DEBUG] discover-linode: Using address_type=%s region=%s tag_name=%s", addressType, region, tagName)
+	l.Printf("[DEBUG] discover-linode: Using region=%s tag_name=%s vlan_label=%s address_type=%s", region, tagName, vlanLabel, addressType)
 
 	client := getLinodeClient(p.userAgent, apiToken)
 
-	filters := Filter{
-		Region: "",
-		Tag:    "",
-	}
-
+	filters := linodego.Filter{}
 	if region != "" {
-		filters.Region = region
+		filters.AddField(linodego.Eq, "region", region)
 	}
 	if tagName != "" {
-		filters.Tag = tagName
+		filters.AddField(linodego.Eq, "tags", tagName)
 	}
-
-	jsonFilters, _ := json.Marshal(filters)
+	jsonFilters, err := filters.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("discover-linode: Cannont convert fields to a JSON Filter: %s", err)
+	}
 	filterOpt := linodego.ListOptions{Filter: string(jsonFilters)}
 
-	linodes, err := client.ListInstances(context.Background(), &filterOpt)
+	ctx := context.Background()
+	linodes, err := client.ListInstances(ctx, &filterOpt)
 	if err != nil {
 		return nil, fmt.Errorf("discover-linode: Fetching Linode instances failed: %s", err)
 	}
 
 	var addrs []string
 	for _, linode := range linodes {
-		addr, err := client.GetInstanceIPAddresses(context.Background(), linode.ID)
+		addr, err := client.GetInstanceIPAddresses(ctx, linode.ID)
 		if err != nil {
 			return nil, fmt.Errorf("discover-linode: Fetching Linode IP address for instance %v failed: %s", linode.ID, err)
 		}
-
+		if vlanLabel != "" {
+			vlanIPAM, err := client.GetVLANIPAMAddress(ctx, linode.ID, vlanLabel)
+			if err != nil {
+				return nil, err
+			}
+			addrs = append(addrs, vlanIPAM)
+		}
 		switch addressType {
 		case "public_v4":
 			if len(addr.IPv4.Public) == 0 {
