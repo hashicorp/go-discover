@@ -234,9 +234,9 @@ func buildInstance(t *testing.T, opts linodego.InstanceCreateOptions) (*linodego
 
 func getLinodeClient(t *testing.T) *linodego.Client {
 	t.Helper()
-	apiToken := os.Getenv("LINODE_API_TOKEN")
+	apiToken := os.Getenv("LINODE_TOKEN")
 	if apiToken == "" {
-		t.Fatal("failed to get $LINODE_API_TOKEN")
+		t.Fatal("failed to get $LINODE_TOKEN")
 	}
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: apiToken})
 	oauth2Client := &http.Client{
