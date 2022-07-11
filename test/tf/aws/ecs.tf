@@ -45,7 +45,6 @@ data "aws_iam_policy_document" "ecs_auto_discover" {
       "ecs:DescribeServices",
       "ecs:ListTasks",
       "ecs:DescribeTasks",
-      "ec2:DescribeNetworkInterfaces",
     ]
     resources = ["*"]
   }

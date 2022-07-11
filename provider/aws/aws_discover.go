@@ -2,10 +2,14 @@
 package aws
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
+	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,6 +22,34 @@ import (
 
 type Provider struct{}
 
+const ECSMetadataURIEnvVar = "ECS_CONTAINER_METADATA_URI_V4"
+
+type ECSTaskMeta struct {
+	Cluster    string                 `json:"Cluster"`
+	TaskARN    string                 `json:"TaskARN"`
+	Family     string                 `json:"Family"`
+	Containers []ECSTaskMetaContainer `json:"Containers"`
+}
+
+type ECSTaskMetaContainer struct {
+	Name          string               `json:"Name"`
+	Health        ECSTaskMetaHealth    `json:"Health"`
+	DesiredStatus string               `json:"DesiredStatus"`
+	KnownStatus   string               `json:"KnownStatus"`
+	Networks      []ECSTaskMetaNetwork `json:"Networks"`
+}
+
+type ECSTaskMetaHealth struct {
+	Status      string `json:"status"`
+	StatusSince string `json:"statusSince"`
+	ExitCode    int    `json:"exitCode"`
+}
+
+type ECSTaskMetaNetwork struct {
+	IPv4Addresses  []string `json:"IPv4Addresses"`
+	PrivateDNSName string   `json:"PrivateDNSName"`
+}
+
 func (p *Provider) Help() string {
 	return `Amazon AWS:
 
@@ -29,13 +61,22 @@ func (p *Provider) Help() string {
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
     service:           The AWS service to filter. "ec2" or "ecs". Defaults to "ec2".
-    endpoint:          The endpoint URL of EC2 to use. If not set the AWS client will set
-                       this value, which defaults to the ec2 public dns for the specified
-                       region
+    endpoint:          The endpoint URL of the AWS Service to use. If not set the AWS
+                       client will set this value, which defaults to the public DNS name
+                       for the service in the specified region.
 
-    The only required IAM permission is 'ec2:DescribeInstances'. If the Consul agent is
-    running on AWS instance it is recommended you use an IAM role, otherwise it is
-    recommended you make a dedicated IAM user and access key used only for auto-joining.
+    For EC2 discovery the only required IAM permission is 'ec2:DescribeInstances'.
+    If the Consul agent is running on AWS instance it is recommended you use an IAM role,
+    otherwise it is recommended you make a dedicated IAM user and access key used only
+    for auto-joining.
+
+    For ECS discovery the following IAM permissions are required on the AWS ECS Task Role
+    associated with the Service performing discovery.
+		"ecs:ListClusters"
+		"ecs:ListServices"
+		"ecs:DescribeServices"
+		"ecs:ListTasks"
+		"ecs:DescribeTasks"
 `
 }
 
@@ -61,7 +102,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if service != "ec2" && service != "ecs" {
 		l.Printf("[INFO] discover-aws: Service type %s is not supported. Valid values are {ec2,ecs}. Falling back to 'ec2'", service)
 		service = "ec2"
-	} else if service == "ecs" && addrType != "public_v4" {
+	} else if service == "ecs" && addrType != "private_v4" {
 		l.Printf("[INFO] discover-aws: Address Type %s is not supported for ECS. Valid values are {private_v4}. Falling back to 'private_v4'", addrType)
 		addrType = "private_v4"
 	}
@@ -86,9 +127,18 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	if region == "" {
 		_, ecsEnabled := os.LookupEnv("ECS_CONTAINER_METADATA_URI_V4")
-		if ecsEnabled != false {
+		if ecsEnabled {
+			// Get ECS Task Region from metadata, so it works on Fargate and EC2-ECS
 			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ecs metadata...")
-			region = os.Getenv("AWS_REGION")
+			taskMetadata, err := getECSTaskMetadata()
+			if err != nil {
+				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Metadata: %s", err)
+			}
+
+			region, err = getEcsTaskRegion(taskMetadata)
+			if err != nil {
+				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Region: %s", err)
+			}
 		} else {
 			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ec2 metadata...")
 			ec2meta := ec2metadata.New(session.New())
@@ -127,16 +177,30 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if service == "ecs" {
 		svc := ecs.New(session.New(), &config)
 
-		log.Printf("[INFO] discover-aws: Filter ECS instances with %s=%s", tagKey, tagValue)
-		clusterArns := getEcsClusters(svc, aws.Int64(100), aws.String(""))
+		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
+		clusterArns, err := getEcsClusters(svc, aws.Int64(100), aws.String(""))
+		if err != nil {
+			return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
+		}
 
 		var taskIps []string
 		for _, clusterArn := range clusterArns {
-			taskArns := getEcsTasks(svc, clusterArn, aws.Int64(100), aws.String(""))
+			taskArns, err := getEcsTasks(svc, clusterArn, aws.Int64(100), aws.String(""))
+			if err != nil {
+				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
+			}
 			log.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
 
-			if len(taskArns) > 0 {
-				taskIps = append(taskIps, getEcsTaskIps(svc, clusterArn, taskArns, &tagKey, &tagValue, &addrType)...)
+			// Once all the possibly paged task arns are collected, collect task descriptions with 100 task maximum
+			// ref: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeTasks.html#ECS-DescribeTasks-request-tasks
+			pageLimit := 100
+			for i := 0; i < len(taskArns); i += pageLimit {
+				taskGroup := taskArns[i:min(i+pageLimit, len(taskArns))]
+				ecsTaskIps, err := getEcsTaskIps(svc, clusterArn, taskGroup, &tagKey, &tagValue)
+				if err != nil {
+					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
+				}
+				taskIps = append(taskIps, ecsTaskIps...)
 				log.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(taskArns))
 			}
 		}
@@ -216,7 +280,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	return addrs, nil
 }
 
-func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string) []*string {
+func min(a, b int) int {
+	if a <= b {
+		return a
+	}
+	return b
+}
+
+func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string) ([]*string, error) {
 	// List up to maxResults cluster arns
 	clusterOutput, err := svc.ListClusters(&ecs.ListClustersInput{
 		MaxResults: maxResults,
@@ -224,7 +295,7 @@ func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string) []*strin
 	})
 
 	if err != nil {
-		log.Printf("discover-aws: ListClusters failed: %s", err)
+		return nil, fmt.Errorf("ListClusters failed: %s", err)
 	}
 
 	clusterArns := clusterOutput.ClusterArns
@@ -232,13 +303,50 @@ func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string) []*strin
 
 	// If we have a next token string recursively append the resulting cluster arns
 	if clusterOutput.NextToken != nil {
-		clusterArns = append(clusterArns, getEcsClusters(svc, maxResults, clusterOutput.NextToken)...)
+		var nextClusters []*string
+		nextClusters, err = getEcsClusters(svc, maxResults, clusterOutput.NextToken)
+		if err != nil {
+			return nil, fmt.Errorf("recursive ECS cluster query failed: %s", err)
+		}
+		clusterArns = append(clusterArns, nextClusters...)
 	}
 
-	return clusterArns
+	return clusterArns, nil
 }
 
-func getEcsTasks(svc *ecs.ECS, clusterArn *string, maxResults *int64, nextToken *string) []*string {
+func getECSTaskMetadata() (ECSTaskMeta, error) {
+	var metadataResp ECSTaskMeta
+
+	metadataURI := os.Getenv(ECSMetadataURIEnvVar)
+	if metadataURI == "" {
+		return metadataResp, fmt.Errorf("%s env var not set", ECSMetadataURIEnvVar)
+	}
+	resp, err := http.Get(fmt.Sprintf("%s/task", metadataURI))
+	if err != nil {
+		return metadataResp, fmt.Errorf("calling metadata uri: %s", err)
+	}
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return metadataResp, fmt.Errorf("reading metadata uri response body: %s", err)
+	}
+	if err := json.Unmarshal(respBytes, &metadataResp); err != nil {
+		return metadataResp, fmt.Errorf("unmarshalling metadata uri response: %s", err)
+	}
+	return metadataResp, nil
+}
+
+func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
+	// Task ARN: "arn:aws:ecs:us-east-1:000000000000:task/cluster/00000000000000000000000000000000"
+	// https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+	// See also: https://github.com/aws/containers-roadmap/issues/337
+	a, err := arn.Parse(e.TaskARN)
+	if err != nil {
+		return "", fmt.Errorf("unable to determine AWS region from ECS Task ARN: %q", e.TaskARN)
+	}
+	return a.Region, nil
+}
+
+func getEcsTasks(svc *ecs.ECS, clusterArn *string, maxResults *int64, nextToken *string) ([]*string, error) {
 	var taskArns []*string
 	// List up to maxResults task arns
 	taskOutput, err := svc.ListTasks(&ecs.ListTasksInput{
@@ -249,19 +357,23 @@ func getEcsTasks(svc *ecs.ECS, clusterArn *string, maxResults *int64, nextToken 
 	})
 
 	if err != nil {
-		log.Printf("discover-aws: ListTasks failed: %s", err)
+		return nil, fmt.Errorf("discover-aws: ListTasks failed: %s", err)
 	}
 
 	taskArns = append(taskArns, taskOutput.TaskArns...)
 	log.Printf("[INFO] discover-aws: Retrieved %d TaskArns", len(taskArns))
 
 	if taskOutput.NextToken != nil {
-		taskArns = append(taskArns, getEcsTasks(svc, clusterArn, maxResults, taskOutput.NextToken)...)
+		nextEcsTasks, err := getEcsTasks(svc, clusterArn, maxResults, taskOutput.NextToken)
+		if err != nil {
+			return nil, fmt.Errorf("recursive ECS TaskArn query failed: %s", err)
+		}
+		taskArns = append(taskArns, nextEcsTasks...)
 	}
-	return taskArns
+	return taskArns, nil
 }
 
-func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey *string, tagValue *string, addrType *string) []string {
+func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey *string, tagValue *string) ([]string, error) {
 	// Describe all the tasks listed for this cluster
 	taskDescriptions, err := svc.DescribeTasks(&ecs.DescribeTasksInput{
 		Cluster: clusterArn,
@@ -270,7 +382,7 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 	})
 
 	if err != nil {
-		log.Printf("discover-aws: DescribeTasks failed: %s", err)
+		return nil, fmt.Errorf("DescribeTasks failed: %s", err)
 	}
 
 	taskRequestFailures := taskDescriptions.Failures
@@ -281,14 +393,11 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 	var ipList []string
 	for _, taskDescription := range tasks {
 
-		//log.Printf("[DEBUG] discover-aws: Parsing Task: %s", taskDescription)
 		for _, tag := range taskDescription.Tags {
-			//log.Printf("[DEBUG] discover-aws: Tag: %s", tag)
-
 			if *tag.Key == *tagKey && *tag.Value == *tagValue {
 				log.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
 
-				if *taskDescription.DesiredStatus == *aws.String("RUNNING") {
+				if *taskDescription.DesiredStatus == "RUNNING" {
 					log.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
 					ip := getIpFromTaskDescription(taskDescription)
 
@@ -305,7 +414,7 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 	}
 
 	log.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
-	return ipList
+	return ipList, nil
 }
 
 func getIpFromTaskDescription(taskDesc *ecs.Task) *string {
@@ -315,7 +424,7 @@ func getIpFromTaskDescription(taskDesc *ecs.Task) *string {
 		log.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
 		for _, detail := range attachment.Details {
 
-			if *detail.Name == *aws.String("privateIPv4Address") {
+			if *detail.Name == "privateIPv4Address" {
 				log.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
 				return detail.Value
 			}
