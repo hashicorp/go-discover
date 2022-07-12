@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -61,6 +62,8 @@ func (p *Provider) Help() string {
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
     service:           The AWS service to filter. "ec2" or "ecs". Defaults to "ec2".
+    ecs_cluster:       The AWS ECS Cluster Name to limit searching within. Default none, search all.
+    ecs_family:        The AWS ECS Task Definition Family to limit searching within. Default none, search all.
     endpoint:          The endpoint URL of the AWS Service to use. If not set the AWS
                        client will set this value, which defaults to the public DNS name
                        for the service in the specified region.
@@ -97,6 +100,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	secretKey := args["secret_access_key"]
 	sessionToken := args["session_token"]
 	service := args["service"]
+	ecsCluster := args["ecs_cluster"]
+	ecsFamily := args["ecs_family"]
 	endpoint := args["endpoint"]
 
 	if service != "ec2" && service != "ecs" {
@@ -178,14 +183,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		svc := ecs.New(session.New(), &config)
 
 		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
-		clusterArns, err := getEcsClusters(svc, aws.Int64(100), aws.String(""))
+		clusterArns, err := getEcsClusters(svc, aws.Int64(100), nil, &ecsCluster)
 		if err != nil {
 			return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
 		}
 
 		var taskIps []string
 		for _, clusterArn := range clusterArns {
-			taskArns, err := getEcsTasks(svc, clusterArn, aws.Int64(100), aws.String(""))
+			taskArns, err := getEcsTasks(svc, clusterArn, aws.Int64(100), nil, &ecsFamily)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
@@ -287,7 +292,7 @@ func min(a, b int) int {
 	return b
 }
 
-func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string) ([]*string, error) {
+func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string, clusterName *string) ([]*string, error) {
 	// List up to maxResults cluster arns
 	clusterOutput, err := svc.ListClusters(&ecs.ListClustersInput{
 		MaxResults: maxResults,
@@ -304,11 +309,22 @@ func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string) ([]*stri
 	// If we have a next token string recursively append the resulting cluster arns
 	if clusterOutput.NextToken != nil {
 		var nextClusters []*string
-		nextClusters, err = getEcsClusters(svc, maxResults, clusterOutput.NextToken)
+		nextClusters, err = getEcsClusters(svc, maxResults, clusterOutput.NextToken, clusterName)
 		if err != nil {
 			return nil, fmt.Errorf("recursive ECS cluster query failed: %s", err)
 		}
 		clusterArns = append(clusterArns, nextClusters...)
+	}
+
+	// If an ECS Cluster Name was specified, only return cluster arns that contain this cluster name
+	if clusterName != nil {
+		var filteredClusterArns []*string
+		for _, ca := range clusterArns {
+			if strings.Contains(*ca, *clusterName) {
+				filteredClusterArns = append(filteredClusterArns, ca)
+			}
+		}
+		clusterArns = filteredClusterArns
 	}
 
 	return clusterArns, nil
@@ -346,25 +362,29 @@ func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
 	return a.Region, nil
 }
 
-func getEcsTasks(svc *ecs.ECS, clusterArn *string, maxResults *int64, nextToken *string) ([]*string, error) {
+func getEcsTasks(svc *ecs.ECS, clusterArn *string, maxResults *int64, nextToken *string, family *string) ([]*string, error) {
 	var taskArns []*string
-	// List up to maxResults task arns
-	taskOutput, err := svc.ListTasks(&ecs.ListTasksInput{
+	lti := ecs.ListTasksInput{
 		Cluster:       clusterArn,
 		DesiredStatus: aws.String("RUNNING"),
 		MaxResults:    maxResults,
 		NextToken:     nextToken,
-	})
+	}
+	if *family != "" {
+		lti.Family = family
+	}
+	// List up to maxResults task arns
+	taskOutput, err := svc.ListTasks(&lti)
 
 	if err != nil {
-		return nil, fmt.Errorf("discover-aws: ListTasks failed: %s", err)
+		return nil, fmt.Errorf("ListTasks failed: %s", err)
 	}
 
 	taskArns = append(taskArns, taskOutput.TaskArns...)
 	log.Printf("[INFO] discover-aws: Retrieved %d TaskArns", len(taskArns))
 
 	if taskOutput.NextToken != nil {
-		nextEcsTasks, err := getEcsTasks(svc, clusterArn, maxResults, taskOutput.NextToken)
+		nextEcsTasks, err := getEcsTasks(svc, clusterArn, maxResults, taskOutput.NextToken, family)
 		if err != nil {
 			return nil, fmt.Errorf("recursive ECS TaskArn query failed: %s", err)
 		}
