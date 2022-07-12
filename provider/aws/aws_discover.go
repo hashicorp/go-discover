@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,29 +25,7 @@ type Provider struct{}
 const ECSMetadataURIEnvVar = "ECS_CONTAINER_METADATA_URI_V4"
 
 type ECSTaskMeta struct {
-	Cluster    string                 `json:"Cluster"`
-	TaskARN    string                 `json:"TaskARN"`
-	Family     string                 `json:"Family"`
-	Containers []ECSTaskMetaContainer `json:"Containers"`
-}
-
-type ECSTaskMetaContainer struct {
-	Name          string               `json:"Name"`
-	Health        ECSTaskMetaHealth    `json:"Health"`
-	DesiredStatus string               `json:"DesiredStatus"`
-	KnownStatus   string               `json:"KnownStatus"`
-	Networks      []ECSTaskMetaNetwork `json:"Networks"`
-}
-
-type ECSTaskMetaHealth struct {
-	Status      string `json:"status"`
-	StatusSince string `json:"statusSince"`
-	ExitCode    int    `json:"exitCode"`
-}
-
-type ECSTaskMetaNetwork struct {
-	IPv4Addresses  []string `json:"IPv4Addresses"`
-	PrivateDNSName string   `json:"PrivateDNSName"`
+	TaskARN string `json:"TaskARN"`
 }
 
 func (p *Provider) Help() string {
@@ -331,7 +308,7 @@ func getECSTaskMetadata() (ECSTaskMeta, error) {
 	if err != nil {
 		return metadataResp, fmt.Errorf("calling metadata uri: %s", err)
 	}
-	respBytes, err := io.ReadAll(resp.Body)
+	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return metadataResp, fmt.Errorf("reading metadata uri response body: %s", err)
 	}
