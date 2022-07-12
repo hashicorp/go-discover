@@ -183,14 +183,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		svc := ecs.New(session.New(), &config)
 
 		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
-		clusterArns, err := getEcsClusters(svc, aws.Int64(100), nil, &ecsCluster)
+		clusterArns, err := getEcsClusters(svc, &ecsCluster)
 		if err != nil {
 			return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
 		}
 
 		var taskIps []string
 		for _, clusterArn := range clusterArns {
-			taskArns, err := getEcsTasks(svc, clusterArn, aws.Int64(100), nil, &ecsFamily)
+			taskArns, err := getEcsTasks(svc, clusterArn, &ecsFamily)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
@@ -292,28 +292,18 @@ func min(a, b int) int {
 	return b
 }
 
-func getEcsClusters(svc *ecs.ECS, maxResults *int64, nextToken *string, clusterName *string) ([]*string, error) {
-	// List up to maxResults cluster arns
-	clusterOutput, err := svc.ListClusters(&ecs.ListClustersInput{
-		MaxResults: maxResults,
-		NextToken:  nextToken,
+func getEcsClusters(svc *ecs.ECS, clusterName *string) ([]*string, error) {
+	pageNum := 0
+	var clusterArns []*string
+	err := svc.ListClustersPages(&ecs.ListClustersInput{}, func(page *ecs.ListClustersOutput, lastPage bool) bool {
+		pageNum++
+		clusterArns = append(clusterArns, page.ClusterArns...)
+		log.Printf("[INFO] discover-aws: Retrieved %d TaskArns from page %d", len(clusterArns), pageNum)
+		return !lastPage // return false to exit page function
 	})
 
 	if err != nil {
 		return nil, fmt.Errorf("ListClusters failed: %s", err)
-	}
-
-	clusterArns := clusterOutput.ClusterArns
-	log.Printf("[INFO] discover-aws: Retrieved %d ECS Clusters", len(clusterArns))
-
-	// If we have a next token string recursively append the resulting cluster arns
-	if clusterOutput.NextToken != nil {
-		var nextClusters []*string
-		nextClusters, err = getEcsClusters(svc, maxResults, clusterOutput.NextToken, clusterName)
-		if err != nil {
-			return nil, fmt.Errorf("recursive ECS cluster query failed: %s", err)
-		}
-		clusterArns = append(clusterArns, nextClusters...)
 	}
 
 	// If an ECS Cluster Name was specified, only return cluster arns that contain this cluster name
@@ -362,34 +352,28 @@ func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
 	return a.Region, nil
 }
 
-func getEcsTasks(svc *ecs.ECS, clusterArn *string, maxResults *int64, nextToken *string, family *string) ([]*string, error) {
+func getEcsTasks(svc *ecs.ECS, clusterArn *string, family *string) ([]*string, error) {
 	var taskArns []*string
 	lti := ecs.ListTasksInput{
 		Cluster:       clusterArn,
 		DesiredStatus: aws.String("RUNNING"),
-		MaxResults:    maxResults,
-		NextToken:     nextToken,
 	}
 	if *family != "" {
 		lti.Family = family
 	}
-	// List up to maxResults task arns
-	taskOutput, err := svc.ListTasks(&lti)
+
+	pageNum := 0
+	err := svc.ListTasksPages(&lti, func(page *ecs.ListTasksOutput, lastPage bool) bool {
+		pageNum++
+		taskArns = append(taskArns, page.TaskArns...)
+		log.Printf("[INFO] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
+		return !lastPage // return false to exit page function
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("ListTasks failed: %s", err)
 	}
 
-	taskArns = append(taskArns, taskOutput.TaskArns...)
-	log.Printf("[INFO] discover-aws: Retrieved %d TaskArns", len(taskArns))
-
-	if taskOutput.NextToken != nil {
-		nextEcsTasks, err := getEcsTasks(svc, clusterArn, maxResults, taskOutput.NextToken, family)
-		if err != nil {
-			return nil, fmt.Errorf("recursive ECS TaskArn query failed: %s", err)
-		}
-		taskArns = append(taskArns, nextEcsTasks...)
-	}
 	return taskArns, nil
 }
 
