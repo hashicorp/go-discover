@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -39,7 +38,7 @@ func (p *Provider) Help() string {
     access_key_id:     The AWS access key to use
     secret_access_key: The AWS secret access key to use
     service:           The AWS service to filter. "ec2" or "ecs". Defaults to "ec2".
-    ecs_cluster:       The AWS ECS Cluster Name to limit searching within. Default none, search all.
+    ecs_cluster:       The AWS ECS Cluster Name or Full ARN to limit searching within. Default none, search all.
     ecs_family:        The AWS ECS Task Definition Family to limit searching within. Default none, search all.
     endpoint:          The endpoint URL of the AWS Service to use. If not set the AWS
                        client will set this value, which defaults to the public DNS name
@@ -160,9 +159,17 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		svc := ecs.New(session.New(), &config)
 
 		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
-		clusterArns, err := getEcsClusters(svc, &ecsCluster)
-		if err != nil {
-			return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
+		var clusterArns []*string
+
+		// If an ECS Cluster Name (ARN) was specified, dont lookup all the cluster arns
+		if ecsCluster == "" {
+			arns, err := getEcsClusters(svc)
+			if err != nil {
+				return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
+			}
+			clusterArns = arns
+		} else {
+			clusterArns = []*string{&ecsCluster}
 		}
 
 		var taskIps []string
@@ -183,7 +190,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
 				}
 				taskIps = append(taskIps, ecsTaskIps...)
-				log.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(taskArns))
+				log.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
 			}
 		}
 		log.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
@@ -269,29 +276,18 @@ func min(a, b int) int {
 	return b
 }
 
-func getEcsClusters(svc *ecs.ECS, clusterName *string) ([]*string, error) {
+func getEcsClusters(svc *ecs.ECS) ([]*string, error) {
 	pageNum := 0
 	var clusterArns []*string
 	err := svc.ListClustersPages(&ecs.ListClustersInput{}, func(page *ecs.ListClustersOutput, lastPage bool) bool {
 		pageNum++
 		clusterArns = append(clusterArns, page.ClusterArns...)
-		log.Printf("[INFO] discover-aws: Retrieved %d TaskArns from page %d", len(clusterArns), pageNum)
+		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(clusterArns), pageNum)
 		return !lastPage // return false to exit page function
 	})
 
 	if err != nil {
 		return nil, fmt.Errorf("ListClusters failed: %s", err)
-	}
-
-	// If an ECS Cluster Name was specified, only return cluster arns that contain this cluster name
-	if clusterName != nil {
-		var filteredClusterArns []*string
-		for _, ca := range clusterArns {
-			if strings.Contains(*ca, *clusterName) {
-				filteredClusterArns = append(filteredClusterArns, ca)
-			}
-		}
-		clusterArns = filteredClusterArns
 	}
 
 	return clusterArns, nil
@@ -343,7 +339,7 @@ func getEcsTasks(svc *ecs.ECS, clusterArn *string, family *string) ([]*string, e
 	err := svc.ListTasksPages(&lti, func(page *ecs.ListTasksOutput, lastPage bool) bool {
 		pageNum++
 		taskArns = append(taskArns, page.TaskArns...)
-		log.Printf("[INFO] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
+		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
 		return !lastPage // return false to exit page function
 	})
 

@@ -116,7 +116,7 @@ func TestAddrsECSFilterFuzzyClusterName(t *testing.T) {
 	args := discover.Config{
 		"provider":          "aws",
 		"service":           "ecs",
-		"ecs_cluster":       "cover-1",
+		"ecs_cluster":       "go-discover-1",
 		"region":            os.Getenv("AWS_REGION"),
 		"tag_key":           "consul",
 		"tag_value":         "server",
