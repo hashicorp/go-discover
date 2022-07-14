@@ -182,7 +182,7 @@ environment variables.
 **Note: This will make real API calls to the account provided by the credentials.**
 
 ```
-$ AWS_ACCESS_KEY_ID=... AWS_ACCESS_KEY_SECRET=... AWS_REGION=... go test -v ./provider/aws
+$ AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=... go test -v ./provider/aws
 ```
 
 This requires resources to exist that match those specified in tests
@@ -195,7 +195,7 @@ environment variables should be applicable and read by Terraform.
 
 ```
 $ cd test/tf/aws
-$ export AWS_ACCESS_KEY_ID=... AWS_ACCESS_KEY_SECRET=... AWS_REGION=...
+$ export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=...
 $ terraform init
 ...
 $ terraform apply
