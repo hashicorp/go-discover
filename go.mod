@@ -1,6 +1,6 @@
 module github.com/hashicorp/go-discover
 
-go 1.19
+go 1.18
 
 require (
 	github.com/Azure/azure-sdk-for-go v44.0.0+incompatible
