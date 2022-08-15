@@ -33,6 +33,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go v1.0.162
 	github.com/vmware/govmomi v0.18.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
 	google.golang.org/api v0.4.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
