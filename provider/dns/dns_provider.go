@@ -3,7 +3,7 @@ package dns
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -33,13 +33,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// default to null logger
 	if l == nil {
-		l = log.New(ioutil.Discard, "", 0)
+		l = log.New(io.Discard, "", 0)
 	}
 
 	// validate and set service record
 	if args["query"] == "" {
-		return nil, fmt.Errorf("discover-dns: Query not provided." +
-			"  Please specify a valid dns query for the DNS lookup.")
+		return nil, fmt.Errorf("discover-dns: Query not provided")
 	}
 
 	var server string
@@ -77,7 +76,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	m1.Id = dns.Id()
 	m1.RecursionDesired = true
 	m1.Question = make([]dns.Question, 1)
-	m1.Question[0] = dns.Question{args["query"], dns.TypeA, dns.ClassINET}
+	m1.Question[0] = dns.Question{
+		Name:   args["query"],
+		Qtype:  dns.TypeA,
+		Qclass: dns.ClassINET,
+	}
 
 	c := new(dns.Client)
 
@@ -93,7 +96,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	raddr := fmt.Sprintf("%s:%d", server, port)
 	in, _, err := c.Exchange(m1, raddr)
 	if err != nil {
-		return nil, fmt.Errorf("discover-mdns: Failed to process query: %s", err)
+		return nil, fmt.Errorf("discover-dns: Failed to process query: %s", err)
 	}
 
 	for _, answer := range in.Answer {

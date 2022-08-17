@@ -3,8 +3,10 @@ package dns_test
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/miekg/dns"
 
@@ -20,7 +22,24 @@ var (
 	testAddresses = []string{"127.0.0.1"}
 )
 
-func newTestServer() (*dns.Server, error) {
+func pickUnusedUDPPort() (int, error) {
+	addr, err := net.ResolveUDPAddr("udp", ":0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		return 0, err
+	}
+	port := l.LocalAddr().(*net.UDPAddr).Port
+	if err := l.Close(); err != nil {
+		return 0, err
+	}
+	return port, nil
+}
+
+func newTestServer(port int) (*dns.Server, error) {
 	var rr []dns.RR
 
 	for _, testAddress := range testAddresses {
@@ -28,19 +47,29 @@ func newTestServer() (*dns.Server, error) {
 		rr = append(rr, a)
 	}
 
-	server := &dns.Server{Addr: ":5300", Net: "udp"}
+	server := &dns.Server{Addr: fmt.Sprintf(":%d", port), Net: "udp"}
 	go server.ListenAndServe()
 	dns.HandleFunc(fmt.Sprintf("tasks.%s.", testService), func(w dns.ResponseWriter, r *dns.Msg) {
 		m := new(dns.Msg)
 		m.SetReply(r)
-		m.Insert(rr)
+		m.Answer = rr
 		w.WriteMsg(m)
 	})
+
+	// XXX: This test harness seems flakey without a small timeout
+	time.Sleep(time.Second * 1)
 
 	return server, nil
 }
 
 func TestDiscover(t *testing.T) {
+	port, err := pickUnusedUDPPort()
+	if err != nil {
+		t.Fatalf("unable to find free udp port for test dns server harness: %s", err)
+		return
+	}
+	testPort := fmt.Sprintf("%d", port)
+
 	type testCases []struct {
 		desc  string
 		args  discover.Config
@@ -53,10 +82,10 @@ func TestDiscover(t *testing.T) {
 			"valid config - no addresses",
 			discover.Config{
 				"provider": "dns",
-				"query":    "tasks.fake-service",
+				"server":   "127.0.0.1",
+				"port":     testPort,
+				"query":    "tasks.fake-service.",
 				"timeout":  "1s",
-				"v6":       "false",
-				"v4":       "false",
 			},
 			false,
 			0,
@@ -65,10 +94,10 @@ func TestDiscover(t *testing.T) {
 			"valid config - one address",
 			discover.Config{
 				"provider": "dns",
-				"query":    "tasks.test-service",
+				"server":   "127.0.0.1",
+				"port":     testPort,
+				"query":    "tasks.test-service.",
 				"timeout":  "10s",
-				"v6":       "true",
-				"v4":       "true",
 			},
 			false,
 			1,
@@ -77,10 +106,10 @@ func TestDiscover(t *testing.T) {
 			"invalid config - missing query option",
 			discover.Config{
 				"provider": "dns",
+				"server":   "127.0.0.1",
+				"port":     testPort,
 				"query":    "",
 				"timeout":  "1s",
-				"v6":       "false",
-				"v4":       "false",
 			},
 			true,
 			0,
@@ -89,10 +118,10 @@ func TestDiscover(t *testing.T) {
 			"invalid config - bad timeout option",
 			discover.Config{
 				"provider": "dns",
-				"query":    "tasks.fake-service",
+				"server":   "127.0.0.1",
+				"port":     testPort,
+				"query":    "tasks.fake-service.",
 				"timeout":  "1z",
-				"v6":       "false",
-				"v4":       "false",
 			},
 			true,
 			0,
@@ -101,10 +130,10 @@ func TestDiscover(t *testing.T) {
 			"invalid config - bad v6 option",
 			discover.Config{
 				"provider": "dns",
-				"service":  "tasks.fake-service",
+				"server":   "127.0.0.1",
+				"port":     testPort,
+				"query":    "tasks.fake-service.",
 				"timeout":  "1s",
-				"v6":       "xxxx",
-				"v4":       "false",
 			},
 			true,
 			0,
@@ -113,10 +142,10 @@ func TestDiscover(t *testing.T) {
 			"invalid config - bad v4 option",
 			discover.Config{
 				"provider": "dns",
-				"service":  "tasks.fake-service",
+				"server":   "127.0.0.1",
+				"port":     testPort,
+				"query":    "tasks.fake-service.",
 				"timeout":  "1s",
-				"v6":       "false",
-				"v4":       "xxxx",
 			},
 			true,
 			0,
@@ -126,7 +155,7 @@ func TestDiscover(t *testing.T) {
 	p := &provider.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
 
-	svr, err := newTestServer()
+	svr, err := newTestServer(port)
 	if err != nil {
 		t.Fatalf("Failed to start test server: %s", err.Error())
 		return
