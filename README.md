@@ -35,6 +35,7 @@ function.
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/triton/triton_discover.go#L17-L27)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/vsphere/vsphere_discover.go#L145-L157)
  * Packet [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/packet/packet_discover.go#L25-L40)
+ * Equinix Metal [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/equinixmetal/equinixmetal_discover.go#L25-L35)
 
 The following providers are implemented in the go-discover/provider subdirectory
 but aren't automatically registered. If you want to support these providers,
@@ -44,7 +45,7 @@ register them manually:
 
 HashiCorp maintains acceptance tests that regularly allocate and run tests with
 real resources to verify the behavior of several of these providers. Those
-currently are: Amazon AWS, Microsoft Azure, Google Cloud, DigitalOcean, Triton, Scaleway, AliBaba Cloud, vSphere, and Packet.net.
+currently are: Amazon AWS, Microsoft Azure, Google Cloud, DigitalOcean, Triton, Scaleway, AliBaba Cloud, vSphere, and Equinix Metal (Packet).
 
 ### Config Example
 
@@ -90,6 +91,9 @@ provider=vsphere category_name=consul-role tag_name=consul-server host=... user=
 
 # Packet
 provider=packet auth_token=token project=uuid url=... address_type=...
+
+# Equinix Metal
+provider=equinixmetal auth_token=token project=uuid url=... address_type=...
 
 # Kubernetes
 provider=k8s label_selector="app = consul-server"
