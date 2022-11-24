@@ -79,7 +79,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	labelSelector := args["label_selector"]
 	addrType := args["address_type"]
 	location := args["location"]
-	apiToken := args["apiToken"]
+	apiToken := args["api_token"]
 
 	if apiToken == "" {
 		l.Printf("[INFO] no API token specified, checking environment variable HCLOUD_TOKEN")
