@@ -28,7 +28,7 @@ require (
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/sirupsen/logrus v1.0.6 // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.1
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.480
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.480
 	github.com/vmware/govmomi v0.18.0
