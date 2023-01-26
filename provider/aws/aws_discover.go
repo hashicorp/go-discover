@@ -122,7 +122,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}
 		} else {
 			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ec2 metadata...")
-			ec2meta := ec2metadata.New(session.New())
+			sess, err := session.NewSession()
+			if err != nil {
+				return nil, fmt.Errorf("discover-aws: NewSession failed: %s", err)
+			}
+			ec2meta := ec2metadata.New(sess)
 			identity, err := ec2meta.GetInstanceIdentityDocument()
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: GetInstanceIdentityDocument failed: %s", err)
@@ -154,9 +158,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		config.Endpoint = &endpoint
 	}
 
+	sess, err := session.NewSession(&config)
+	if err != nil {
+		return nil, fmt.Errorf("discover-aws: NewSession failed: %s", err)
+	}
+
 	// Split here for ec2 vs ecs decision tree
 	if service == "ecs" {
-		svc := ecs.New(session.New(), &config)
+		svc := ecs.New(sess)
 
 		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
 		var clusterArns []*string
@@ -199,7 +208,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// When not using ECS continue with the default EC2 search
 
-	svc := ec2.New(session.New(), &config)
+	svc := ec2.New(sess)
 
 	l.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
