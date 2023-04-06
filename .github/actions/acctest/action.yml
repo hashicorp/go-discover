@@ -1,4 +1,5 @@
 name: acctest
+
 inputs:
   provider-test-infra-dir:
     required: false
@@ -10,54 +11,60 @@ inputs:
   provider-tf-apply:
     required: false
     default: terraform apply -auto-approve
+  aws-region:
+    description: 'AWS region for resources; only used for AWS tests'
+    required: false
+  aws-role-arn:
+    description: 'AWS role to assume before testing; only used for AWS tests'
+    required: false
+
 runs:
   using: composite
   steps:
-  - uses: "./.github/actions/tf-install"
-  - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
-  - name: download and install AWS CLI
-    run: |-
-      curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      echo -e "${AWS_CLI_GPG_KEY}" | gpg --import
-      curl -o awscliv2.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig
-      gpg --verify awscliv2.sig awscliv2.zip
-      unzip awscliv2.zip
-      sudo ./aws/install
-    if: "'aws' == ${{ inputs.provider-test-infra-dir }}"
-    shell: bash
-  - name: set assume-role creds
-    run: |-
-      CREDENTIALS="$(aws sts assume-role --role-arn ${SERVICE_GO_DISCOVER_TESTS_ROLE_ARN} --role-session-name build-${{ github.sha }} | jq '.Credentials')"
-      echo "export AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.AccessKeyId')" >> $BASH_ENV
-      echo "export AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.SecretAccessKey')" >> $BASH_ENV
-      echo "export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.SessionToken')" >> $BASH_ENV
-    if: "'aws' == ${{ inputs.provider-test-infra-dir }}"
-    shell: bash
-  - run: terraform init
-    working-directory: "./test/tf/${{ inputs.provider-test-infra-dir }}"
-    shell: bash
-  - run: "${{ inputs.provider-tf-apply }}"
-    working-directory: "./test/tf/${{ inputs.provider-test-infra-dir }}"
-    shell: bash
-  - run: mkdir -p /tmp/test-results
-    shell: bash
-  - name: Run provider tests
-    run: |-
-      gotestsum -f standard-verbose --junitfile ${TEST_RESULTS}/results.xml -- \
-        -run ${{ inputs.provider-go-test-tags }} \
-        -v ./provider/${{ inputs.provider-go-test-dir }}
-    if: "${{ inputs.provider-go-test-tags }}"
-    shell: bash
-  - name: Run provider tests
-    run: |-
-      gotestsum -f standard-verbose --junitfile ${TEST_RESULTS}/results.xml -- \
-        -v ./provider/${{ inputs.provider-go-test-dir }}
-    if: "${{ !(${{ inputs.provider-go-test-tags }}) }}"
-    shell: bash
-  - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
-    with:
-      path: "/tmp/test-results"
-  - run: terraform destroy --force
-    working-directory: "./test/tf/${{ inputs.provider-test-infra-dir }}"
-    if: always()
-    shell: bash
+    - uses: hashicorp/setup-terraform@v2.0.3
+      with:
+        terraform_version: '0.12.24'
+
+    - name: Configure AWS Credentials
+      if: inputs.provider-test-infra-dir == 'aws'
+      uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # v2.0.0
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Terraform Init
+      run: terraform init
+      shell: bash
+      working-directory: "./test/tf/${{ inputs.provider-test-infra-dir }}"
+    #- name: Terraform Apply
+    #  run: "${{ inputs.provider-tf-apply }}"
+    #  shell: bash
+    #  working-directory: "./test/tf/${{ inputs.provider-test-infra-dir }}"
+
+    - name: Run provider tests
+      run: |-
+        mkdir -p "$TEST_RESULTS"
+        gotestsum -f standard-verbose --junitfile ${TEST_RESULTS}/results.xml -- \
+          -run ${{ inputs.provider-go-test-tags }} \
+          -v ./provider/${{ inputs.provider-go-test-dir }}
+      if: inputs.provider-go-test-tags != ''
+      shell: bash
+
+    - name: Run provider tests
+      if: inputs.provider-go-test-tags == ''
+      shell: bash
+      run: |-
+        mkdir -p "$TEST_RESULTS"
+        gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml" -- \
+          -v ./provider/${{ inputs.provider-go-test-dir }}
+
+    - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+      with:
+        path: ${{ env.TEST_RESULTS }}
+        name: tests-${{ inputs.provider-test-infra-dir }}
+
+    - name: Terraform Destroy
+      run: terraform destroy --force
+      if: always()
+      shell: bash
+      working-directory: "./test/tf/${{ inputs.provider-test-infra-dir }}"
