@@ -1,0 +1,212 @@
+name: hashicorp/go-discover/acceptance
+on:
+  push:
+    branches:
+    - master
+env:
+  ALICLOUD_ACCESS_KEY: xxxxxxx
+  ALICLOUD_REGION: xxxxxxx
+  ALICLOUD_SECRET_KEY: xxxxxxx
+  ARM_CLIENT_ID: xxxxxxx
+  ARM_CLIENT_SECRET: xxxxxxx
+  ARM_ENVIRONMENT: xxxxxxx
+  ARM_SUBSCRIPTION_ID: xxxxxxx
+  ARM_TENANT_ID: xxxxxxx
+  AWS_ACCESS_KEY_ID: xxxxxxx
+  AWS_CLI_GPG_KEY: xxxxxxx
+  AWS_REGION: xxxxxxx
+  AWS_SECRET_ACCESS_KEY: xxxxxxx
+  DIGITALOCEAN_TOKEN: xxxxxxx
+  GOOGLE_CREDENTIALS: xxxxxxx
+  GOOGLE_PROJECT: xxxxxxx
+  GOOGLE_ZONE: xxxxxxx
+  PACKET_AUTH_TOKEN: xxxxxxx
+  PACKET_PROJECT: xxxxxxx
+  SCALEWAY_ORGANIZATION: xxxxxxx
+  SCW_ACCESS_KEY: xxxxxxx
+  SCW_DEFAULT_PROJECT_ID: xxxxxxx
+  SCW_SECRET_KEY: xxxxxxx
+  SERVICE_GO_DISCOVER_TESTS_ROLE_ARN: xxxxxxx
+  TENCENTCLOUD_SECRET_ID: xxxxxxx
+  TENCENTCLOUD_SECRET_KEY: xxxxxxx
+  TENCENT_REGION: xxxxxxx
+  TF_VAR_packet_project: xxxxxxx
+  TRITON_ACCOUNT: xxxxxxx
+  TRITON_KEY_ID: xxxxxxx
+  TRITON_URL: xxxxxxx
+jobs:
+  go-test:
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: restore_cache
+      uses: actions/cache@v3.3.1
+      with:
+        key: go-mod-test-v1-{{ checksum "go.sum" }}
+        restore-keys: go-mod-test-v1-{{ checksum "go.sum" }}
+        path: "/go/pkg/mod"
+    - name: Run go tests
+      run: |-
+        mkdir -p /tmp/test-results
+        gotestsum -f standard-verbose --junitfile ${TEST_RESULTS}/results.xml .
+    - uses: actions/upload-artifact@v3.1.1
+      with:
+        path: "/tmp/test-results"
+    - run: go mod download
+    - name: Check go mod tidy
+      run: |-
+        go mod tidy
+        git diff --exit-code
+  alicloud-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: aliyun
+        provider-go-test-dir: aliyun
+  aws-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: aws
+        provider-go-test-dir: aws
+  azure-vmss-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: azure-vmss
+        provider-go-test-dir: azure
+        provider-go-test-tags: TestVmScaleSetAddrs
+  azurerm-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: azurerm
+        provider-go-test-dir: azure
+        provider-go-test-tags: TestTagAddrs
+  digitalocean-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: digitalocean
+        provider-go-test-dir: digitalocean
+  gce-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: gce
+        provider-go-test-dir: gce
+  k8s-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: k8s
+        provider-go-test-dir: k8s
+        provider-tf-apply: terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve
+  packet-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: packet
+        provider-go-test-dir: packet
+  scaleway-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: scaleway
+        provider-go-test-dir: scaleway
+  triton-provider:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//pull\/[0-9]+/'
+    runs-on: ubuntu-latest
+    container:
+      image: docker.mirror.hashicorp.services/circleci/golang:1.13.15
+    needs:
+    - go-test
+    steps:
+    - uses: actions/checkout@v3.5.0
+    # Ensure parameter if_key_exists is set correctly
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2.5.0
+      with:
+        key: "${{ secrets.CIRCLE_CI_SSH_KEY }}"
+        name: circle_ci_id_rsa
+        known_hosts: "${{ secrets.CIRCLE_CI_KNOWN_HOSTS }}"
+        if_key_exists: fail
+    - uses: "./.github/actions/acctest"
+      with:
+        provider-test-infra-dir: triton
+        provider-go-test-dir: triton
