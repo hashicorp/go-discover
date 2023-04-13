@@ -1,3 +1,8 @@
+#############################
+# NOTE:  The below providers that are commented out have account token issues
+# related to neglect and aremost likely expired or somesort of billing issue.
+# There is a backlog item to fix these accounts and re-enable these tests.
+#############################
 name: Acceptance
 
 on:
@@ -83,7 +88,7 @@ jobs:
           provider-test-infra-dir: aliyun
           provider-go-test-dir: aliyun
 
-  aws-provider:
+  # aws-provider:
     # don't run on fork PRs
     if: github.repository_owner == 'hashicorp'
     runs-on: ubuntu-latest
@@ -163,74 +168,74 @@ jobs:
           provider-go-test-dir: azure
           provider-go-test-tags: TestTagAddrs
 
-  digitalocean-provider:
-    # don't run on fork PRs
-    if: github.repository_owner == 'hashicorp'
-    runs-on: ubuntu-latest
-    needs:
-      - go-test
-    env:
-      DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-    steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: 'stable'
-      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
-        with:
-          gotestsum_version: 1.9.0
+  # digitalocean-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   env:
+  #     DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
 
-      - uses: "./.github/actions/acctest"
-        with:
-          provider-test-infra-dir: digitalocean
-          provider-go-test-dir: digitalocean
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: digitalocean
+  #         provider-go-test-dir: digitalocean
 
-  gce-provider:
-    # don't run on fork PRs
-    if: github.repository_owner == 'hashicorp'
-    runs-on: ubuntu-latest
-    needs:
-      - go-test
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-      GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
-      GOOGLE_ZONE: ${{ vars.GOOGLE_ZONE }}
-    steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: 'stable'
-      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
-        with:
-          gotestsum_version: 1.9.0
+  # gce-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   env:
+  #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  #     GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+  #     GOOGLE_ZONE: ${{ vars.GOOGLE_ZONE }}
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
 
-      - uses: "./.github/actions/acctest"
-        with:
-          provider-test-infra-dir: gce
-          provider-go-test-dir: gce
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: gce
+  #         provider-go-test-dir: gce
 
-  k8s-provider:
-    # don't run on fork PRs
-    if: github.repository_owner == 'hashicorp'
-    runs-on: ubuntu-latest
-    needs:
-      - go-test
-    steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: 'stable'
-      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
-        with:
-          gotestsum_version: 1.9.0
+  # k8s-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
 
-      - uses: "./.github/actions/acctest"
-        with:
-          provider-test-infra-dir: k8s
-          provider-go-test-dir: k8s
-          provider-tf-apply: terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: k8s
+  #         provider-go-test-dir: k8s
+  #         provider-tf-apply: terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve
 
-  packet-provider:
+  # packet-provider:
     # don't run on fork PRs
     if: github.repository_owner == 'hashicorp'
     runs-on: ubuntu-latest
@@ -300,3 +305,39 @@ jobs:
         with:
           provider-test-infra-dir: triton
           provider-go-test-dir: triton
+
+  # This is job is required for branch protection as a required gihub check
+  # because GitHub actions show up as checks at the job level and not the
+  # workflow level.  This is currently a feature request:
+  # https://github.com/orgs/community/discussions/12395
+  #
+  # This job must:
+  # - be placed after the fanout of a workflow so that everything fans back in
+  #   to this job.
+  # - "need" any job that is part of the fan out / fan in
+  # - implement the if logic because we have conditional jobs 
+  #   (go-test-enteprise) that this job needs and this would potentially get 
+  #   skipped if a previous job got skipped.  So we use the if clause to make 
+  # sure it does not get skipped.
+
+  acceptance-success:
+    needs: 
+    - lint
+    - go-test
+    - alicloud-provider
+    # - aws-provider
+    - azure-vmss-provider
+    - azurerm-provider
+    # - digitalocean-provider
+    # - gce-provider
+    # - k8s-provider
+    # - packet-provider
+    # - scaleway-provider
+    # - triton-provider
+    runs-on: ${{ fromJSON(needs.setup.outputs.compute-small) }}
+    if: |
+      (always() && ! cancelled()) &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    steps:
+      - run: echo "go-tests succeeded"
