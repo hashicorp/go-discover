@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.480
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.480
-	github.com/vmware/govmomi v0.18.0
+	github.com/vmware/govmomi v0.30.4
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.4.0
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
