@@ -332,7 +332,7 @@ jobs:
     # - packet-provider
     # - scaleway-provider
     # - triton-provider
-    runs-on: ${{ fromJSON(needs.setup.outputs.compute-small) }}
+    runs-on: ubuntu-latest
     if: |
       (always() && ! cancelled()) &&
       !contains(needs.*.result, 'failure') &&
