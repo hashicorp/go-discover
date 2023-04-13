@@ -22,7 +22,7 @@ require (
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
 	github.com/linode/linodego v0.7.1
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
+	github.com/nicolai86/scaleway-sdk v1.11.1
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
