@@ -24,12 +24,11 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
-	github.com/pkg/errors v0.8.0 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/sirupsen/logrus v1.0.6 // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.8.1
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.480
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.480
 	github.com/vmware/govmomi v0.18.0
@@ -39,7 +38,7 @@ require (
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/resty.v1 v1.12.0 // indirect
 	k8s.io/api v0.18.2
-	k8s.io/apimachinery v0.18.2
+	k8s.io/apimachinery v0.27.1
 	k8s.io/client-go v0.18.2
 )
 
