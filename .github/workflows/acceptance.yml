@@ -1,0 +1,341 @@
+#############################
+# NOTE:  The below providers that are commented out have account token issues
+# related to neglect and aremost likely expired or somesort of billing issue.
+# There is a backlog item to fix these accounts and re-enable these tests.
+#############################
+name: Acceptance
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+env:
+  TEST_RESULTS: /tmp/test-results
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version-file: go.mod
+      - run: go mod download
+      - name: Check go mod tidy
+        run: |-
+          go mod tidy
+          git diff --exit-code
+      - name: Check Formatting
+        run: |-
+          files=$(go fmt ./...)
+          if [ -n "$files" ]; then
+            echo "The following file(s) do not conform to go fmt:"
+            echo "$files"
+            exit 1
+          fi
+
+  go-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version:
+          - '1.17' # oldest supported; named in go.mod
+          - 'oldstable'
+          - 'stable'
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: ${{ matrix.go-version }}
+      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3  # TSCCR: no entry for repository "autero1/action-gotestsum"
+        with:
+          gotestsum_version: 1.9.0
+
+      - name: Run go tests
+        run: |-
+          mkdir -p "$TEST_RESULTS"
+          gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml" .
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          path: ${{ env.TEST_RESULTS }}
+          name: tests-linux
+
+  alicloud-provider:
+    # don't run on fork PRs
+    if: github.repository_owner == 'hashicorp'
+    runs-on: ubuntu-latest
+    needs:
+      - go-test
+    env:
+      ALICLOUD_ACCESS_KEY: ${{ secrets.ALICLOUD_ACCESS_KEY }}
+      ALICLOUD_SECRET_KEY: ${{ secrets.ALICLOUD_SECRET_KEY }}
+      # XXX
+      # ALICLOUD_REGION: xxx
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: 'stable'
+      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3  # TSCCR: no entry for repository "autero1/action-gotestsum"
+        with:
+          gotestsum_version: 1.9.0
+
+      - uses: "./.github/actions/acctest"
+        with:
+          provider-test-infra-dir: aliyun
+          provider-go-test-dir: aliyun
+
+  # aws-provider:
+    # # don't run on fork PRs
+    # if: github.repository_owner == 'hashicorp'
+    # runs-on: ubuntu-latest
+    # needs:
+    #   - go-test
+    # env:
+    #   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #   AWS_REGION: ${{ vars.AWS_REGION }}
+    #   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # steps:
+    #   - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+    #   - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+    #     with:
+    #       go-version: 'stable'
+    #   - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+    #     with:
+    #       gotestsum_version: 1.9.0
+
+    #   - uses: "./.github/actions/acctest"
+    #     with:
+    #       provider-test-infra-dir: aws
+    #       provider-go-test-dir: aws
+    #       aws-region: ${{ vars.AWS_REGION }}
+    #       aws-role-arn: ${{ secrets.SERVICE_GO_DISCOVER_TESTS_ROLE_ARN }}
+
+  azure-vmss-provider:
+    # don't run on fork PRs
+    if: github.repository_owner == 'hashicorp'
+    runs-on: ubuntu-latest
+    needs:
+      - go-test
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_ENVIRONMENT: ${{ vars.ARM_ENVIRONMENT }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: 'stable'
+      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3  # TSCCR: no entry for repository "autero1/action-gotestsum"
+        with:
+          gotestsum_version: 1.9.0
+
+      - uses: "./.github/actions/acctest"
+        with:
+          provider-test-infra-dir: azure-vmss
+          provider-go-test-dir: azure
+          provider-go-test-tags: TestVmScaleSetAddrs
+
+  azurerm-provider:
+    # don't run on fork PRs
+    if: github.repository_owner == 'hashicorp'
+    runs-on: ubuntu-latest
+    needs:
+      - go-test
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_ENVIRONMENT: ${{ vars.ARM_ENVIRONMENT }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version: 'stable'
+      - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3  # TSCCR: no entry for repository "autero1/action-gotestsum"
+        with:
+          gotestsum_version: 1.9.0
+
+      - uses: "./.github/actions/acctest"
+        with:
+          provider-test-infra-dir: azurerm
+          provider-go-test-dir: azure
+          provider-go-test-tags: TestTagAddrs
+
+  # digitalocean-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   env:
+  #     DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
+
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: digitalocean
+  #         provider-go-test-dir: digitalocean
+
+  # gce-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   env:
+  #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  #     GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+  #     GOOGLE_ZONE: ${{ vars.GOOGLE_ZONE }}
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
+
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: gce
+  #         provider-go-test-dir: gce
+
+  # k8s-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
+
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: k8s
+  #         provider-go-test-dir: k8s
+  #         provider-tf-apply: terraform apply -target google_container_cluster.cluster -auto-approve && terraform apply -auto-approve
+
+  # packet-provider:
+    # # don't run on fork PRs
+    # if: github.repository_owner == 'hashicorp'
+    # runs-on: ubuntu-latest
+    # needs:
+    #   - go-test
+    # env:
+    #   TF_VAR_packet_project: ${{ secrets.PACKET_PROJECT }}
+    #   PACKET_AUTH_TOKEN: ${{ secrets.PACKET_AUTH_TOKEN }}
+    #   PACKET_PROJECT: ${{ secrets.PACKET_PROJECT }}
+    # steps:
+    #   - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+    #   - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+    #     with:
+    #       go-version: 'stable'
+    #   - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+    #     with:
+    #       gotestsum_version: 1.9.0
+
+    #   - uses: "./.github/actions/acctest"
+    #     with:
+    #       provider-test-infra-dir: packet
+    #       provider-go-test-dir: packet
+
+  # scaleway-provider:
+  #  # don't run on fork PRs
+  #  if: github.repository_owner == 'hashicorp'
+  #  runs-on: ubuntu-latest
+  #  needs:
+  #    - go-test
+  #  steps:
+  #    - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #    - uses: "./.github/actions/acctest"
+  #      with:
+  #        provider-test-infra-dir: scaleway
+  #        provider-go-test-dir: scaleway
+
+  # triton-provider:
+  #   # don't run on fork PRs
+  #   if: github.repository_owner == 'hashicorp'
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - go-test
+  #   env:
+  #     TRITON_URL: ${{ vars.TRITON_URL }}
+  #     TRITON_ACCOUNT: ${{ secrets.TRITON_ACCOUNT }}
+  #     TRITON_KEY_ID: ${{ secrets.TRITON_KEY_ID }}
+  #   steps:
+  #     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+  #     - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+  #       with:
+  #         go-version: 'stable'
+  #     - uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # v1.0.0
+  #       with:
+  #         gotestsum_version: 1.9.0
+
+  #     # Ensure parameter if_key_exists is set correctly
+  #     #- name: Install SSH key
+  #     #  uses: shimataro/ssh-key-action@685d0f20da72e4b53cc81d373a2ed0a867770e46 # v2.5.1
+  #     #  with:
+  #     #    key: "${{ secrets.CIRCLE_CI_SSH_KEY }}"
+  #     #    name: circle_ci_id_rsa
+  #     #    known_hosts: "${{ secrets.CIRCLE_CI_KNOWN_HOSTS }}"
+  #     #    if_key_exists: fail
+  #     - uses: "./.github/actions/acctest"
+  #       with:
+  #         provider-test-infra-dir: triton
+  #         provider-go-test-dir: triton
+
+  # This is job is required for branch protection as a required gihub check
+  # because GitHub actions show up as checks at the job level and not the
+  # workflow level.  This is currently a feature request:
+  # https://github.com/orgs/community/discussions/12395
+  #
+  # This job must:
+  # - be placed after the fanout of a workflow so that everything fans back in
+  #   to this job.
+  # - "need" any job that is part of the fan out / fan in
+  # - implement the if logic because we have conditional jobs 
+  #   (go-test-enteprise) that this job needs and this would potentially get 
+  #   skipped if a previous job got skipped.  So we use the if clause to make 
+  # sure it does not get skipped.
+
+  acceptance-success:
+    needs: 
+    - lint
+    - go-test
+    - alicloud-provider
+    # - aws-provider
+    - azure-vmss-provider
+    - azurerm-provider
+    # - digitalocean-provider
+    # - gce-provider
+    # - k8s-provider
+    # - packet-provider
+    # - scaleway-provider
+    # - triton-provider
+    runs-on: ubuntu-latest
+    if: |
+      (always() && ! cancelled()) &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    steps:
+      - run: echo "go-tests succeeded"
