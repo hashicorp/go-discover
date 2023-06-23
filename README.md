@@ -86,7 +86,7 @@ provider=tencentcloud region=ap-guangzhou tag_key=consul tag_value=... access_ke
 provider=triton account=testaccount url=https://us-sw-1.api.joyentcloud.com key_id=... tag_key=consul-role tag_value=server
 
 # vSphere
-provider=vsphere category_name=consul-role tag_name=consul-server host=... user=... password=... insecure_ssl=[true|false]
+provider=vsphere category_name=consul-role tag_name=consul-server address_type=private host=... user=... password=... insecure_ssl=[true|false]
 
 # Packet
 provider=packet auth_token=token project=uuid url=... address_type=...
