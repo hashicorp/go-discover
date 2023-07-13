@@ -19,6 +19,7 @@ func (p *Provider) Help() string {
 
     provider:         "nomad"
 		address:    			Nomad address
+		secret_id:    	  Nomad secret_id
     service_name:     Nomad service to discover allocations for
     namespace:        Namespace to search for allocations (optional)
 		region:     			Nomad region to discover allocations for (optional)

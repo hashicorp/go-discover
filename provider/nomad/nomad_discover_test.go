@@ -16,7 +16,7 @@ func TestAcc(t *testing.T) {
 	args := discover.Config{
 		"address": "http://127.0.0.1:4646",
 		"provider":       "nomad",
-		"namespace":     "apps",
+		// "namespace":     "default",
 		"service_name":   "consul",
 	}
 
@@ -29,7 +29,7 @@ func TestAcc(t *testing.T) {
 	}
 	t.Logf("Addrs: %v", addrs)
 	if len(addrs) != 3 {
-		t.Fatalf("bad: %v", addrs)
+		t.Fatalf("Bad Response (wanted 3): %v", addrs)
 	}
 }
 
