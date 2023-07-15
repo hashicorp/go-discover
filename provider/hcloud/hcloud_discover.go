@@ -101,7 +101,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	l.Printf("[DEBUG] discover-hcloud: using address_type=%s label_selector=%s location=%s", addrType, labelSelector, location)
 
-	client := hcloud.NewClient(hcloud.WithToken(apiToken))
+	client := hcloud.NewClient(
+	  hcloud.WithToken(apiToken),
+	  hcloud.WithApplication("go-discover", ""),
+	)
 
 	options := hcloud.ServerListOpts{
 		ListOpts: hcloud.ListOpts{
