@@ -1,7 +1,7 @@
 # Go Discover Nodes for Cloud Providers [![GoDoc](https://godoc.org/github.com/hashicorp/go-discover?status.svg)](https://godoc.org/github.com/hashicorp/go-discover)
 
-**Note** 
-`go-discover` is considered feature complete and is currently maintained on an as-need basis for use with Vault and Consul. Currently another solution [go-netaddrs]( https://github.com/hashicorp/go-netaddrs) is being actively maintained, which provides a more flexible way of discovering ip addresses without having to tie it to specific infrastructure. 
+> **Note**
+> `go-discover` is considered feature complete and is currently maintained on an as-need basis for use with Vault and Consul. Currently another solution [go-netaddrs]( https://github.com/hashicorp/go-netaddrs) is being actively maintained, which provides a more flexible way of discovering ip addresses without having to tie it to specific infrastructure. 
 
 `go-discover` is a Go (golang) library and command line tool to discover
 ip addresses of nodes in cloud environments based on meta information
