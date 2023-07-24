@@ -1,4 +1,4 @@
-# Go Discover Nodes for Cloud Providers [![CircleCI](https://circleci.com/gh/hashicorp/go-discover.svg?style=shield)](https://circleci.com/gh/hashicorp/go-discover) [![GoDoc](https://godoc.org/github.com/hashicorp/go-discover?status.svg)](https://godoc.org/github.com/hashicorp/go-discover)
+# Go Discover Nodes for Cloud Providers [![GoDoc](https://godoc.org/github.com/hashicorp/go-discover?status.svg)](https://godoc.org/github.com/hashicorp/go-discover)
 
 **Note** 
 `go-discover` is considered feature complete and is currently maintained on an as-need basis for use with Vault and Consul. Currently another solution [go-netaddrs]( https://github.com/hashicorp/go-netaddrs) is being actively maintained, which provides a more flexible way of discovering ip addresses without having to tie it to specific infrastructure. 
