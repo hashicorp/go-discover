@@ -30,6 +30,8 @@ function.
  * Linode [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/linode/linode_discover.go#L30-L41)
  * mDNS [Config options](https://github.com/hashicorp/go-discover/blob/master/provider/mdns/mdns_provider.go#L19-L31)
  * Microsoft Azure [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/azure/azure_discover.go#L24-L62)
+ <!-- TODO: FILL THIS IN WITH THE CORRECT SHA & LOC-->
+ * Nomad [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/nomad/nomad_discover.go#L20-L25)
  * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/os/os_discover.go#L29-L44)
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/softlayer/softlayer_discover.go#L16-L25)
@@ -71,6 +73,9 @@ provider=mdns service=consul domain=local
 
 # Microsoft Azure
 provider=azure tag_name=consul tag_value=... tenant_id=... client_id=... subscription_id=... secret_access_key=...
+
+# Nomad
+provider=nomad service_name=consul address=... secret_id=... namespace=... region=...
 
 # Openstack
 provider=os tag_key=consul tag_value=server username=... password=... auth_url=...
