@@ -148,6 +148,7 @@ func (p *Provider) Help() string {
     provider:      "vsphere"
     tag_name:      The name of the tag to look up.
     category_name: The category of the tag to look up.
+    address_type:  The IP address type to return (default: private).
     host:          The host of the vSphere server to connect to.
     user:          The username to connect as.
     password:      The password of the user to connect to vSphere as.
@@ -166,6 +167,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	tagName := args["tag_name"]
 	categoryName := args["category_name"]
+	addressType := args["address_type"]
 	host := valueOrEnv(args, "host", "VSPHERE_SERVER")
 	user := valueOrEnv(args, "user", "VSPHERE_USER")
 	password := valueOrEnv(args, "password", "VSPHERE_PASSWORD")
@@ -198,7 +200,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, discoverErr(err.Error())
 	}
 
-	addrs, err := virtualMachineIPsForTag(ctx, client, tagID)
+	addrs, err := virtualMachineIPsForTag(ctx, client, tagID, addressType)
 	if err != nil {
 		return nil, discoverErr(err.Error())
 	}
@@ -264,13 +266,13 @@ func tagByName(ctx context.Context, client *tags.RestClient, name, categoryID st
 // virtualMachineIPsForTag is a higher-level wrapper that calls out to
 // functions to fetch all of the virtual machines matching a certain tag ID,
 // and then gets all of the IP addresses for those virtual machines.
-func virtualMachineIPsForTag(ctx context.Context, client *vSphereClient, id string) ([]string, error) {
+func virtualMachineIPsForTag(ctx context.Context, client *vSphereClient, id string, addressType string) ([]string, error) {
 	vms, err := virtualMachinesForTag(ctx, client, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return ipAddrsForVirtualMachines(ctx, client, vms)
+	return ipAddrsForVirtualMachines(ctx, client, vms, addressType)
 }
 
 // virtualMachinesForTag discovers all of the virtual machines that match a
@@ -306,10 +308,10 @@ func virtualMachinesForTag(ctx context.Context, client *vSphereClient, id string
 
 // ipAddrsForVirtualMachines takes a set of virtual machines and returns a
 // consolidated list of IP addresses for all of the VMs.
-func ipAddrsForVirtualMachines(ctx context.Context, client *vSphereClient, vms []*object.VirtualMachine) ([]string, error) {
+func ipAddrsForVirtualMachines(ctx context.Context, client *vSphereClient, vms []*object.VirtualMachine, addressType string) ([]string, error) {
 	var addrs []string
 	for _, vm := range vms {
-		as, err := buildAndSelectGuestIPs(ctx, vm)
+		as, err := buildAndSelectGuestIPs(ctx, vm, addressType)
 		if err != nil {
 			return nil, err
 		}
@@ -359,7 +361,7 @@ func virtualMachineProperties(ctx context.Context, vm *object.VirtualMachine, ke
 //
 // The builder is non-discriminate and is only deterministic to the order that
 // it discovers addresses in VMware tools.
-func buildAndSelectGuestIPs(ctx context.Context, vm *object.VirtualMachine) ([]string, error) {
+func buildAndSelectGuestIPs(ctx context.Context, vm *object.VirtualMachine, addressType string) ([]string, error) {
 	logger.Printf("[DEBUG] Discovering addresses for virtual machine %q", vm.Name())
 	var addrs []string
 
@@ -378,7 +380,7 @@ func buildAndSelectGuestIPs(ctx context.Context, vm *object.VirtualMachine) ([]s
 	for _, n := range props.Guest.Net {
 		if n.IpConfig != nil {
 			for _, addr := range n.IpConfig.IpAddress {
-				if skipIPAddr(net.ParseIP(addr.IpAddress)) {
+				if skipIPAddr(net.ParseIP(addr.IpAddress), addressType) {
 					continue
 				}
 				addrs = append(addrs, addr.IpAddress)
@@ -392,7 +394,7 @@ func buildAndSelectGuestIPs(ctx context.Context, vm *object.VirtualMachine) ([]s
 
 // skipIPAddr defines the set of criteria that buildAndSelectGuestIPs uses to
 // check to see if it needs to skip an IP address.
-func skipIPAddr(ip net.IP) bool {
+func skipIPAddr(ip net.IP, addressType string) bool {
 	switch {
 	case ip.IsLinkLocalMulticast():
 		fallthrough
@@ -401,6 +403,10 @@ func skipIPAddr(ip net.IP) bool {
 	case ip.IsLoopback():
 		fallthrough
 	case ip.IsMulticast():
+		fallthrough
+	case ip.IsPrivate() && addressType == "public":
+		fallthrough
+	case !ip.IsPrivate() && addressType == "private":
 		return true
 	}
 	return false
