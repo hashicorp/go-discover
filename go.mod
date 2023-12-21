@@ -5,7 +5,6 @@ require (
 	github.com/Azure/go-autorest/autorest v0.11.18
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.0
 	github.com/aws/aws-sdk-go v1.44.262
-	github.com/denverdino/aliyungo v0.0.0-20210910083501-4f11020c0bfb
 	github.com/denverdino/aliyungo v0.0.0-20230411124812-ab98a9173ace
 	github.com/digitalocean/godo v1.7.5
 	github.com/gophercloud/gophercloud v0.1.0
