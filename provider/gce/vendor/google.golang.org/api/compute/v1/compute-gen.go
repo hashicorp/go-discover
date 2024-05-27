@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package compute provides access to the Compute Engine API.
 //
 // See https://developers.google.com/compute/docs/reference/latest/

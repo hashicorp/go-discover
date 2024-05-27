@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package servers provides information and interaction with the server API
 resource in the OpenStack Compute service.

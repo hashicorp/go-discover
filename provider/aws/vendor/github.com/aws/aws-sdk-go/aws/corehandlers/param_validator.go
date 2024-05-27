@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package corehandlers
 
 import "github.com/aws/aws-sdk-go/aws/request"
