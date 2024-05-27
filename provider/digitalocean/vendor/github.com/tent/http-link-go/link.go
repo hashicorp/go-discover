@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package link implements parsing and serialization of Link header values as
 // defined in RFC 5988.
 package link

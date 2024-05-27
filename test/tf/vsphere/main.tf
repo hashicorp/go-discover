@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 // This is the Terraform file that is necessary to stand up the test
 // environment for vSphere node discovery.
 //
