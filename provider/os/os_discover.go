@@ -55,6 +55,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	projectID := args["project_id"]
 	tagKey := args["tag_key"]
 	tagValue := args["tag_value"]
+	ipMode := args["ip_family"]
 	var err error
 
 	if projectID == "" { // Use the one on the instance if not provided either by parameter or env
@@ -67,7 +68,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		args["project_id"] = projectID
 	}
 
-	log.Printf("[DEBUG] discover-os: Using project_id=%s tag_key=%s tag_value=%s", projectID, tagKey, tagValue)
+	l.Printf("[DEBUG] discover-os: Using project_id=%s tag_key=%s tag_value=%s", projectID, tagKey, tagValue)
 	client, err := newClient(args, l)
 	if err != nil {
 		return nil, err
@@ -97,9 +98,19 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 						if addrsInfo, ok := v.([]interface{}); ok {
 							for _, addrInfo := range addrsInfo {
 								if info, ok := addrInfo.(map[string]interface{}); ok {
-									if info["OS-EXT-IPS:type"] == "fixed" {
+									switch ipMode {
+									case "ipv4":
+										if thisIP := net.ParseIP(info["addr"].(string)).To4(); thisIP != nil {
+											addrs = append(addrs, thisIP.String())
+										}
+									case "ipv6":
+										if thisIP := net.ParseIP(info["addr"].(string)).To4(); thisIP == nil {
+											addrs = append(addrs, thisIP.String())
+										}
+									default:
 										addrs = append(addrs, info["addr"].(string))
 									}
+
 								}
 							}
 						}
