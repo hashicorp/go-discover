@@ -4,20 +4,33 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/defaults"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ecs"
 )
+
+// providerLog is the local provider logger. This should be initialized from
+// the provider entry point.
+var logger *log.Logger
+
+// setLog sets the logger.
+func setLog(l *log.Logger) {
+	if l != nil {
+		logger = l
+	} else {
+		logger = log.New(ioutil.Discard, "", 0)
+	}
+}
 
 type Provider struct{}
 
@@ -64,9 +77,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-aws: invalid provider " + args["provider"])
 	}
 
-	if l == nil {
-		l = log.New(ioutil.Discard, "", 0)
-	}
+	setLog(l)
 
 	region := args["region"]
 	tagKey := args["tag_key"]
@@ -81,36 +92,36 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	endpoint := args["endpoint"]
 
 	if service != "ec2" && service != "ecs" {
-		l.Printf("[INFO] discover-aws: Service type %s is not supported. Valid values are {ec2,ecs}. Falling back to 'ec2'", service)
+		logger.Printf("[INFO] discover-aws: Service type %s is not supported. Valid values are {ec2,ecs}. Falling back to 'ec2'", service)
 		service = "ec2"
 	} else if service == "ecs" && addrType != "private_v4" {
-		l.Printf("[INFO] discover-aws: Address Type %s is not supported for ECS. Valid values are {private_v4}. Falling back to 'private_v4'", addrType)
+		logger.Printf("[INFO] discover-aws: Address Type %s is not supported for ECS. Valid values are {private_v4}. Falling back to 'private_v4'", addrType)
 		addrType = "private_v4"
 	}
 
 	if addrType != "private_v4" && addrType != "public_v4" && addrType != "public_v6" {
-		l.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addrType)
+		logger.Printf("[INFO] discover-aws: Address type %s is not supported. Valid values are {private_v4,public_v4,public_v6}. Falling back to 'private_v4'", addrType)
 		addrType = "private_v4"
 	}
 
 	if addrType == "" {
-		l.Printf("[DEBUG] discover-aws: Address type not provided. Using 'private_v4'")
+		logger.Printf("[DEBUG] discover-aws: Address type not provided. Using 'private_v4'")
 		addrType = "private_v4"
 	}
 
-	l.Printf("[DEBUG] discover-aws: Using region=%s tag_key=%s tag_value=%s addr_type=%s", region, tagKey, tagValue, addrType)
+	logger.Printf("[DEBUG] discover-aws: Using region=%s tag_key=%s tag_value=%s addr_type=%s", region, tagKey, tagValue, addrType)
 	if accessKey == "" && secretKey == "" {
-		l.Printf("[DEBUG] discover-aws: No static credentials")
-		l.Printf("[DEBUG] discover-aws: Using environment variables, shared credentials or instance role")
+		logger.Printf("[DEBUG] discover-aws: No static credentials")
+		logger.Printf("[DEBUG] discover-aws: Using environment variables, shared credentials or instance role")
 	} else {
-		l.Printf("[DEBUG] discover-aws: Static credentials provided")
+		logger.Printf("[DEBUG] discover-aws: Static credentials provided")
 	}
 
 	if region == "" {
 		_, ecsEnabled := os.LookupEnv("ECS_CONTAINER_METADATA_URI_V4")
 		if ecsEnabled {
 			// Get ECS Task Region from metadata, so it works on Fargate and EC2-ECS
-			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ecs metadata...")
+			logger.Printf("[INFO] discover-aws: Region not provided. Looking up region in ecs metadata...")
 			taskMetadata, err := getECSTaskMetadata()
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Metadata: %s", err)
@@ -121,7 +132,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Region: %s", err)
 			}
 		} else {
-			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ec2 metadata...")
+			logger.Printf("[INFO] discover-aws: Region not provided. Looking up region in ec2 metadata...")
 			ec2meta := ec2metadata.New(session.New())
 			identity, err := ec2meta.GetInstanceIdentityDocument()
 			if err != nil {
@@ -130,9 +141,9 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			region = identity.Region
 		}
 	}
-	l.Printf("[INFO] discover-aws: Region is %s", region)
+	logger.Printf("[INFO] discover-aws: Region is %s", region)
 
-	l.Printf("[DEBUG] discover-aws: Creating session...")
+	logger.Printf("[DEBUG] discover-aws: Creating session...")
 	config := aws.Config{
 		Region: &region,
 		Credentials: credentials.NewChainCredentials(
@@ -150,7 +161,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}),
 	}
 	if endpoint != "" {
-		l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
+		logger.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
 		config.Endpoint = &endpoint
 	}
 
@@ -158,7 +169,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if service == "ecs" {
 		svc := ecs.New(session.New(), &config)
 
-		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
+		logger.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
 		var clusterArns []*string
 
 		// If an ECS Cluster Name (ARN) was specified, dont lookup all the cluster arns
@@ -178,7 +189,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
-			log.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
+			logger.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
 
 			// Once all the possibly paged task arns are collected, collect task descriptions with 100 task maximum
 			// ref: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeTasks.html#ECS-DescribeTasks-request-tasks
@@ -190,10 +201,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
 				}
 				taskIps = append(taskIps, ecsTaskIps...)
-				log.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
+				logger.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
 			}
 		}
-		log.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
+		logger.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
 		return taskIps, nil
 	}
 
@@ -201,7 +212,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	svc := ec2.New(session.New(), &config)
 
-	l.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
+	logger.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
 	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			&ec2.Filter{
@@ -218,54 +229,54 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-aws: DescribeInstancesInput failed: %s", err)
 	}
 
-	l.Printf("[DEBUG] discover-aws: Found %d reservations", len(resp.Reservations))
+	logger.Printf("[DEBUG] discover-aws: Found %d reservations", len(resp.Reservations))
 	var addrs []string
 	for _, r := range resp.Reservations {
-		l.Printf("[DEBUG] discover-aws: Reservation %s has %d instances", *r.ReservationId, len(r.Instances))
+		logger.Printf("[DEBUG] discover-aws: Reservation %s has %d instances", *r.ReservationId, len(r.Instances))
 		for _, inst := range r.Instances {
 			id := *inst.InstanceId
-			l.Printf("[DEBUG] discover-aws: Found instance %s", id)
+			logger.Printf("[DEBUG] discover-aws: Found instance %s", id)
 
 			switch addrType {
 			case "public_v6":
-				l.Printf("[DEBUG] discover-aws: Instance %s has %d network interfaces", id, len(inst.NetworkInterfaces))
+				logger.Printf("[DEBUG] discover-aws: Instance %s has %d network interfaces", id, len(inst.NetworkInterfaces))
 
 				for _, networkinterface := range inst.NetworkInterfaces {
-					l.Printf("[DEBUG] discover-aws: Checking NetworInterfaceId %s on Instance %s", *networkinterface.NetworkInterfaceId, id)
+					logger.Printf("[DEBUG] discover-aws: Checking NetworInterfaceId %s on Instance %s", *networkinterface.NetworkInterfaceId, id)
 					// Check if instance got any ipv6
 					if networkinterface.Ipv6Addresses == nil {
-						l.Printf("[DEBUG] discover-aws: Instance %s has no IPv6 on NetworkInterfaceId %s", id, *networkinterface.NetworkInterfaceId)
+						logger.Printf("[DEBUG] discover-aws: Instance %s has no IPv6 on NetworkInterfaceId %s", id, *networkinterface.NetworkInterfaceId)
 						continue
 					}
 					for _, ipv6address := range networkinterface.Ipv6Addresses {
-						l.Printf("[INFO] discover-aws: Instance %s has IPv6 %s on NetworkInterfaceId %s", id, *ipv6address.Ipv6Address, *networkinterface.NetworkInterfaceId)
+						logger.Printf("[INFO] discover-aws: Instance %s has IPv6 %s on NetworkInterfaceId %s", id, *ipv6address.Ipv6Address, *networkinterface.NetworkInterfaceId)
 						addrs = append(addrs, *ipv6address.Ipv6Address)
 					}
 				}
 
 			case "public_v4":
 				if inst.PublicIpAddress == nil {
-					l.Printf("[DEBUG] discover-aws: Instance %s has no public IPv4", id)
+					logger.Printf("[DEBUG] discover-aws: Instance %s has no public IPv4", id)
 					continue
 				}
 
-				l.Printf("[INFO] discover-aws: Instance %s has public ip %s", id, *inst.PublicIpAddress)
+				logger.Printf("[INFO] discover-aws: Instance %s has public ip %s", id, *inst.PublicIpAddress)
 				addrs = append(addrs, *inst.PublicIpAddress)
 
 			default:
 				// EC2-Classic don't have the PrivateIpAddress field
 				if inst.PrivateIpAddress == nil {
-					l.Printf("[DEBUG] discover-aws: Instance %s has no private ip", id)
+					logger.Printf("[DEBUG] discover-aws: Instance %s has no private ip", id)
 					continue
 				}
 
-				l.Printf("[INFO] discover-aws: Instance %s has private ip %s", id, *inst.PrivateIpAddress)
+				logger.Printf("[INFO] discover-aws: Instance %s has private ip %s", id, *inst.PrivateIpAddress)
 				addrs = append(addrs, *inst.PrivateIpAddress)
 			}
 		}
 	}
 
-	l.Printf("[DEBUG] discover-aws: Found ip addresses: %v", addrs)
+	logger.Printf("[DEBUG] discover-aws: Found ip addresses: %v", addrs)
 	return addrs, nil
 }
 
@@ -282,7 +293,7 @@ func getEcsClusters(svc *ecs.ECS) ([]*string, error) {
 	err := svc.ListClustersPages(&ecs.ListClustersInput{}, func(page *ecs.ListClustersOutput, lastPage bool) bool {
 		pageNum++
 		clusterArns = append(clusterArns, page.ClusterArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(clusterArns), pageNum)
+		logger.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(clusterArns), pageNum)
 		return !lastPage // return false to exit page function
 	})
 
@@ -339,7 +350,7 @@ func getEcsTasks(svc *ecs.ECS, clusterArn *string, family *string) ([]*string, e
 	err := svc.ListTasksPages(&lti, func(page *ecs.ListTasksOutput, lastPage bool) bool {
 		pageNum++
 		taskArns = append(taskArns, page.TaskArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
+		logger.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
 		return !lastPage // return false to exit page function
 	})
 
@@ -364,7 +375,7 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 
 	taskRequestFailures := taskDescriptions.Failures
 	tasks := taskDescriptions.Tasks
-	log.Printf("[INFO] discover-aws: Retrieved %d Task Descriptions and %d Failures", len(tasks), len(taskRequestFailures))
+	logger.Printf("[INFO] discover-aws: Retrieved %d Task Descriptions and %d Failures", len(tasks), len(taskRequestFailures))
 
 	// Filter tasks by Tag and Connectivity Status
 	var ipList []string
@@ -372,14 +383,14 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 
 		for _, tag := range taskDescription.Tags {
 			if *tag.Key == *tagKey && *tag.Value == *tagValue {
-				log.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
+				logger.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
 
 				if *taskDescription.DesiredStatus == "RUNNING" {
-					log.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
+					logger.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
 					ip := getIpFromTaskDescription(taskDescription)
 
 					if ip != nil {
-						log.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
+						logger.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
 						ipList = append(ipList, *ip)
 					}
 
@@ -390,19 +401,19 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 		}
 	}
 
-	log.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
+	logger.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
 	return ipList, nil
 }
 
 func getIpFromTaskDescription(taskDesc *ecs.Task) *string {
-	log.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
+	logger.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
 	for _, attachment := range taskDesc.Attachments {
 
-		log.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
+		logger.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
 		for _, detail := range attachment.Details {
 
 			if *detail.Name == "privateIPv4Address" {
-				log.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
+				logger.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
 				return detail.Value
 			}
 
