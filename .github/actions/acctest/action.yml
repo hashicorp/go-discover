@@ -2,13 +2,17 @@ name: acctest
 
 inputs:
   provider-test-infra-dir:
+    description: 'Specifies a directory for test infrastructure'
     required: false
   provider-go-test-dir:
+    description: 'Specifies a directory for Go tests'
     required: false
   provider-go-test-tags:
+    description: 'Test flags for go'
     required: false
     default: ''
   provider-tf-apply:
+    description: 'Applies terraform with auto-approve enabled'
     required: false
     default: terraform apply -auto-approve
   aws-region:
