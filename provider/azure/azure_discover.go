@@ -56,6 +56,8 @@ func (p *Provider) Help() string {
    When using tags the only permission needed is Microsoft.Network/networkInterfaces/*
 
    When using Virtual Machine Scale Sets the only role action needed is Microsoft.Compute/virtualMachineScaleSets/*/read.
+   The Azure provider only supports Virtual Machine Scale Sets deployed in [Uniform mode](https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-orchestration-modes#scale-sets-with-uniform-orchestration).
+   As of 2023 VMSS deploys using Flexible mode by default.
 
    It is recommended you make a dedicated key used only for auto-joining.
 `
@@ -130,7 +132,6 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[ERROR] discover-azure: resource_group %s, vm_scale_set %s", resourceGroup, vmScaleSet)
 		return nil, fmt.Errorf("discover-azure: unclear configuration. use (tag name and value) or (resouce_group and vm_scale_set)")
 	}
-
 }
 
 func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.InterfacesClient, l *log.Logger) ([]string, error) {
@@ -139,7 +140,6 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet network.Interface
 
 	ctx := context.Background()
 	netres, err := vmnet.ListAll(ctx)
-
 	if err != nil {
 		return nil, fmt.Errorf("discover-azure: %s", err)
 	}

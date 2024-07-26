@@ -83,7 +83,7 @@ jobs:
         with:
           gotestsum_version: 1.9.0
 
-      - uses: "./.github/actions/acctest"
+      - uses: './.github/actions/acctest'
         with:
           provider-test-infra-dir: aliyun
           provider-go-test-dir: aliyun
@@ -313,13 +313,13 @@ jobs:
   # - be placed after the fanout of a workflow so that everything fans back in
   #   to this job.
   # - "need" any job that is part of the fan out / fan in
-  # - implement the if logic because we have conditional jobs 
-  #   (go-test-enteprise) that this job needs and this would potentially get 
-  #   skipped if a previous job got skipped.  So we use the if clause to make 
+  # - implement the if logic because we have conditional jobs
+  #   (go-test-enteprise) that this job needs and this would potentially get
+  #   skipped if a previous job got skipped.  So we use the if clause to make
   # sure it does not get skipped.
 
   acceptance-success:
-    needs: 
+    needs:
     - lint
     - go-test
     - alicloud-provider
