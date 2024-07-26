@@ -1,5 +1,5 @@
 name: acctest
-
+description: "Acctest runs acceptance tests for go-discover"
 inputs:
   provider-test-infra-dir:
     description: 'Specifies a directory for test infrastructure'
