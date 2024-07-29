@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package vsphere provides node discovery for VMware vSphere.
 //
 // The package performs discovery by searching vCenter for all nodes matching a
