@@ -67,7 +67,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		args["project_id"] = projectID
 	}
 
-	log.Printf("[DEBUG] discover-os: Using project_id=%s tag_key=%s tag_value=%s", projectID, tagKey, tagValue)
+	l.Printf("[DEBUG] discover-os: Using project_id=%s tag_key=%s tag_value=%s", projectID, tagKey, tagValue)
 	client, err := newClient(args, l)
 	if err != nil {
 		return nil, err

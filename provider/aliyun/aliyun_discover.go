@@ -48,11 +48,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	accessKeyID := args["access_key_id"]
 	accessKeySecret := args["access_key_secret"]
 
-	log.Printf("[DEBUG] discover-aliyun: Using region=%s tag_key=%s tag_value=%s", region, tagKey, tagValue)
+	l.Printf("[DEBUG] discover-aliyun: Using region=%s tag_key=%s tag_value=%s", region, tagKey, tagValue)
 	if accessKeyID == "" && accessKeySecret == "" {
-		log.Printf("[DEBUG] discover-aliyun: No static credentials")
+		l.Printf("[DEBUG] discover-aliyun: No static credentials")
 	} else {
-		log.Printf("[DEBUG] discover-aliyun: Static credentials provided")
+		l.Printf("[DEBUG] discover-aliyun: Static credentials provided")
 	}
 
 	if region == "" {
