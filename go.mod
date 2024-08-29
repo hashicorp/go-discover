@@ -1,7 +1,5 @@
 module github.com/hashicorp/go-discover
 
-replace github.com/hashicorp/go-discover/provider/gce v0.0.0-20170926055100-d3308649c662 => ./provider/gce
-
 require (
 	github.com/Azure/azure-sdk-for-go v44.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.18
@@ -10,7 +8,6 @@ require (
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/digitalocean/godo v1.7.5
 	github.com/gophercloud/gophercloud v0.1.0
-	github.com/hashicorp/go-discover/provider/gce v0.0.0-20170926055100-d3308649c662
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/mdns v1.0.1
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443
@@ -62,6 +59,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-discover/provider/gce v0.0.0-20240829171124-547b9abd20f6 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
