@@ -1,12 +1,12 @@
 package gce_test
 
 import (
+	"github.com/hashicorp/go-discover"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
 
-	discover "github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/gce"
 )
 
