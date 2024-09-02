@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package openstack contains resources for the individual OpenStack projects
 supported in Gophercloud. It also includes functions to authenticate to an
