@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package errors provides simple error handling primitives.
 //
 // The traditional error handling idiom in Go is roughly akin to

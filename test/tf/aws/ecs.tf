@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 data "aws_iam_policy" "ecs_execution_role_managed_policy" {
   name = "AmazonECSTaskExecutionRolePolicy"
 }
