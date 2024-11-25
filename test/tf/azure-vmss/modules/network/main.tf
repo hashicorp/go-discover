@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_virtual_network" "main" {
   name                = var.name
   address_space       = [var.address_space]

@@ -1,4 +1,7 @@
 # encoding: utf-8
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 require "xmlrpc/server"
 
