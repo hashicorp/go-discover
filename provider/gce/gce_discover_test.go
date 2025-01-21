@@ -1,7 +1,6 @@
 package gce_test
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -17,7 +16,7 @@ func TestAddrs(t *testing.T) {
 	// assume the google credentials file contents are in the environment,
 	// as with the terraform provider
 	fileContents := os.Getenv("GOOGLE_CREDENTIALS")
-	tmpCreds, err := ioutil.TempFile("", "gce-credentials")
+	tmpCreds, err := os.CreateTemp("", "gce-credentials")
 	if err != nil {
 		t.Fatal(err)
 	}
