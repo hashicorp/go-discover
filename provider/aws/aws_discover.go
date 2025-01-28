@@ -138,20 +138,20 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var cfg aws.Config
 	var err error
 	if accessKey != "" && secretKey != "" {
-		log.Println("Using static credentials provider")
+		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
 		cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(region),
 			config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)))
 		if err != nil {
-			l.Printf("unable to load SDK config with Static Provider, %v", err)
+			l.Printf("[INFO] discover-aws: unable to load SDK config with Static Provider, %v", err)
 		}
 	} else {
-		log.Println("Using default credential chain")
+		l.Printf("[INFO] discover-aws: Using default credential chain")
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
 			config.WithRegion(region), // Specify your region
 		)
 		if err != nil {
-			return nil, fmt.Errorf("unable to load SDK config with default credential chain, %s", err)
+			return nil, fmt.Errorf("discover-aws: unable to load SDK config with default credential chain, %s", err)
 		}
 	}
 
@@ -160,6 +160,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		svc := ecs.NewFromConfig(cfg, func(o *ecs.Options) {
 			if endpoint != "" {
 				o.BaseEndpoint = aws.String(endpoint)
+				l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
 			}
 		})
 
@@ -207,6 +208,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	svc := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
 		if endpoint != "" {
 			o.BaseEndpoint = aws.String(endpoint)
+			l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
 		}
 	})
 
