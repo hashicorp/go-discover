@@ -3,7 +3,7 @@ package scaleway
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 
 	api "github.com/nicolai86/scaleway-sdk"
@@ -28,7 +28,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	if l == nil {
-		l = log.New(ioutil.Discard, "", 0)
+		l = log.New(io.Discard, "", 0)
 	}
 
 	organization := args["organization"]

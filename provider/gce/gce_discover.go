@@ -3,9 +3,10 @@ package gce
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -48,7 +49,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	if l == nil {
-		l = log.New(ioutil.Discard, "", 0)
+		l = log.New(io.Discard, "", 0)
 	}
 
 	project := args["project_name"]
@@ -114,7 +115,7 @@ func client(path string) (*http.Client, error) {
 		return google.DefaultClient(oauth2.NoContext, compute.ComputeScope)
 	}
 
-	key, err := ioutil.ReadFile(path)
+	key, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +146,7 @@ func lookupProject() (string, error) {
 		return "", fmt.Errorf("discover-gce: invalid status code %d when fetching project id", resp.StatusCode)
 	}
 
-	project, err := ioutil.ReadAll(resp.Body)
+	project, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

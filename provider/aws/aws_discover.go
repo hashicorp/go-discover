@@ -2,21 +2,23 @@
 package aws
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/service/ecs"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/defaults"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
+	ecstypes "github.com/aws/aws-sdk-go-v2/service/ecs/types"
 )
 
 type Provider struct{}
@@ -61,11 +63,11 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "aws" {
-		return nil, fmt.Errorf("discover-aws: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("%s", "discover-aws: invalid provider "+args["provider"])
 	}
 
 	if l == nil {
-		l = log.New(ioutil.Discard, "", 0)
+		l = log.New(io.Discard, "", 0)
 	}
 
 	region := args["region"]
@@ -122,8 +124,8 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}
 		} else {
 			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ec2 metadata...")
-			ec2meta := ec2metadata.New(session.New())
-			identity, err := ec2meta.GetInstanceIdentityDocument()
+			ec2meta := imds.New(imds.Options{})
+			identity, err := ec2meta.GetInstanceIdentityDocument(context.TODO(), &imds.GetInstanceIdentityDocumentInput{})
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: GetInstanceIdentityDocument failed: %s", err)
 			}
@@ -133,33 +135,37 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[INFO] discover-aws: Region is %s", region)
 
 	l.Printf("[DEBUG] discover-aws: Creating session...")
-	config := aws.Config{
-		Region: &region,
-		Credentials: credentials.NewChainCredentials(
-			[]credentials.Provider{
-				&credentials.StaticProvider{
-					Value: credentials.Value{
-						AccessKeyID:     accessKey,
-						SecretAccessKey: secretKey,
-						SessionToken:    sessionToken,
-					},
-				},
-				&credentials.EnvProvider{},
-				&credentials.SharedCredentialsProvider{},
-				defaults.RemoteCredProvider(*(defaults.Config()), defaults.Handlers()),
-			}),
-	}
-	if endpoint != "" {
-		l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
-		config.Endpoint = &endpoint
+	var cfg aws.Config
+	var err error
+	if accessKey != "" && secretKey != "" {
+		l.Printf("[INFO] discover-aws: Using static credentials provider")
+		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
+		cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(region),
+			config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)))
+		if err != nil {
+			l.Printf("[INFO] discover-aws: unable to load SDK config with Static Provider, %v", err)
+		}
+	} else {
+		l.Printf("[INFO] discover-aws: Using default credential chain")
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(region), // Specify your region
+		)
+		if err != nil {
+			return nil, fmt.Errorf("discover-aws: unable to load SDK config with default credential chain, %s", err)
+		}
 	}
 
 	// Split here for ec2 vs ecs decision tree
 	if service == "ecs" {
-		svc := ecs.New(session.New(), &config)
+		svc := ecs.NewFromConfig(cfg, func(o *ecs.Options) {
+			if endpoint != "" {
+				o.BaseEndpoint = aws.String(endpoint)
+				l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
+			}
+		})
 
 		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
-		var clusterArns []*string
+		var clusterArns []string
 
 		// If an ECS Cluster Name (ARN) was specified, dont lookup all the cluster arns
 		if ecsCluster == "" {
@@ -169,12 +175,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}
 			clusterArns = arns
 		} else {
-			clusterArns = []*string{&ecsCluster}
+			clusterArns = []string{ecsCluster}
 		}
 
 		var taskIps []string
 		for _, clusterArn := range clusterArns {
-			taskArns, err := getEcsTasks(svc, clusterArn, &ecsFamily)
+			taskArns, err := getEcsTasks(svc, &clusterArn, &ecsFamily)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
@@ -185,7 +191,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			pageLimit := 100
 			for i := 0; i < len(taskArns); i += pageLimit {
 				taskGroup := taskArns[i:min(i+pageLimit, len(taskArns))]
-				ecsTaskIps, err := getEcsTaskIps(svc, clusterArn, taskGroup, &tagKey, &tagValue)
+				ecsTaskIps, err := getEcsTaskIps(svc, &clusterArn, taskGroup, &tagKey, &tagValue)
 				if err != nil {
 					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
 				}
@@ -199,18 +205,23 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// When not using ECS continue with the default EC2 search
 
-	svc := ec2.New(session.New(), &config)
+	svc := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
+		if endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+			l.Printf("[INFO] discover-aws: Endpoint is %s", endpoint)
+		}
+	})
 
 	l.Printf("[INFO] discover-aws: Filter instances with %s=%s", tagKey, tagValue)
-	resp, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
-		Filters: []*ec2.Filter{
-			&ec2.Filter{
+	resp, err := svc.DescribeInstances(context.TODO(), &ec2.DescribeInstancesInput{
+		Filters: []types.Filter{
+			{
 				Name:   aws.String("tag:" + tagKey),
-				Values: []*string{aws.String(tagValue)},
+				Values: []string{tagValue},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("instance-state-name"),
-				Values: []*string{aws.String("running")},
+				Values: []string{"running"},
 			},
 		},
 	})
@@ -276,18 +287,17 @@ func min(a, b int) int {
 	return b
 }
 
-func getEcsClusters(svc *ecs.ECS) ([]*string, error) {
-	pageNum := 0
-	var clusterArns []*string
-	err := svc.ListClustersPages(&ecs.ListClustersInput{}, func(page *ecs.ListClustersOutput, lastPage bool) bool {
-		pageNum++
-		clusterArns = append(clusterArns, page.ClusterArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(clusterArns), pageNum)
-		return !lastPage // return false to exit page function
-	})
+func getEcsClusters(svc *ecs.Client) ([]string, error) {
+	var clusterArns []string
+	paginator := ecs.NewListClustersPaginator(svc, &ecs.ListClustersInput{})
 
-	if err != nil {
-		return nil, fmt.Errorf("ListClusters failed: %s", err)
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(context.TODO())
+		if err != nil {
+			return nil, fmt.Errorf("ListClusters failed: %s", err)
+		}
+		clusterArns = append(clusterArns, page.ClusterArns...)
+		log.Printf("[DEBUG] discover-aws: Retrieved %d ClusterArns", len(clusterArns))
 	}
 
 	return clusterArns, nil
@@ -304,7 +314,7 @@ func getECSTaskMetadata() (ECSTaskMeta, error) {
 	if err != nil {
 		return metadataResp, fmt.Errorf("calling metadata uri: %s", err)
 	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return metadataResp, fmt.Errorf("reading metadata uri response body: %s", err)
 	}
@@ -325,36 +335,37 @@ func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
 	return a.Region, nil
 }
 
-func getEcsTasks(svc *ecs.ECS, clusterArn *string, family *string) ([]*string, error) {
-	var taskArns []*string
+func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string) ([]string, error) {
+	var taskArns []string
 	lti := ecs.ListTasksInput{
 		Cluster:       clusterArn,
-		DesiredStatus: aws.String("RUNNING"),
+		DesiredStatus: ecstypes.DesiredStatusRunning,
 	}
 	if *family != "" {
 		lti.Family = family
 	}
 
+	paginator := ecs.NewListTasksPaginator(svc, &lti)
+
 	pageNum := 0
-	err := svc.ListTasksPages(&lti, func(page *ecs.ListTasksOutput, lastPage bool) bool {
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(context.TODO())
+		if err != nil {
+			return nil, fmt.Errorf("ListTasks failed: %w", err)
+		}
 		pageNum++
 		taskArns = append(taskArns, page.TaskArns...)
 		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
-		return !lastPage // return false to exit page function
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("ListTasks failed: %s", err)
 	}
 
 	return taskArns, nil
 }
 
-func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey *string, tagValue *string) ([]string, error) {
+func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKey *string, tagValue *string) ([]string, error) {
 	// Describe all the tasks listed for this cluster
-	taskDescriptions, err := svc.DescribeTasks(&ecs.DescribeTasksInput{
+	taskDescriptions, err := svc.DescribeTasks(context.TODO(), &ecs.DescribeTasksInput{
 		Cluster: clusterArn,
-		Include: []*string{aws.String(ecs.TaskFieldTags)},
+		Include: []ecstypes.TaskField{ecstypes.TaskFieldTags},
 		Tasks:   taskArns,
 	})
 
@@ -376,7 +387,7 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 
 				if *taskDescription.DesiredStatus == "RUNNING" {
 					log.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
-					ip := getIpFromTaskDescription(taskDescription)
+					ip := getIpFromTaskDescription(&taskDescription)
 
 					if ip != nil {
 						log.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
@@ -394,7 +405,7 @@ func getEcsTaskIps(svc *ecs.ECS, clusterArn *string, taskArns []*string, tagKey 
 	return ipList, nil
 }
 
-func getIpFromTaskDescription(taskDesc *ecs.Task) *string {
+func getIpFromTaskDescription(taskDesc *ecstypes.Task) *string {
 	log.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
 	for _, attachment := range taskDesc.Attachments {
 

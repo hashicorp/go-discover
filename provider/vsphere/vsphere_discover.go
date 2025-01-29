@@ -10,7 +10,7 @@ package vsphere
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/url"
@@ -36,7 +36,7 @@ func setLog(l *log.Logger) {
 	if l != nil {
 		logger = l
 	} else {
-		logger = log.New(ioutil.Discard, "", 0)
+		logger = log.New(io.Discard, "", 0)
 	}
 }
 
