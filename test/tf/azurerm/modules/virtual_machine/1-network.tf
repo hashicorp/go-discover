@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_public_ip" "external" {
   name                = "${var.name}-pip"
   location            = var.location

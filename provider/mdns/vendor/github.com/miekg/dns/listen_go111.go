@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // +build go1.11
 // +build aix darwin dragonfly freebsd linux netbsd openbsd
 
