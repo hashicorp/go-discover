@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 
-	"github.com/denverdino/aliyungo/common"
-	"github.com/denverdino/aliyungo/ecs"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	ecs20140526 "github.com/alibabacloud-go/ecs-20140526/v6/client"
+	"github.com/alibabacloud-go/tea/tea"
+)
+
+const (
+	// ECSDefaultEndpoint is the default API endpoint of ECS services
+	ECSDefaultEndpoint = "ecs.cn-hangzhou.aliyuncs.com"
 )
 
 type Provider struct {
@@ -61,39 +68,58 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 	l.Printf("[INFO] discover-aliyun: Region is %s", region)
 
-	svc := ecs.NewClient(accessKeyID, accessKeySecret)
+	config := &openapi.Config{
+		AccessKeyId:     tea.String(accessKeyID),
+		AccessKeySecret: tea.String(accessKeySecret),
+	}
+	endpoint := os.Getenv("ECS_ENDPOINT")
+	if endpoint == "" {
+		endpoint = ECSDefaultEndpoint
+	}
+	config.SetEndpoint(endpoint)
 
 	if p.userAgent != "" {
-		svc.SetUserAgent(p.userAgent)
+		config.SetUserAgent(p.userAgent)
+	}
+
+	svc, err := ecs20140526.NewClient(config)
+
+	if err != nil {
+		return nil, fmt.Errorf("discover-aliyun: NewClient failed: %s", err)
 	}
 
 	l.Printf("[INFO] discover-aliyun: Filter instances with %s=%s", tagKey, tagValue)
-	resp, err := svc.DescribeInstancesWithRaw(&ecs.DescribeInstancesArgs{
-		RegionId: common.Region(region),
-		Status:   ecs.Running,
-		Tag: map[string]string{
-			tagKey: tagValue,
-		}},
-	)
+	tag0 := &ecs20140526.DescribeInstancesRequestTag{
+		Key:   tea.String(tagKey),
+		Value: tea.String(tagValue),
+	}
+	describeInstancesRequest := &ecs20140526.DescribeInstancesRequest{
+		RegionId: tea.String(region),
+		Status:   tea.String("Running"),
+		Tag:      []*ecs20140526.DescribeInstancesRequestTag{tag0},
+	}
+	resp, err := svc.DescribeInstances(describeInstancesRequest)
+	content := resp.Body
 
 	if err != nil {
-		return nil, fmt.Errorf("discover-aliyun: DescribeInstancesWithRaw failed: %s", err)
+		return nil, fmt.Errorf("discover-aliyun: DescribeInstances failed: %s", err)
 	}
 
-	l.Printf("[DEBUG] discover-aliyun: Found total %d instances", resp.TotalCount)
+	l.Printf("[DEBUG] discover-aliyun: Found total %d instances", tea.Int32Value(content.TotalCount))
 
 	var addrs []string
-	for _, instanceAttributesType := range resp.Instances.Instance {
-		switch instanceAttributesType.InstanceNetworkType {
+	for _, instanceAttributesType := range content.Instances.Instance {
+		networkType := tea.StringValue(instanceAttributesType.InstanceNetworkType)
+		switch networkType {
 		case "classic":
 			for _, ipAddress := range instanceAttributesType.InnerIpAddress.IpAddress {
-				l.Printf("[DEBUG] discover-aliyun: Instance %s has innner ip %s ", instanceAttributesType.InstanceId, ipAddress)
-				addrs = append(addrs, ipAddress)
+				l.Printf("[DEBUG] discover-aliyun: Instance %s has innner ip %s ", tea.StringValue(instanceAttributesType.InstanceId), tea.StringValue(ipAddress))
+				addrs = append(addrs, tea.StringValue(ipAddress))
 			}
 		case "vpc":
 			for _, ipAddress := range instanceAttributesType.VpcAttributes.PrivateIpAddress.IpAddress {
-				l.Printf("[DEBUG] discover-aliyun: Instance %s has private ip %s ", instanceAttributesType.InstanceId, ipAddress)
-				addrs = append(addrs, ipAddress)
+				l.Printf("[DEBUG] discover-aliyun: Instance %s has private ip %s ", tea.StringValue(instanceAttributesType.InstanceId), tea.StringValue(ipAddress))
+				addrs = append(addrs, tea.StringValue(ipAddress))
 			}
 		}
 	}
