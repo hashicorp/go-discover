@@ -52,7 +52,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l = log.New(io.Discard, "", 0)
 	}
 
-	projectID := args["project_id"]
+	projectID := argsOrEnv(args, "project_id", "OS_PROJECT_ID")
 	tagKey := args["tag_key"]
 	tagValue := args["tag_value"]
 	var err error
