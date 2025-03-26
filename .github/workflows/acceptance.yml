@@ -7,6 +7,8 @@ name: Acceptance
 
 on:
   push:
+    branches:
+      - coverage
 
 permissions:
   contents: read
@@ -42,7 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         go-version:
-          - '1.22' # oldest supported; named in go.mod
+          - '1.23' # named in go.mod
           - 'oldstable'
           - 'stable'
     steps:
@@ -57,11 +59,15 @@ jobs:
       - name: Run go tests
         run: |-
           mkdir -p "$TEST_RESULTS"
-          gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml" .
-      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+          gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml"  -- -p 2 -cover -coverprofile=coverage.out .
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           path: ${{ env.TEST_RESULTS }}
-          name: tests-linux
+          name: tests-linux-${{matrix.go-version}}
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          path: coverage.out
+          name: coverage-report-${{matrix.go-version}}
 
   alicloud-provider:
     # don't run on fork PRs
