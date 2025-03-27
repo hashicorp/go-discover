@@ -59,7 +59,7 @@ jobs:
       - name: Run go tests
         run: |-
           mkdir -p "$TEST_RESULTS"
-          gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml"  -- -p 2 -cover -coverprofile=coverage.out .
+          gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml"  -- -p 2 -cover -coverprofile=coverage.out ./...
       - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           path: ${{ env.TEST_RESULTS }}

@@ -62,7 +62,7 @@ runs:
         gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml" -- \
           -v ./provider/${{ inputs.provider-go-test-dir }}
 
-    - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+    - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808   # v4.3.3
       with:
         path: ${{ env.TEST_RESULTS }}
         name: tests-${{ inputs.provider-test-infra-dir }}
