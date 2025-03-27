@@ -7,8 +7,6 @@ name: Acceptance
 
 on:
   push:
-    branches:
-      - coverage
 
 permissions:
   contents: read
@@ -20,8 +18,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+      - name: Checkout code
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - name: Setup Go
+        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
           go-version-file: go.mod
       - run: go mod download
@@ -48,11 +48,14 @@ jobs:
           - 'oldstable'
           - 'stable'
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+      - name: Checkout Code
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - name: Setup Go
+        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
           go-version: ${{ matrix.go-version }}
-      - uses: autero1/action-gotestsum@7263b9d73912eec65f46337689e59fac865c425f # v2.0.0
+      - name: Install gotestsum
+        uses: autero1/action-gotestsum@7263b9d73912eec65f46337689e59fac865c425f # v2.0.0
         with:
           gotestsum_version: 1.9.0
 
@@ -60,14 +63,18 @@ jobs:
         run: |-
           mkdir -p "$TEST_RESULTS"
           gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml"  -- -p 2 -cover -coverprofile=coverage.out ./...
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      - name: Upload Test Results
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           path: ${{ env.TEST_RESULTS }}
           name: tests-linux-${{matrix.go-version}}
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      - name: Upload coverage report
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           path: coverage.out
           name: coverage-report-${{matrix.go-version}}
+      - name: Display coverage report
+        run: go tool cover -func=coverage.out
 
   alicloud-provider:
     # don't run on fork PRs
