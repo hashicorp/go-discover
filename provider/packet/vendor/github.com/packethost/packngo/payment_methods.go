@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package packngo
 
 // API documentation https://www.packet.net/developers/api/paymentmethods/
