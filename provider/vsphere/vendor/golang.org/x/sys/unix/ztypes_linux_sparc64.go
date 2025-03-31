@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // +build sparc64,linux
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types_linux.go | go run mkpost.go
