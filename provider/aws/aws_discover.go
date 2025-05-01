@@ -113,12 +113,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		if ecsEnabled {
 			// Get ECS Task Region from metadata, so it works on Fargate and EC2-ECS
 			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ecs metadata...")
-			taskMetadata, err := getECSTaskMetadata()
+			taskMetadata, err := getECSTaskMetadata(l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Metadata: %s", err)
 			}
 
-			region, err = getEcsTaskRegion(taskMetadata)
+			region, err = getEcsTaskRegion(taskMetadata, l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Region: %s", err)
 			}
@@ -169,7 +169,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 		// If an ECS Cluster Name (ARN) was specified, dont lookup all the cluster arns
 		if ecsCluster == "" {
-			arns, err := getEcsClusters(svc)
+			arns, err := getEcsClusters(svc, l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
 			}
@@ -180,7 +180,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 		var taskIps []string
 		for _, clusterArn := range clusterArns {
-			taskArns, err := getEcsTasks(svc, &clusterArn, &ecsFamily)
+			taskArns, err := getEcsTasks(svc, &clusterArn, &ecsFamily, l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
@@ -191,7 +191,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			pageLimit := 100
 			for i := 0; i < len(taskArns); i += pageLimit {
 				taskGroup := taskArns[i:min(i+pageLimit, len(taskArns))]
-				ecsTaskIps, err := getEcsTaskIps(svc, &clusterArn, taskGroup, &tagKey, &tagValue)
+				ecsTaskIps, err := getEcsTaskIps(svc, &clusterArn, taskGroup, &tagKey, &tagValue, l)
 				if err != nil {
 					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
 				}
@@ -287,7 +287,7 @@ func min(a, b int) int {
 	return b
 }
 
-func getEcsClusters(svc *ecs.Client) ([]string, error) {
+func getEcsClusters(svc *ecs.Client, l *log.Logger) ([]string, error) {
 	var clusterArns []string
 	paginator := ecs.NewListClustersPaginator(svc, &ecs.ListClustersInput{})
 
@@ -303,7 +303,7 @@ func getEcsClusters(svc *ecs.Client) ([]string, error) {
 	return clusterArns, nil
 }
 
-func getECSTaskMetadata() (ECSTaskMeta, error) {
+func getECSTaskMetadata(l *log.Logger) (ECSTaskMeta, error) {
 	var metadataResp ECSTaskMeta
 
 	metadataURI := os.Getenv(ECSMetadataURIEnvVar)
@@ -324,7 +324,7 @@ func getECSTaskMetadata() (ECSTaskMeta, error) {
 	return metadataResp, nil
 }
 
-func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
+func getEcsTaskRegion(e ECSTaskMeta, l *log.Logger) (string, error) {
 	// Task ARN: "arn:aws:ecs:us-east-1:000000000000:task/cluster/00000000000000000000000000000000"
 	// https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
 	// See also: https://github.com/aws/containers-roadmap/issues/337
@@ -335,7 +335,7 @@ func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
 	return a.Region, nil
 }
 
-func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string) ([]string, error) {
+func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string, l *log.Logger) ([]string, error) {
 	var taskArns []string
 	lti := ecs.ListTasksInput{
 		Cluster:       clusterArn,
@@ -361,7 +361,7 @@ func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string) ([]string,
 	return taskArns, nil
 }
 
-func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKey *string, tagValue *string) ([]string, error) {
+func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKey *string, tagValue *string, l *log.Logger) ([]string, error) {
 	// Describe all the tasks listed for this cluster
 	taskDescriptions, err := svc.DescribeTasks(context.TODO(), &ecs.DescribeTasksInput{
 		Cluster: clusterArn,
@@ -387,7 +387,7 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 
 				if *taskDescription.DesiredStatus == "RUNNING" {
 					log.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
-					ip := getIpFromTaskDescription(&taskDescription)
+					ip := getIpFromTaskDescription(&taskDescription, l)
 
 					if ip != nil {
 						log.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
@@ -405,7 +405,7 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 	return ipList, nil
 }
 
-func getIpFromTaskDescription(taskDesc *ecstypes.Task) *string {
+func getIpFromTaskDescription(taskDesc *ecstypes.Task, l *log.Logger) *string {
 	log.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
 	for _, attachment := range taskDesc.Attachments {
 
