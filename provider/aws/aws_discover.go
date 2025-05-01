@@ -164,7 +164,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}
 		})
 
-		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
+		l.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
 		var clusterArns []string
 
 		// If an ECS Cluster Name (ARN) was specified, dont lookup all the cluster arns
@@ -184,7 +184,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
-			log.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
+			l.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
 
 			// Once all the possibly paged task arns are collected, collect task descriptions with 100 task maximum
 			// ref: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeTasks.html#ECS-DescribeTasks-request-tasks
@@ -196,10 +196,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
 				}
 				taskIps = append(taskIps, ecsTaskIps...)
-				log.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
+				l.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
 			}
 		}
-		log.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
+		l.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
 		return taskIps, nil
 	}
 
