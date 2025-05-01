@@ -297,7 +297,7 @@ func getEcsClusters(svc *ecs.Client, l *log.Logger) ([]string, error) {
 			return nil, fmt.Errorf("ListClusters failed: %s", err)
 		}
 		clusterArns = append(clusterArns, page.ClusterArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d ClusterArns", len(clusterArns))
+		l.Printf("[DEBUG] discover-aws: Retrieved %d ClusterArns", len(clusterArns))
 	}
 
 	return clusterArns, nil
@@ -355,7 +355,7 @@ func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string, l *log.Log
 		}
 		pageNum++
 		taskArns = append(taskArns, page.TaskArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
+		l.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
 	}
 
 	return taskArns, nil
@@ -375,7 +375,7 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 
 	taskRequestFailures := taskDescriptions.Failures
 	tasks := taskDescriptions.Tasks
-	log.Printf("[INFO] discover-aws: Retrieved %d Task Descriptions and %d Failures", len(tasks), len(taskRequestFailures))
+	l.Printf("[INFO] discover-aws: Retrieved %d Task Descriptions and %d Failures", len(tasks), len(taskRequestFailures))
 
 	// Filter tasks by Tag and Connectivity Status
 	var ipList []string
@@ -383,14 +383,14 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 
 		for _, tag := range taskDescription.Tags {
 			if *tag.Key == *tagKey && *tag.Value == *tagValue {
-				log.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
+				l.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
 
 				if *taskDescription.DesiredStatus == "RUNNING" {
-					log.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
+					l.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
 					ip := getIpFromTaskDescription(&taskDescription, l)
 
 					if ip != nil {
-						log.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
+						l.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
 						ipList = append(ipList, *ip)
 					}
 
@@ -401,19 +401,19 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 		}
 	}
 
-	log.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
+	l.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
 	return ipList, nil
 }
 
 func getIpFromTaskDescription(taskDesc *ecstypes.Task, l *log.Logger) *string {
-	log.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
+	l.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
 	for _, attachment := range taskDesc.Attachments {
 
-		log.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
+		l.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
 		for _, detail := range attachment.Details {
 
 			if *detail.Name == "privateIPv4Address" {
-				log.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
+				l.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
 				return detail.Value
 			}
 
