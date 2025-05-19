@@ -149,6 +149,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[INFO] discover-aws: Using default credential chain")
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
 			config.WithRegion(region), // Specify your region
+			config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("discover-aws: unable to load SDK config with default credential chain, %s", err)
