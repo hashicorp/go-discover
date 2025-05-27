@@ -140,8 +140,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if accessKey != "" && secretKey != "" {
 		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
-		cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion(region),
-			config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)))
+		cfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(region),
+			config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
+			config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
+		)
 		if err != nil {
 			l.Printf("[INFO] discover-aws: unable to load SDK config with Static Provider, %v", err)
 		}
@@ -149,6 +152,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[INFO] discover-aws: Using default credential chain")
 		cfg, err = config.LoadDefaultConfig(context.TODO(),
 			config.WithRegion(region), // Specify your region
+			config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("discover-aws: unable to load SDK config with default credential chain, %s", err)
