@@ -37,6 +37,9 @@ jobs:
             echo "$files"
             exit 1
           fi
+      - name: Run linter
+        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
+
 
   go-test:
     runs-on: ubuntu-latest
