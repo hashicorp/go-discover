@@ -49,7 +49,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	// validate and set service record
 	if args["service"] == "" {
 		return nil, fmt.Errorf("discover-mdns: Service record not provided." +
-			"  Please specify a service record for the mDNS lookup.")
+			"  Please specify a service record for the mDNS lookup")
 	}
 	params.Service = args["service"]
 

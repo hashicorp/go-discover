@@ -55,11 +55,7 @@ func parse(in string) (Config, error) {
 	s := []rune(strings.TrimSpace(in))
 	state := stateKey
 	key := ""
-	for {
-		// exit condition
-		if len(s) == 0 {
-			break
-		}
+	for len(s) != 0 {
 
 		// get the next token
 		item, val, n := lex(s)
@@ -121,8 +117,8 @@ type itemType string
 
 const (
 	itemText  itemType = "TEXT"
-	itemEqual          = "EQUAL"
-	itemError          = "ERROR"
+	itemEqual itemType = "EQUAL"
+	itemError itemType = "ERROR"
 )
 
 func (t itemType) String() string {
@@ -135,15 +131,15 @@ const (
 
 	// lexer states
 	stateStart    state = "start"
-	stateEqual          = "equal"
-	stateText           = "text"
-	stateQText          = "qtext"
-	stateQTextEnd       = "qtextend"
-	stateQTextEsc       = "qtextesc"
+	stateEqual    state = "equal"
+	stateText     state = "text"
+	stateQText    state = "qtext"
+	stateQTextEnd state = "qtextend"
+	stateQTextEsc state = "qtextesc"
 
 	// parser states
-	stateKey = "key"
-	stateVal = "val"
+	stateKey state = "key"
+	stateVal state = "val"
 )
 
 func lex(s []rune) (itemType, string, int) {

@@ -125,7 +125,12 @@ func TestDiscover(t *testing.T) {
 		t.Fatalf("Failed to start test server: %s", err.Error())
 		return
 	}
-	defer svr.Shutdown()
+	defer func() {
+		err := svr.Shutdown()
+		if err != nil {
+			t.Errorf("Failed to stop test server: %s", err.Error())
+		}
+	}()
 
 	for idx, tc := range cases {
 		addrs, err := p.Addrs(tc.args, l)

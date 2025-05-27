@@ -57,13 +57,11 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// Filter servers by tag
 	var addrs []string
-	if servers != nil {
-		for _, server := range servers {
-			if stringInSlice(tagName, server.Tags) {
-				l.Printf("[DEBUG] discover-scaleway: Found server (%s) - %s with private IP: %s",
-					server.Name, server.Hostname, server.PrivateIP)
-				addrs = append(addrs, server.PrivateIP)
-			}
+	for _, server := range servers {
+		if stringInSlice(tagName, server.Tags) {
+			l.Printf("[DEBUG] discover-scaleway: Found server (%s) - %s with private IP: %s",
+				server.Name, server.Hostname, server.PrivateIP)
+			addrs = append(addrs, server.PrivateIP)
 		}
 	}
 
