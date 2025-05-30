@@ -212,7 +212,9 @@ func getProjectID() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("discover-os: Can't read response body: %s", err)
 	}
-	resp.Body.Close()
+	if err = resp.Body.Close(); err != nil {
+		return "", fmt.Errorf("discover-os: Can't close response body: %s", err)
+	}
 	if err = json.Unmarshal(body, &data); err != nil {
 		return "", fmt.Errorf("discover-os: Can't convert project_id: %s", err)
 	}
