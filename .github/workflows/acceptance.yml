@@ -67,12 +67,12 @@ jobs:
           mkdir -p "$TEST_RESULTS"
           gotestsum -f standard-verbose --junitfile "${TEST_RESULTS}/results.xml"  -- -p 2 -cover -coverprofile=coverage.out ./...
       - name: Upload Test Results
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           path: ${{ env.TEST_RESULTS }}
           name: tests-linux-${{matrix.go-version}}
       - name: Upload coverage report
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           path: coverage.out
           name: coverage-report-${{matrix.go-version}}
