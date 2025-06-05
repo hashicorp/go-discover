@@ -18,10 +18,10 @@ require (
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.480
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.480
-	github.com/vmware/govmomi v0.18.0
+	github.com/vmware/govmomi v0.51.0
 	golang.org/x/oauth2 v0.22.0
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
@@ -68,7 +68,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
@@ -98,10 +98,10 @@ require (
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/api v0.195.0 // indirect
@@ -121,6 +121,4 @@ require (
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
-go 1.23
-
-toolchain go1.23.0
+go 1.23.0
