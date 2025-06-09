@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package defaults is a collection of helpers to retrieve the SDK's default
 // configuration and handlers.
 //
