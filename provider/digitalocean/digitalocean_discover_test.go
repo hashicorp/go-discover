@@ -15,7 +15,7 @@ var _ discover.ProviderWithUserAgent = (*digitalocean.Provider)(nil)
 func TestAddrs(t *testing.T) {
 	args := discover.Config{
 		"provider":  "digitalocean",
-		"tag_name":  "go-discover-test-tag",
+		"tag_names": "go-discover-test-tag1,go-discover-test-tag2",
 		"region":    "nyc3",
 		"api_token": os.Getenv("DIGITALOCEAN_TOKEN"),
 	}
