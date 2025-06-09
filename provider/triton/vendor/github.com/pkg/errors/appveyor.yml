@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 version: build-{build}.{branch}
 
 clone_folder: C:\gopath\src\github.com\pkg\errors
