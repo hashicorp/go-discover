@@ -2,17 +2,21 @@
 
 ### Improvements
 
-* AWS provider: enable dual-stack support by default, allowing the use of IPv6 endpoints wherever required. [GH-271](https://github.com/hashicorp/go-discover/pull/271)
-
-
 ### Changes
 
 ### Fixed
 
-* Config: `String()` will always return a parseable config string. [GH-287](https://github.com/hashicorp/go-discover/pull/287)
-
 ### Security
 
+## 1.1.0 (2025-06-12)
+
+### Improvements
+
+* AWS provider: enable dual-stack support by default, allowing the use of IPv6 endpoints wherever required. [GH-271](https://github.com/hashicorp/go-discover/pull/271)
+
+### Fixed
+
+* Config: `String()` will always return a parseable config string. [GH-287](https://github.com/hashicorp/go-discover/pull/287)
 
 ## 1.0.0 (2025-04-22)
 
