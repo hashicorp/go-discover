@@ -33,7 +33,7 @@ func (c Config) String() string {
 	keys = append([]string{"provider"}, keys...)
 
 	quote := func(s string) string {
-		if strings.ContainsAny(s, ` "\`) {
+		if strings.ContainsAny(s, ` "\=`) {
 			return strconv.Quote(s)
 		}
 		return s
@@ -100,7 +100,7 @@ func parse(in string) (Config, error) {
 		}
 	}
 
-	//fmt.Printf("parse: state: %q rest: '%s'\n", state, string(s))
+	// fmt.Printf("parse: state: %q rest: '%s'\n", state, string(s))
 	switch state {
 	case stateEqual:
 		return nil, fmt.Errorf("%s: missing '='", key)

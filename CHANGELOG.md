@@ -9,6 +9,8 @@
 
 ### Fixed
 
+* Config: `String()` will always return a parseable config string. [GH-287](https://github.com/hashicorp/go-discover/pull/287)
+
 ### Security
 
 
