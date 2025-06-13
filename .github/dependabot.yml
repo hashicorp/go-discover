@@ -19,6 +19,7 @@ updates:
   - package-ecosystem: "gomod"
     directories:
       - "/"
+      - "/provider/gce/go.mod"
     schedule:
       interval: "weekly"
       day: "sunday"
