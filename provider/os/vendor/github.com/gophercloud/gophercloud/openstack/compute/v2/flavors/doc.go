@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package flavors provides information and interaction with the flavor API
 in the OpenStack Compute service.

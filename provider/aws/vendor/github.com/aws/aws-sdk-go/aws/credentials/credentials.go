@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package credentials provides credential retrieval and management
 //
 // The Credentials is the primary method of getting access to and managing

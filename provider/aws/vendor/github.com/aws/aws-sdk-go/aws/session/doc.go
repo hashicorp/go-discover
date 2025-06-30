@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package session provides configuration for the SDK's service clients. Sessions
 can be shared across service clients that share the same base configuration.
