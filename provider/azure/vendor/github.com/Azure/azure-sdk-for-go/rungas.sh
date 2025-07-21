@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 GITBRANCH=`git rev-parse --abbrev-ref HEAD`
 #We intend to only run gas on release branches.
 if [ "master" != $GITBRANCH ]; then

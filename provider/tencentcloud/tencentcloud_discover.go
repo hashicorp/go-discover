@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package tencentcloud provides node discovery for TencentCloud.
 package tencentcloud
 
