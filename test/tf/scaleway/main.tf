@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 //Configuring the provider
 provider "scaleway" {
   version = "~> 1.15.0"
