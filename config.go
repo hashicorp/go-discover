@@ -33,7 +33,7 @@ func (c Config) String() string {
 	keys = append([]string{"provider"}, keys...)
 
 	quote := func(s string) string {
-		if strings.ContainsAny(s, ` "\`) {
+		if strings.ContainsAny(s, ` "\=`) {
 			return strconv.Quote(s)
 		}
 		return s
@@ -55,11 +55,7 @@ func parse(in string) (Config, error) {
 	s := []rune(strings.TrimSpace(in))
 	state := stateKey
 	key := ""
-	for {
-		// exit condition
-		if len(s) == 0 {
-			break
-		}
+	for len(s) != 0 {
 
 		// get the next token
 		item, val, n := lex(s)
@@ -104,7 +100,7 @@ func parse(in string) (Config, error) {
 		}
 	}
 
-	//fmt.Printf("parse: state: %q rest: '%s'\n", state, string(s))
+	// fmt.Printf("parse: state: %q rest: '%s'\n", state, string(s))
 	switch state {
 	case stateEqual:
 		return nil, fmt.Errorf("%s: missing '='", key)
@@ -121,8 +117,8 @@ type itemType string
 
 const (
 	itemText  itemType = "TEXT"
-	itemEqual          = "EQUAL"
-	itemError          = "ERROR"
+	itemEqual itemType = "EQUAL"
+	itemError itemType = "ERROR"
 )
 
 func (t itemType) String() string {
@@ -135,15 +131,15 @@ const (
 
 	// lexer states
 	stateStart    state = "start"
-	stateEqual          = "equal"
-	stateText           = "text"
-	stateQText          = "qtext"
-	stateQTextEnd       = "qtextend"
-	stateQTextEsc       = "qtextesc"
+	stateEqual    state = "equal"
+	stateText     state = "text"
+	stateQText    state = "qtext"
+	stateQTextEnd state = "qtextend"
+	stateQTextEsc state = "qtextesc"
 
 	// parser states
-	stateKey = "key"
-	stateVal = "val"
+	stateKey state = "key"
+	stateVal state = "val"
 )
 
 func lex(s []rune) (itemType, string, int) {

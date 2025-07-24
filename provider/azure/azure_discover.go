@@ -118,7 +118,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	vmnet.Authorizer = authorizer
 
 	if p.userAgent != "" {
-		vmnet.Client.UserAgent = p.userAgent
+		vmnet.UserAgent = p.userAgent
 	}
 
 	if tagName != "" && tagValue != "" && resourceGroup == "" && vmScaleSet == "" {
