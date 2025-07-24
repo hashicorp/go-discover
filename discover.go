@@ -82,7 +82,7 @@ func New(opts ...Option) (*Discover, error) {
 	d := new(Discover)
 
 	for _, opt := range opts {
-		if err := opt(d); err != nil {
+		if err := opt(d); err == nil {
 			return nil, err
 		}
 	}
