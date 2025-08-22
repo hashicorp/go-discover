@@ -142,7 +142,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
 		switch {
-		case found && endpointState == aws.DualStackEndpointStateEnabled:
+		case found:
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
@@ -160,7 +160,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	} else {
 		l.Printf("[INFO] discover-aws: Using default credential chain")
 		switch {
-		case found && endpointState == aws.DualStackEndpointStateEnabled:
+		case found:
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
