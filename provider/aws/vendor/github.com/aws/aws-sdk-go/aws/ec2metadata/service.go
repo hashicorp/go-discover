@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package ec2metadata provides the client for making API calls to the
 // EC2 Metadata service.
 //
