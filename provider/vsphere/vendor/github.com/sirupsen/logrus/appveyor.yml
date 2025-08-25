@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 version: "{build}"
 platform: x64
 clone_folder: c:\gopath\src\github.com\sirupsen\logrus
