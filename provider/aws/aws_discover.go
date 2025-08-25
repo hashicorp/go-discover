@@ -148,7 +148,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
 				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
 			)
-		case !found || endpointState == aws.DualStackEndpointStateDisabled:
+		case !found:
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
