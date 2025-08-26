@@ -137,7 +137,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-aws: Creating session...")
 	var cfg aws.Config
 	var err error
-	endpointState, found := aws.GetUseDualStackEndpoint()
+	_, found := aws.GetUseDualStackEndpoint()
 	if accessKey != "" && secretKey != "" {
 		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
@@ -165,7 +165,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				config.WithRegion(region),
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
 			)
-		case !found || endpointState == aws.DualStackEndpointStateDisabled:
+		case !found:
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 			)
