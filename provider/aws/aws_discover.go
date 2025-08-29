@@ -137,23 +137,39 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-aws: Creating session...")
 	var cfg aws.Config
 	var err error
+	_, found := aws.GetUseDualStackEndpoint()
 	if accessKey != "" && secretKey != "" {
 		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
-		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(region),
-			config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
-			config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
-		)
+		switch {
+		case found:
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
+				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
+			)
+		case !found:
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
+			)
+		}
 		if err != nil {
 			l.Printf("[INFO] discover-aws: unable to load SDK config with Static Provider, %v", err)
 		}
 	} else {
 		l.Printf("[INFO] discover-aws: Using default credential chain")
-		cfg, err = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(region), // Specify your region
-			config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
-		)
+		switch {
+		case found:
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
+			)
+		case !found:
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+			)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("discover-aws: unable to load SDK config with default credential chain, %s", err)
 		}
