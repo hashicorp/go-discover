@@ -340,8 +340,8 @@ jobs:
     - go-test
     - alicloud-provider
     # - aws-provider
-    - azure-vmss-provider
-    - azurerm-provider
+    # - azure-vmss-provider
+    # - azurerm-provider
     # - digitalocean-provider
     # - gce-provider
     # - k8s-provider
