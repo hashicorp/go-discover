@@ -113,12 +113,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		if ecsEnabled {
 			// Get ECS Task Region from metadata, so it works on Fargate and EC2-ECS
 			l.Printf("[INFO] discover-aws: Region not provided. Looking up region in ecs metadata...")
-			taskMetadata, err := getECSTaskMetadata()
+			taskMetadata, err := getECSTaskMetadata(l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Metadata: %s", err)
 			}
 
-			region, err = getEcsTaskRegion(taskMetadata)
+			region, err = getEcsTaskRegion(taskMetadata, l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed retrieving ECS Task Region: %s", err)
 			}
@@ -184,12 +184,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			}
 		})
 
-		log.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
+		l.Printf("[INFO] discover-aws: Filter ECS tasks with %s=%s", tagKey, tagValue)
 		var clusterArns []string
 
 		// If an ECS Cluster Name (ARN) was specified, dont lookup all the cluster arns
 		if ecsCluster == "" {
-			arns, err := getEcsClusters(svc)
+			arns, err := getEcsClusters(svc, l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS clusters: %s", err)
 			}
@@ -200,26 +200,26 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 		var taskIps []string
 		for _, clusterArn := range clusterArns {
-			taskArns, err := getEcsTasks(svc, &clusterArn, &ecsFamily)
+			taskArns, err := getEcsTasks(svc, &clusterArn, &ecsFamily, l)
 			if err != nil {
 				return nil, fmt.Errorf("discover-aws: Failed to get ECS Tasks: %s", err)
 			}
-			log.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
+			l.Printf("[DEBUG] discover-aws: Found %d ECS Tasks", len(taskArns))
 
 			// Once all the possibly paged task arns are collected, collect task descriptions with 100 task maximum
 			// ref: https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeTasks.html#ECS-DescribeTasks-request-tasks
 			pageLimit := 100
 			for i := 0; i < len(taskArns); i += pageLimit {
 				taskGroup := taskArns[i:min(i+pageLimit, len(taskArns))]
-				ecsTaskIps, err := getEcsTaskIps(svc, &clusterArn, taskGroup, &tagKey, &tagValue)
+				ecsTaskIps, err := getEcsTaskIps(svc, &clusterArn, taskGroup, &tagKey, &tagValue, l)
 				if err != nil {
 					return nil, fmt.Errorf("discover-aws: Failed to get ECS Task IPs: %s", err)
 				}
 				taskIps = append(taskIps, ecsTaskIps...)
-				log.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
+				l.Printf("[DEBUG] discover-aws: Found %d ECS IPs", len(ecsTaskIps))
 			}
 		}
-		log.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
+		l.Printf("[DEBUG] discover-aws: Discovered ECS Task IPs: %v", taskIps)
 		return taskIps, nil
 	}
 
@@ -307,7 +307,7 @@ func min(a, b int) int {
 	return b
 }
 
-func getEcsClusters(svc *ecs.Client) ([]string, error) {
+func getEcsClusters(svc *ecs.Client, l *log.Logger) ([]string, error) {
 	var clusterArns []string
 	paginator := ecs.NewListClustersPaginator(svc, &ecs.ListClustersInput{})
 
@@ -317,13 +317,13 @@ func getEcsClusters(svc *ecs.Client) ([]string, error) {
 			return nil, fmt.Errorf("ListClusters failed: %s", err)
 		}
 		clusterArns = append(clusterArns, page.ClusterArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d ClusterArns", len(clusterArns))
+		l.Printf("[DEBUG] discover-aws: Retrieved %d ClusterArns", len(clusterArns))
 	}
 
 	return clusterArns, nil
 }
 
-func getECSTaskMetadata() (ECSTaskMeta, error) {
+func getECSTaskMetadata(l *log.Logger) (ECSTaskMeta, error) {
 	var metadataResp ECSTaskMeta
 
 	metadataURI := os.Getenv(ECSMetadataURIEnvVar)
@@ -344,7 +344,7 @@ func getECSTaskMetadata() (ECSTaskMeta, error) {
 	return metadataResp, nil
 }
 
-func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
+func getEcsTaskRegion(e ECSTaskMeta, l *log.Logger) (string, error) {
 	// Task ARN: "arn:aws:ecs:us-east-1:000000000000:task/cluster/00000000000000000000000000000000"
 	// https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
 	// See also: https://github.com/aws/containers-roadmap/issues/337
@@ -355,7 +355,7 @@ func getEcsTaskRegion(e ECSTaskMeta) (string, error) {
 	return a.Region, nil
 }
 
-func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string) ([]string, error) {
+func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string, l *log.Logger) ([]string, error) {
 	var taskArns []string
 	lti := ecs.ListTasksInput{
 		Cluster:       clusterArn,
@@ -375,13 +375,13 @@ func getEcsTasks(svc *ecs.Client, clusterArn *string, family *string) ([]string,
 		}
 		pageNum++
 		taskArns = append(taskArns, page.TaskArns...)
-		log.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
+		l.Printf("[DEBUG] discover-aws: Retrieved %d TaskArns from page %d", len(taskArns), pageNum)
 	}
 
 	return taskArns, nil
 }
 
-func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKey *string, tagValue *string) ([]string, error) {
+func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKey *string, tagValue *string, l *log.Logger) ([]string, error) {
 	// Describe all the tasks listed for this cluster
 	taskDescriptions, err := svc.DescribeTasks(context.TODO(), &ecs.DescribeTasksInput{
 		Cluster: clusterArn,
@@ -395,7 +395,7 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 
 	taskRequestFailures := taskDescriptions.Failures
 	tasks := taskDescriptions.Tasks
-	log.Printf("[INFO] discover-aws: Retrieved %d Task Descriptions and %d Failures", len(tasks), len(taskRequestFailures))
+	l.Printf("[INFO] discover-aws: Retrieved %d Task Descriptions and %d Failures", len(tasks), len(taskRequestFailures))
 
 	// Filter tasks by Tag and Connectivity Status
 	var ipList []string
@@ -403,14 +403,14 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 
 		for _, tag := range taskDescription.Tags {
 			if *tag.Key == *tagKey && *tag.Value == *tagValue {
-				log.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
+				l.Printf("[DEBUG] discover-aws: Tag Match: %s : %s, desiredStatus: %s", *tag.Key, *tag.Value, *taskDescription.DesiredStatus)
 
 				if *taskDescription.DesiredStatus == "RUNNING" {
-					log.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
-					ip := getIpFromTaskDescription(&taskDescription)
+					l.Printf("[INFO] discover-aws: Found Running Instance: %s", *taskDescription.TaskArn)
+					ip := getIpFromTaskDescription(&taskDescription, l)
 
 					if ip != nil {
-						log.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
+						l.Printf("[DEBUG] discover-aws: Found Private IP: %s", *ip)
 						ipList = append(ipList, *ip)
 					}
 
@@ -421,19 +421,19 @@ func getEcsTaskIps(svc *ecs.Client, clusterArn *string, taskArns []string, tagKe
 		}
 	}
 
-	log.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
+	l.Printf("[INFO] discover-aws: Retrieved %d IPs from %d Tasks", len(ipList), len(taskArns))
 	return ipList, nil
 }
 
-func getIpFromTaskDescription(taskDesc *ecstypes.Task) *string {
-	log.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
+func getIpFromTaskDescription(taskDesc *ecstypes.Task, l *log.Logger) *string {
+	l.Printf("[DEBUG] discover-aws: Searching %d attachments for IPs", len(taskDesc.Attachments))
 	for _, attachment := range taskDesc.Attachments {
 
-		log.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
+		l.Printf("[DEBUG] discover-aws: Searching %d attachment details for IPs", len(attachment.Details))
 		for _, detail := range attachment.Details {
 
 			if *detail.Name == "privateIPv4Address" {
-				log.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
+				l.Printf("[DEBUG] discover-aws: Parsing Private IPv4: %s", *detail.Value)
 				return detail.Value
 			}
 
