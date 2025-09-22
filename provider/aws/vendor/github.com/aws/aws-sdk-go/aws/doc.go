@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 // Package aws provides the core SDK's utilities and shared types. Use this package's
 // utilities to simplify setting and reading API operations parameters.
 //
