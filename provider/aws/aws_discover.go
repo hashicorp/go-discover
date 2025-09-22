@@ -142,15 +142,15 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
 		switch {
+		case !found || addrType == "public_v4" || addrType == "private_v4":
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
+			)
 		case found:
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
-				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
-			)
-		case !found:
-			cfg, err = config.LoadDefaultConfig(context.TODO(),
-				config.WithRegion(region),
 				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
 			)
 		}
