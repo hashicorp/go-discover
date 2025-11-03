@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package endpointcreds provides support for retrieving credentials from an
 // arbitrary HTTP endpoint.
 //

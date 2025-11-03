@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package tokens provides information and interaction with the token API
 resource for the OpenStack Identity service.
