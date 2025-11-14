@@ -6,7 +6,7 @@ replace github.com/hashicorp/go-discover v0.0.0-20240726212017-342faf50e5d4 => .
 
 require (
 	github.com/hashicorp/go-discover v0.0.0-20240726212017-342faf50e5d4
-	golang.org/x/oauth2 v0.22.0
+	golang.org/x/oauth2 v0.27.0
 	google.golang.org/api v0.195.0
 )
 
