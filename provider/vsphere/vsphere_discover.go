@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package vsphere provides node discovery for VMware vSphere.
 //
 // The package performs discovery by searching vCenter for all nodes matching a

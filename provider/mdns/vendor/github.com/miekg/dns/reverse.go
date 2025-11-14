@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package dns
 
 // StringToType is the reverse of TypeToString, needed for string parsing.

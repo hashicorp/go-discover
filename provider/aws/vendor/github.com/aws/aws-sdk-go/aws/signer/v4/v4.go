@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package v4 implements signing for AWS V4 signer
 //
 // Provides request signing for request that need to be signed with

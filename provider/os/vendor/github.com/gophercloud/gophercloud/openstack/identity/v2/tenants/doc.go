@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package tenants provides information and interaction with the
 tenants API resource for the OpenStack Identity service.

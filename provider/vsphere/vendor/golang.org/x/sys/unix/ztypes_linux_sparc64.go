@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // +build sparc64,linux
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types_linux.go | go run mkpost.go
