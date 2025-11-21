@@ -75,7 +75,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var authorizer autorest.Authorizer
 
 	if args["provider"] != "azure" {
-		return nil, fmt.Errorf("discover-azure: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-azure: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

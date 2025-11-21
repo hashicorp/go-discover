@@ -35,7 +35,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "aliyun" {
-		return nil, fmt.Errorf("discover-aliyun: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-aliyun: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

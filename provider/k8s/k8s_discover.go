@@ -60,7 +60,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "k8s" {
-		return nil, fmt.Errorf("discover-k8s: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-k8s: invalid provider %s", args["provider"])
 	}
 
 	// Get the configuration. This can come from multiple sources. We first

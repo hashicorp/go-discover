@@ -42,7 +42,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "linode" {
-		return nil, fmt.Errorf("discover-linode: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-linode: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

@@ -24,7 +24,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "scaleway" {
-		return nil, fmt.Errorf("discover-scaleway: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-scaleway: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
