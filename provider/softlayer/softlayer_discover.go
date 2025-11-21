@@ -26,7 +26,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "softlayer" {
-		return nil, fmt.Errorf("discover-softlayer: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-softlayer: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
