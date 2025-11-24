@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package flavors provides information and interaction with the flavor API
 in the OpenStack Compute service.
