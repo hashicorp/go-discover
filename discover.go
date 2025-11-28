@@ -173,7 +173,7 @@ func (d *Discover) Addrs(cfg string, l *log.Logger) ([]string, error) {
 
 	p := providers[name]
 	if p == nil {
-		return nil, fmt.Errorf("discover: unknown provider " + name)
+		return nil, fmt.Errorf("discover: unknown provider %s", name)
 	}
 	l.Printf("[DEBUG] discover: Using provider %q", name)
 
