@@ -45,7 +45,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "os" {
-		return nil, fmt.Errorf("discover-os: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-os: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
