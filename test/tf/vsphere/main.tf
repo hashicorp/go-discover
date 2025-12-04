@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2017, 2025
+# SPDX-License-Identifier: MPL-2.0
+
 // This is the Terraform file that is necessary to stand up the test
 // environment for vSphere node discovery.
 //
