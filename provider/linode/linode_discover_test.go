@@ -89,6 +89,32 @@ func TestAddrsTaggedPublicV4(t *testing.T) {
 	}
 }
 
+func TestAddrsTaggedVpcV4(t *testing.T) {
+	args := discover.Config{
+		"provider":     "linode",
+		"api_token":    os.Getenv("LINODE_TOKEN"),
+		"address_type": "vpc_v4",
+		"tag_name":     "gd-tag1",
+	}
+
+	if args["api_token"] == "" {
+		t.Skip("Linode credentials missing")
+	}
+
+	p := &linode.Provider{}
+
+	l := log.New(os.Stderr, "", log.LstdFlags)
+	addrs, err := p.Addrs(args, l)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(addrs) != 2 {
+		t.Fatalf("bad: %v", addrs)
+	}
+}
+
 func TestAddrsTaggedRegion(t *testing.T) {
 	args := discover.Config{
 		"provider":  "linode",
