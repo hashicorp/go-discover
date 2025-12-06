@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package ec2query provides serialization of AWS EC2 requests and responses.
 package ec2query
 

@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package pagination contains utilities and convenience structs that implement common pagination idioms within OpenStack APIs.
 */

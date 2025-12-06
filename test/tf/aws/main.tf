@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2017, 2025
+# SPDX-License-Identifier: MPL-2.0
+
 module "network" {
   source        = "./modules/network"
   address_space = var.address_space

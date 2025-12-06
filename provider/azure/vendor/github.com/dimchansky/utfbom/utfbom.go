@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package utfbom implements the detection of the BOM (Unicode Byte Order Mark) and removing as necessary.
 // It wraps an io.Reader object, creating another object (Reader) that also implements the io.Reader
 // interface but provides automatic BOM checking and removing as necessary.
