@@ -95,6 +95,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				break
 			}
 			addrs = append(addrs, addr.IPv4.Private[0].Address)
+		case "vpc_v4":
+			if len(addr.IPv4.VPC) == 0 {
+				break
+			}
+
+			if addr.IPv4.VPC[0].Address != nil {
+				addrs = append(addrs, *addr.IPv4.VPC[0].Address)
+			}
 		case "public_v6":
 			if addr.IPv6.SLAAC.Address == "" {
 				break

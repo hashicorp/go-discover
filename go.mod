@@ -13,16 +13,16 @@ require (
 	github.com/hashicorp/mdns v1.0.1
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
-	github.com/linode/linodego v0.7.1
+	github.com/linode/linodego v1.61.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.11.1
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.480
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.480
 	github.com/vmware/govmomi v0.18.0
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/oauth2 v0.32.0
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
@@ -38,6 +38,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.9 // indirect
 	github.com/aws/smithy-go v1.22.1 // indirect
+	github.com/go-resty/resty/v2 v2.16.5 // indirect
+	gopkg.in/ini.v1 v1.66.6 // indirect
 )
 
 require (
@@ -60,7 +62,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.53.8
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimchansky/utfbom v1.1.0 // indirect
-	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -68,8 +69,8 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -78,7 +79,6 @@ require (
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
-	github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
@@ -112,7 +112,6 @@ require (
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/resty.v1 v1.12.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
