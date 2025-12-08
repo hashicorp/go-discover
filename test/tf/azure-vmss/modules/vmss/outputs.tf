@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2017, 2025
+# SPDX-License-Identifier: MPL-2.0
+
 output "public_ip" {
   value = azurerm_public_ip.test.ip_address
 }

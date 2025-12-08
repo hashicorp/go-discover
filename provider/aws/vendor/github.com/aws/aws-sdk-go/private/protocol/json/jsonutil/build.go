@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package jsonutil provides JSON serialization of AWS requests and responses.
 package jsonutil
 

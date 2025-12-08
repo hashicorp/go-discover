@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package link implements parsing and serialization of Link header values as
 // defined in RFC 5988.
 package link
