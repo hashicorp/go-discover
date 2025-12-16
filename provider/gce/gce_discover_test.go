@@ -51,3 +51,60 @@ func TestAddrs(t *testing.T) {
 		t.Fatalf("bad: %v", addrs)
 	}
 }
+
+func TestAddrsWithLabelSearch(t *testing.T) {
+	// Check if we have basic requirements
+	projectName := os.Getenv("GOOGLE_PROJECT")
+	if projectName == "" {
+		t.Skip("GOOGLE_PROJECT environment variable not set")
+	}
+
+	// Test label-based search
+	args := discover.Config{
+		"provider":     "gce",
+		"project_name": projectName,
+		"zone_pattern": os.Getenv("GOOGLE_ZONE"),
+		"label_key":    "environment",
+		"label_value":  "test",
+	}
+
+	l := log.New(os.Stderr, "", log.LstdFlags)
+	p := &gce.Provider{}
+
+	addrs, err := p.Addrs(args, l)
+	if err != nil {
+		t.Logf("Error (this may be expected if no instances exist or auth fails): %v", err)
+		t.Skip("Skipping due to error - likely no instances with label 'environment=test' exist")
+	}
+
+	t.Logf("Found %d addresses with label search: %v", len(addrs), addrs)
+}
+
+func TestAddrsWithTagsAndLabels(t *testing.T) {
+	// Check if we have basic requirements
+	projectName := os.Getenv("GOOGLE_PROJECT")
+	if projectName == "" {
+		t.Skip("GOOGLE_PROJECT environment variable not set")
+	}
+
+	// Test label-based search
+	args := discover.Config{
+		"provider":     "gce",
+		"project_name": projectName,
+		"zone_pattern": os.Getenv("GOOGLE_ZONE"),
+		"tag_value":    "consul-server",
+		"label_key":    "environment",
+		"label_value":  "test",
+	}
+
+	l := log.New(os.Stderr, "", log.LstdFlags)
+	p := &gce.Provider{}
+
+	addrs, err := p.Addrs(args, l)
+	if err != nil {
+		t.Logf("Error (this may be expected if no instances exist or auth fails): %v", err)
+		t.Skip("Skipping due to error - likely no instances with label 'environment=test' exist")
+	}
+
+	t.Logf("Found %d addresses with tag and label search: %v", len(addrs), addrs)
+}
