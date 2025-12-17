@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2017, 2025
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_public_ip" "external" {
   name                = "${var.name}-pip"
   location            = var.location
