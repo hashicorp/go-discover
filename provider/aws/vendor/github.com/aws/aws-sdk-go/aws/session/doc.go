@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package session provides configuration for the SDK's service clients. Sessions
 can be shared across service clients that share the same base configuration.
