@@ -18,7 +18,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -223,8 +223,9 @@ type ServicePrincipalCertificateSecret struct {
 
 // SignJwt returns the JWT signed with the certificate's private key.
 func (secret *ServicePrincipalCertificateSecret) SignJwt(spt *ServicePrincipalToken) (string, error) {
-	hasher := sha1.New()
+	hasher := sha256.New()
 	_, err := hasher.Write(secret.Certificate.Raw)
+	_ = hasher.Sum(nil)
 	if err != nil {
 		return "", err
 	}
