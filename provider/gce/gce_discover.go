@@ -43,6 +43,11 @@ func (p *Provider) Help() string {
         On other systems, $HOME/.config/gcloud/application_default_credentials.json.
      4. On Google Compute Engine, use credentials from the metadata
         server. In this final case any provided scopes are ignored.
+	
+     The GCE Service Account must have the following permissions:
+     
+     - compute.zones.list
+     - compute.instances.list
 `
 }
 
