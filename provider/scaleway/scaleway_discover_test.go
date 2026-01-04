@@ -30,6 +30,10 @@ func TestAddrs(t *testing.T) {
 		t.Skip("Scaleway token missing")
 	}
 
+	if args["tag_name"] == "" {
+		t.Skip("Scaleway tag_name missing")
+	}
+
 	p := &scaleway.Provider{}
 	l := log.New(os.Stderr, "", log.LstdFlags)
 	addrs, err := p.Addrs(args, l)
