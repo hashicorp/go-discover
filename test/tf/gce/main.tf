@@ -1,3 +1,10 @@
+# Copyright IBM Corp. 2017, 2025
+# SPDX-License-Identifier: MPL-2.0
+
+provider "google" {
+  version = "~> 3.19.0"
+}
+
 resource "google_compute_instance" "tagged" {
   count = 2
 
