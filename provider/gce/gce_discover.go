@@ -29,9 +29,11 @@ func (p *Provider) Help() string {
 
     provider:         "gce"
     project_name:     The name of the project. discovered if not set
-    tag_value:        The tag value to filter on
-    label_key:        The label key to filter on
-    label_value:      The label value to filter on
+    tag_value:        The tag value to filter on. Can be combined with label_key/label_value.
+                      If both tag and label filters are specified, only instances matching both filters are returned.
+    label_key:        The label key to filter on. Can be combined with tag_value. Required if label_value is set.
+                      If both tag and label filters are specified, only instances matching both filters are returned.
+    label_value:      The label value to filter on. Required if label_key is set.
     zone_pattern:     A RE2 regular expression for filtering zones, e.g. us-west1-.*, or us-(?west|east).*
     credentials_file: The path to the credentials file. See below for more details
 
