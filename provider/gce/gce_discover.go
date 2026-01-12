@@ -52,7 +52,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "gce" {
-		return nil, fmt.Errorf("discover-gce: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-gce: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
@@ -65,6 +65,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	tagValue := args["tag_value"]
 	labelKey := args["label_key"]
 	labelValue := args["label_value"]
+
+	// validate filter parameters
+	if tagValue == "" && labelKey == "" {
+		return nil, fmt.Errorf("discover-gce: tag_value or label_key must be provided")
+	}
+	if (labelKey != "" && labelValue == "") || (labelKey == "" && labelValue != "") {
+		return nil, fmt.Errorf("discover-gce: label_key and label_value must both be set or both be empty")
+	}
 
 	// determine the project name
 	if project == "" {
@@ -105,62 +113,28 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 	l.Printf("[INFO] discover-gce: Found zones %v", zones)
 
-	// lookup the instance addresses
-	var addrs []string
-
+	// construct the filter string
+	var filter string
 	if tagValue != "" && labelKey != "" {
-		// Both tag and label specified - find intersection
-		var addrsByTag []string
-		for _, zone := range zones {
-			a, err := lookupAddrsByTag(svc, project, zone, tagValue)
-			if err != nil {
-				return nil, fmt.Errorf("discover-gce: %s", err)
-			}
-			l.Printf("[INFO] discover-gce: Zone %q has tag matches: %v", zone, a)
-			addrsByTag = append(addrsByTag, a...)
-		}
-
-		var addrsByLabel []string
-		for _, zone := range zones {
-			a, err := lookupAddrsByLabel(svc, project, zone, labelKey, labelValue)
-			if err != nil {
-				return nil, fmt.Errorf("discover-gce: %s", err)
-			}
-			l.Printf("[INFO] discover-gce: Zone %q has label matches: %v", zone, a)
-			addrsByLabel = append(addrsByLabel, a...)
-		}
-
-		// Find intersection of both sets
-		tagSet := make(map[string]bool)
-		for _, addr := range addrsByTag {
-			tagSet[addr] = true
-		}
-
-		for _, addr := range addrsByLabel {
-			if tagSet[addr] {
-				addrs = append(addrs, addr)
-			}
-		}
+		// Both tag and label specified - combined server-side filter
+		filter = fmt.Sprintf("(tags.items:\"%s\") AND (labels.%s=\"%s\")", tagValue, labelKey, labelValue)
 	} else if tagValue != "" {
 		// Only tag specified
-		for _, zone := range zones {
-			a, err := lookupAddrsByTag(svc, project, zone, tagValue)
-			if err != nil {
-				return nil, fmt.Errorf("discover-gce: %s", err)
-			}
-			l.Printf("[INFO] discover-gce: Zone %q has tag matches: %v", zone, a)
-			addrs = append(addrs, a...)
-		}
-	} else if labelKey != "" {
+		filter = fmt.Sprintf("tags.items:\"%s\"", tagValue)
+	} else {
 		// Only label specified
-		for _, zone := range zones {
-			a, err := lookupAddrsByLabel(svc, project, zone, labelKey, labelValue)
-			if err != nil {
-				return nil, fmt.Errorf("discover-gce: %s", err)
-			}
-			l.Printf("[INFO] discover-gce: Zone %q has label matches: %v", zone, a)
-			addrs = append(addrs, a...)
+		filter = fmt.Sprintf("labels.%s=\"%s\"", labelKey, labelValue)
+	}
+
+	// lookup the instance addresses across all zones
+	var addrs []string
+	for _, zone := range zones {
+		a, err := lookupAddrsByFilter(svc, project, zone, filter)
+		if err != nil {
+			return nil, fmt.Errorf("discover-gce: %s", err)
 		}
+		l.Printf("[INFO] discover-gce: Zone %q has matches: %v", zone, a)
+		addrs = append(addrs, a...)
 	}
 	return addrs, nil
 }
@@ -230,51 +204,21 @@ func lookupZones(svc *compute.Service, project, pattern string) ([]string, error
 	return zones, nil
 }
 
-// lookupAddrsByTag retrieves the private ip addresses of all instances in a given
-// project and zone which have a matching tag value.
-func lookupAddrsByTag(svc *compute.Service, project, zone, tag string) ([]string, error) {
+// lookupAddrsByFilter retrieves the private ip addresses of all instances in a given
+// project and zone which match the provided filter string.
+func lookupAddrsByFilter(svc *compute.Service, project, zone, filter string) ([]string, error) {
 	var addrs []string
 	f := func(page *compute.InstanceList) error {
 		for _, v := range page.Items {
 			if len(v.NetworkInterfaces) == 0 || v.NetworkInterfaces[0].NetworkIP == "" {
 				continue
 			}
-			for _, t := range v.Tags.Items {
-				if t == tag {
-					addrs = append(addrs, v.NetworkInterfaces[0].NetworkIP)
-					break
-				}
-			}
+			addrs = append(addrs, v.NetworkInterfaces[0].NetworkIP)
 		}
 		return nil
 	}
 
-	call := svc.Instances.List(project, zone)
-	if err := call.Pages(oauth2.NoContext, f); err != nil {
-		return nil, err
-	}
-	return addrs, nil
-}
-
-// lookupAddrsByLabel retrieves the private ip addresses of all instances in a given
-// project and zone which have a matching label key-value pair.
-func lookupAddrsByLabel(svc *compute.Service, project, zone, key, value string) ([]string, error) {
-	var addrs []string
-	f := func(page *compute.InstanceList) error {
-		for _, v := range page.Items {
-			if len(v.NetworkInterfaces) == 0 || v.NetworkInterfaces[0].NetworkIP == "" {
-				continue
-			}
-			if v.Labels != nil {
-				if labelValue, exists := v.Labels[key]; exists && labelValue == value {
-					addrs = append(addrs, v.NetworkInterfaces[0].NetworkIP)
-				}
-			}
-		}
-		return nil
-	}
-
-	call := svc.Instances.List(project, zone)
+	call := svc.Instances.List(project, zone).Filter(filter)
 	if err := call.Pages(oauth2.NoContext, f); err != nil {
 		return nil, err
 	}
