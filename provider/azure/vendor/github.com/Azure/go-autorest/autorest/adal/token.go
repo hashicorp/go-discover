@@ -18,12 +18,14 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -159,7 +161,7 @@ func (t Token) WillExpireIn(d time.Duration) bool {
 	return !t.Expires().After(time.Now().Add(d))
 }
 
-//OAuthToken return the current access token
+// OAuthToken return the current access token
 func (t *Token) OAuthToken() string {
 	return t.AccessToken
 }
@@ -219,41 +221,56 @@ func (tokenSecret ServicePrincipalTokenSecret) MarshalJSON() ([]byte, error) {
 type ServicePrincipalCertificateSecret struct {
 	Certificate *x509.Certificate
 	PrivateKey  *rsa.PrivateKey
+	// Default is false (SHA-1). Set to true for SHA-256.
+	EnableSha256 bool
 }
 
 // SignJwt returns the JWT signed with the certificate's private key.
 func (secret *ServicePrincipalCertificateSecret) SignJwt(spt *ServicePrincipalToken) (string, error) {
-	hasher := sha256.New()
-	_, err := hasher.Write(secret.Certificate.Raw)
-	_ = hasher.Sum(nil)
-	if err != nil {
-		return "", err
+	var hasher hash.Hash
+	var headerKey string
+
+	// 1. Choose Hash and Header Key based on the flag
+	if secret.EnableSha256 {
+		hasher = sha256.New()
+		headerKey = "x5t#S256"
+	} else {
+		// nolint:gosec
+		hasher = sha1.New()
+		headerKey = "x5t"
 	}
 
-	thumbprint := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	// 2. Calculate the thumbprint
+	if _, err := hasher.Write(secret.Certificate.Raw); err != nil {
+		return "", err
+	}
+	// Use RawURLEncoding (no padding) as is standard for JWT thumbprints
+	thumbprint := base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))
 
-	// The jti (JWT ID) claim provides a unique identifier for the JWT.
+	// 3. Generate JTI
 	jti := make([]byte, 20)
-	_, err = rand.Read(jti)
-	if err != nil {
+	if _, err := rand.Read(jti); err != nil {
 		return "", err
 	}
 
+	// 4. Create Token and Set Headers
 	token := jwt.New(jwt.SigningMethodRS256)
-	token.Header["x5t"] = thumbprint
-	x5c := []string{base64.StdEncoding.EncodeToString(secret.Certificate.Raw)}
-	token.Header["x5c"] = x5c
+
+	// Use the dynamic headerKey (x5t or x5t#S256)
+	token.Header[headerKey] = thumbprint
+
+	token.Header["x5c"] = []string{base64.StdEncoding.EncodeToString(secret.Certificate.Raw)}
+
 	token.Claims = jwt.MapClaims{
 		"aud": spt.inner.OauthConfig.TokenEndpoint.String(),
 		"iss": spt.inner.ClientID,
 		"sub": spt.inner.ClientID,
-		"jti": base64.URLEncoding.EncodeToString(jti),
-		"nbf": time.Now().Unix(),
+		"jti": base64.RawURLEncoding.EncodeToString(jti),
+		"nbf": time.Now().Add(-5 * time.Minute).Unix(), // 5 min clock skew leeway
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	}
 
-	signedString, err := token.SignedString(secret.PrivateKey)
-	return signedString, err
+	return token.SignedString(secret.PrivateKey)
 }
 
 // SetAuthenticationValues is a method of the interface ServicePrincipalSecret.
