@@ -32,3 +32,15 @@ With this release, we are officially committing to Semantic Versioning (SemVer).
 Starting from this release, we’ll also be maintaining detailed changelogs to help you track what’s new, improved, or changed in every update.
 
 Thanks to everyone who contributed, tested, or provided feedback along the way. We’re looking forward to building on this solid foundation together.
+
+## Unreleased
+
+### Improvements
+
+* Azure provider: Add support for SHA-256 JWT signing (`x5t#S256` header) for certificate-based authentication. Users can now opt-in to SHA-256 by setting `cert_enable_sha256="true"`.
+
+### Changes
+
+### Fixed
+
+### Security
