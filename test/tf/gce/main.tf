@@ -11,6 +11,7 @@ resource "google_compute_instance" "tagged" {
   name         = "tf-discover-${count.index}"
   machine_type = "f1-micro"
   tags         = ["consul-server"]
+  labels       = { environment = "test" }
 
   boot_disk {
     initialize_params {
@@ -35,6 +36,7 @@ resource "google_compute_instance" "untagged" {
   name         = "tf-discover-untagged"
   machine_type = "f1-micro"
   tags         = ["consul-not-matching"]
+  labels       = { environment = "not_test" }
 
   boot_disk {
     initialize_params {
@@ -54,4 +56,3 @@ resource "google_compute_instance" "untagged" {
     scopes = ["https://www.googleapis.com/auth/compute.readonly"]
   }
 }
-
