@@ -6,6 +6,7 @@
 package discover
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sort"
@@ -156,7 +157,7 @@ func (d *Discover) Help() string {
 // Addrs discovers ip addresses of nodes that match the given filter criteria.
 // The config string must have the format 'provider=xxx key=val key=val ...'
 // where the keys and values are provider specific. The values are URL encoded.
-func (d *Discover) Addrs(cfg string, l *log.Logger) ([]string, error) {
+func (d *Discover) Addrs(cfg string, l *log.Logger) (interface{}, error) {
 	d.once.Do(d.initProviders)
 
 	args, err := Parse(cfg)
@@ -185,5 +186,16 @@ func (d *Discover) Addrs(cfg string, l *log.Logger) ([]string, error) {
 		return p.Addrs(args, l)
 	}
 
-	return p.Addrs(args, l)
+	addrs, err := p.Addrs(args, l)
+	if _, ok := args["json"]; ok {
+		r := map[string][]string{
+			"addresses": addrs,
+		}
+		b, err := json.MarshalIndent(r, "", "  ")
+		if err != nil {
+			return nil, fmt.Errorf("discover: unable to marshal response")
+		}
+		return string(b), err
+	}
+	return addrs, err
 }
