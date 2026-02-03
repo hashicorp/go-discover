@@ -29,7 +29,11 @@ func (p *Provider) Help() string {
 
     provider:         "gce"
     project_name:     The name of the project. discovered if not set
-    tag_value:        The tag value for filtering instances
+    tag_value:        The tag value to filter on. Can be combined with label_key/label_value.
+                      If both tag and label filters are specified, only instances matching both filters are returned.
+    label_key:        The label key to filter on. Can be combined with tag_value. Required if label_value is set.
+                      If both tag and label filters are specified, only instances matching both filters are returned.
+    label_value:      The label value to filter on. Required if label_key is set.
     zone_pattern:     A RE2 regular expression for filtering zones, e.g. us-west1-.*, or us-(?west|east).*
     credentials_file: The path to the credentials file. See below for more details
 
@@ -48,7 +52,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "gce" {
-		return nil, fmt.Errorf("discover-gce: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-gce: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
@@ -59,6 +63,16 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	zone := args["zone_pattern"]
 	creds := args["credentials_file"]
 	tagValue := args["tag_value"]
+	labelKey := args["label_key"]
+	labelValue := args["label_value"]
+
+	// validate filter parameters
+	if tagValue == "" && labelKey == "" {
+		return nil, fmt.Errorf("discover-gce: tag_value or label_key must be provided")
+	}
+	if (labelKey != "" && labelValue == "") || (labelKey == "" && labelValue != "") {
+		return nil, fmt.Errorf("discover-gce: label_key and label_value must both be set or both be empty")
+	}
 
 	// determine the project name
 	if project == "" {
@@ -99,14 +113,27 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 	l.Printf("[INFO] discover-gce: Found zones %v", zones)
 
-	// lookup the instance addresses
+	// construct the filter string
+	var filter string
+	if tagValue != "" && labelKey != "" {
+		// Both tag and label specified - combined server-side filter
+		filter = fmt.Sprintf("(tags.items:\"%s\") AND (labels.%s=\"%s\")", tagValue, labelKey, labelValue)
+	} else if tagValue != "" {
+		// Only tag specified
+		filter = fmt.Sprintf("tags.items:\"%s\"", tagValue)
+	} else {
+		// Only label specified
+		filter = fmt.Sprintf("labels.%s=\"%s\"", labelKey, labelValue)
+	}
+
+	// lookup the instance addresses across all zones
 	var addrs []string
 	for _, zone := range zones {
-		a, err := lookupAddrs(svc, project, zone, tagValue)
+		a, err := lookupAddrsByFilter(svc, project, zone, filter)
 		if err != nil {
 			return nil, fmt.Errorf("discover-gce: %s", err)
 		}
-		l.Printf("[INFO] discover-gce: Zone %q has %v", zone, a)
+		l.Printf("[INFO] discover-gce: Zone %q has matches: %v", zone, a)
 		addrs = append(addrs, a...)
 	}
 	return addrs, nil
@@ -177,26 +204,21 @@ func lookupZones(svc *compute.Service, project, pattern string) ([]string, error
 	return zones, nil
 }
 
-// lookupAddrs retrieves the private ip addresses of all instances in a given
-// project and zone which have a matching tag value.
-func lookupAddrs(svc *compute.Service, project, zone, tag string) ([]string, error) {
+// lookupAddrsByFilter retrieves the private ip addresses of all instances in a given
+// project and zone which match the provided filter string.
+func lookupAddrsByFilter(svc *compute.Service, project, zone, filter string) ([]string, error) {
 	var addrs []string
 	f := func(page *compute.InstanceList) error {
 		for _, v := range page.Items {
 			if len(v.NetworkInterfaces) == 0 || v.NetworkInterfaces[0].NetworkIP == "" {
 				continue
 			}
-			for _, t := range v.Tags.Items {
-				if t == tag {
-					addrs = append(addrs, v.NetworkInterfaces[0].NetworkIP)
-					break
-				}
-			}
+			addrs = append(addrs, v.NetworkInterfaces[0].NetworkIP)
 		}
 		return nil
 	}
 
-	call := svc.Instances.List(project, zone)
+	call := svc.Instances.List(project, zone).Filter(filter)
 	if err := call.Pages(oauth2.NoContext, f); err != nil {
 		return nil, err
 	}
