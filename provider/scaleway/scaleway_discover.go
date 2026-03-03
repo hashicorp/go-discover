@@ -30,6 +30,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		return nil, fmt.Errorf("discover-scaleway: invalid provider %s", args["provider"])
 	}
 
+	if args["tag_name"] != "" {
+		return nil, fmt.Errorf("discover-scaleway: tag_name must be required")
+	}
+
 	if l == nil {
 		l = log.New(io.Discard, "", 0)
 	}
