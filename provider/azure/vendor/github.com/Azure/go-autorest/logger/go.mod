@@ -1,3 +1,3 @@
 module github.com/Azure/go-autorest/logger
 
-go 1.12
+go 1.25.8
