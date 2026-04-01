@@ -29,24 +29,26 @@ func (p *Provider) Help() string {
 
     provider:         "gce"
     project_name:     The name of the project. discovered if not set
-    tag_value:        The tag value to filter on. Can be combined with label_key/label_value.
-                      If both tag and label filters are specified, only instances matching both filters are returned.
-    label_key:        The label key to filter on. Can be combined with tag_value. Required if label_value is set.
-                      If both tag and label filters are specified, only instances matching both filters are returned.
+    tag_value:        The tag value to filter on.
+    label_key:        The label key to filter on. Required if label_value is set.
     label_value:      The label value to filter on. Required if label_key is set.
+
+    Tag and label filters can be used independently or combined.
+    When combined, only instances matching both filters are returned.
+
     zone_pattern:     A RE2 regular expression for filtering zones, e.g. us-west1-.*, or us-(?west|east).*
     credentials_file: The path to the credentials file. See below for more details
 
     The credentials for a GCE Service Account are required and are searched in
     the following locations:
 
-     1. Use credentials from "credentials_file", if provided.
-     2. Use JSON file from GOOGLE_APPLICATION_CREDENTIALS environment variable.
-     3. Use JSON file in a location known to the gcloud command-line tool.
-        On Windows, this is %APPDATA%/gcloud/application_default_credentials.json.
-        On other systems, $HOME/.config/gcloud/application_default_credentials.json.
-     4. On Google Compute Engine, use credentials from the metadata
-        server. In this final case any provided scopes are ignored.
+    1. Use credentials from "credentials_file", if provided.
+    2. Use JSON file from GOOGLE_APPLICATION_CREDENTIALS environment variable.
+    3. Use JSON file in a location known to the gcloud command-line tool.
+      On Windows, this is %APPDATA%/gcloud/application_default_credentials.json.
+      On other systems, $HOME/.config/gcloud/application_default_credentials.json.
+    4. On Google Compute Engine, use credentials from the metadata
+      server. In this final case any provided scopes are ignored.
 `
 }
 
@@ -67,9 +69,6 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	labelValue := args["label_value"]
 
 	// validate filter parameters
-	if tagValue == "" && labelKey == "" {
-		return nil, fmt.Errorf("discover-gce: tag_value or label_key must be provided")
-	}
 	if (labelKey != "" && labelValue == "") || (labelKey == "" && labelValue != "") {
 		return nil, fmt.Errorf("discover-gce: label_key and label_value must both be set or both be empty")
 	}
