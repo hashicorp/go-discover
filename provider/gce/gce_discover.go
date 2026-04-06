@@ -67,7 +67,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	tagValue := args["tag_value"]
 	labelKey := args["label_key"]
 	labelValue := args["label_value"]
-	
+
 	filter, err := buildFilter(tagValue, labelKey, labelValue)
 	if err != nil {
 		return nil, err
@@ -130,6 +130,10 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 }
 
 func buildFilter(tagValue, labelKey, labelValue string) (string, error) {
+	if tagValue == "" && labelKey == "" {
+		return "", fmt.Errorf("discover-gce: tag_value or label_key must be provided")
+	}
+
 	if (labelKey != "" && labelValue == "") || (labelKey == "" && labelValue != "") {
 		return "", fmt.Errorf("discover-gce: label_key and label_value must both be set or both be empty")
 	}
