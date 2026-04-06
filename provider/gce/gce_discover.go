@@ -67,10 +67,14 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	tagValue := args["tag_value"]
 	labelKey := args["label_key"]
 	labelValue := args["label_value"]
-
-	// validate filter parameters
-	if (labelKey != "" && labelValue == "") || (labelKey == "" && labelValue != "") {
-		return nil, fmt.Errorf("discover-gce: label_key and label_value must both be set or both be empty")
+	
+	filter, err := buildFilter(tagValue, labelKey, labelValue)
+	if err != nil {
+		return nil, err
+	}
+	if filter == "" {
+		l.Printf("[INFO] discover-gce: No tag or label filter configured")
+		return nil, nil
 	}
 
 	// determine the project name
@@ -112,19 +116,6 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 	l.Printf("[INFO] discover-gce: Found zones %v", zones)
 
-	// construct the filter string
-	var filter string
-	if tagValue != "" && labelKey != "" {
-		// Both tag and label specified - combined server-side filter
-		filter = fmt.Sprintf("(tags.items:\"%s\") AND (labels.%s=\"%s\")", tagValue, labelKey, labelValue)
-	} else if tagValue != "" {
-		// Only tag specified
-		filter = fmt.Sprintf("tags.items:\"%s\"", tagValue)
-	} else {
-		// Only label specified
-		filter = fmt.Sprintf("labels.%s=\"%s\"", labelKey, labelValue)
-	}
-
 	// lookup the instance addresses across all zones
 	var addrs []string
 	for _, zone := range zones {
@@ -136,6 +127,24 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		addrs = append(addrs, a...)
 	}
 	return addrs, nil
+}
+
+func buildFilter(tagValue, labelKey, labelValue string) (string, error) {
+	if (labelKey != "" && labelValue == "") || (labelKey == "" && labelValue != "") {
+		return "", fmt.Errorf("discover-gce: label_key and label_value must both be set or both be empty")
+	}
+
+	if tagValue != "" && labelKey != "" {
+		return fmt.Sprintf("(tags.items:\"%s\") AND (labels.%s=\"%s\")", tagValue, labelKey, labelValue), nil
+	}
+	if tagValue != "" {
+		return fmt.Sprintf("tags.items:\"%s\"", tagValue), nil
+	}
+	if labelKey != "" {
+		return fmt.Sprintf("labels.%s=\"%s\"", labelKey, labelValue), nil
+	}
+
+	return "", nil
 }
 
 // client returns an authenticated HTTP client for use with GCE.
