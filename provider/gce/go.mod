@@ -25,6 +25,7 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
+	github.com/TritonDataCenter/triton-go v1.8.6 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.33.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.29.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.54 // indirect
@@ -59,7 +60,6 @@ require (
 	github.com/hashicorp/mdns v1.0.1 // indirect
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62 // indirect
 	github.com/linode/linodego v1.61.0 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
