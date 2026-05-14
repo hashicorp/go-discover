@@ -4,6 +4,7 @@ require (
 	github.com/Azure/azure-sdk-for-go v44.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.18
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.0
+	github.com/TritonDataCenter/triton-go v1.8.6
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.200.0
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/digitalocean/godo v1.7.5
@@ -12,7 +13,6 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/mdns v1.0.1
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443
-	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62
 	github.com/linode/linodego v1.61.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nicolai86/scaleway-sdk v1.10.2-0.20180628010248-798f60e20bb2
@@ -56,7 +56,6 @@ require (
 	github.com/Azure/go-autorest/autorest/validation v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/abdullin/seq v0.0.0-20160510034733-d5467c17e7af // indirect
 	github.com/aws/aws-sdk-go-v2 v1.33.0
 	github.com/aws/aws-sdk-go-v2/config v1.29.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.54
@@ -89,7 +88,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
-	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opencensus.io v0.24.0 // indirect
@@ -97,15 +95,15 @@ require (
 	go.opentelemetry.io/otel v1.43.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	golang.org/x/crypto v0.50.0 // indirect
-	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/crypto v0.51.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/term v0.42.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/term v0.43.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/api v0.195.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/grpc v1.79.3 // indirect
