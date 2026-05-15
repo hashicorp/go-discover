@@ -4,7 +4,7 @@ require (
 	github.com/Azure/azure-sdk-for-go v44.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.18
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.0
-	github.com/TritonDataCenter/triton-go v1.8.6
+	github.com/TritonDataCenter/triton-go/v2 v2.0.0-pre4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.200.0
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
 	github.com/digitalocean/godo v1.7.5

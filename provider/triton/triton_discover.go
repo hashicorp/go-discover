@@ -10,9 +10,9 @@ import (
 	"io"
 	"log"
 
-	"github.com/TritonDataCenter/triton-go"
-	"github.com/TritonDataCenter/triton-go/authentication"
-	"github.com/TritonDataCenter/triton-go/compute"
+	"github.com/TritonDataCenter/triton-go/v2"
+	"github.com/TritonDataCenter/triton-go/v2/authentication"
+	"github.com/TritonDataCenter/triton-go/v2/compute"
 )
 
 type Provider struct{}
