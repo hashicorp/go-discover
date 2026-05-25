@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package gophercloud
 
 // Availability indicates to whom a specific service endpoint is accessible:

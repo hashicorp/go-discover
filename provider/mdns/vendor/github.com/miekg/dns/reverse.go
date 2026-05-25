@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package dns
 
 // StringToType is the reverse of TypeToString, needed for string parsing.

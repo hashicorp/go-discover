@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package stscreds are credential Providers to retrieve STS AWS credentials.
 

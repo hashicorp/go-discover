@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package images provides information and interaction with the images through
 the OpenStack Compute service.

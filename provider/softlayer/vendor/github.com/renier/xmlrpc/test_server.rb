@@ -1,4 +1,6 @@
 # encoding: utf-8
+# Copyright IBM Corp. 2017, 2026
+
 
 require "xmlrpc/server"
 

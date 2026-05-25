@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package processcreds is a credential Provider to retrieve `credential_process`
 credentials.

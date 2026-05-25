@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package aws provides the core SDK's utilities and shared types. Use this package's
 // utilities to simplify setting and reading API operations parameters.
 //

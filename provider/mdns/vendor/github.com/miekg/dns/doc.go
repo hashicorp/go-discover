@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package dns implements a full featured interface to the Domain Name System.
 Server- and client-side programming is supported.

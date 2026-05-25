@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package credentials provides credential retrieval and management
 //
 // The Credentials is the primary method of getting access to and managing

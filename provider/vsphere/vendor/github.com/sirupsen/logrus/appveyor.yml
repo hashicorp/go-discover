@@ -1,3 +1,5 @@
+# Copyright IBM Corp. 2017, 2026
+
 version: "{build}"
 platform: x64
 clone_folder: c:\gopath\src\github.com\sirupsen\logrus

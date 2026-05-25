@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package ec2query provides serialization of AWS EC2 requests and responses.
 package ec2query
 

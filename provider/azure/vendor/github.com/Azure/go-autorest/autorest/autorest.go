@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package autorest implements an HTTP request pipeline suitable for use across multiple go-routines
 and provides the shared routines relied on by AutoRest (see https://github.com/Azure/autorest/)

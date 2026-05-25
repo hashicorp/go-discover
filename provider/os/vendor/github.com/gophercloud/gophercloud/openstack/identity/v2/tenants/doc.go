@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package tenants provides information and interaction with the
 tenants API resource for the OpenStack Identity service.

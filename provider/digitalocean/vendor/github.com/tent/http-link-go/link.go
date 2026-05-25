@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package link implements parsing and serialization of Link header values as
 // defined in RFC 5988.
 package link

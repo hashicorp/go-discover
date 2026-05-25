@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package dns
 
 //go:generate go run duplicate_generate.go

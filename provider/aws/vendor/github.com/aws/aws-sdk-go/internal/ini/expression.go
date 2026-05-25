@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package ini
 
 // newExpression will return an expression AST.

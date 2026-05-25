@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package metadata
 
 // ClientInfo wraps immutable data from the client.Client structure.

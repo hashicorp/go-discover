@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package openstack contains resources for the individual OpenStack projects
 supported in Gophercloud. It also includes functions to authenticate to an

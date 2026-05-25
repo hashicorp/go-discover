@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package ini is an LL(1) parser for configuration files.
 //
 //	Example:

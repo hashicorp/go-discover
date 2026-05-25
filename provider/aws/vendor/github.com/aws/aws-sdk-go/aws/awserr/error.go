@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package awserr represents API error interface accessors for the SDK.
 package awserr
 

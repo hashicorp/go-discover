@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // +build go1.11
 // +build aix darwin dragonfly freebsd linux netbsd openbsd
 

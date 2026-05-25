@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package defaults is a collection of helpers to retrieve the SDK's default
 // configuration and handlers.
 //

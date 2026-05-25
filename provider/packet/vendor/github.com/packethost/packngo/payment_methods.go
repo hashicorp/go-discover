@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package packngo
 
 // API documentation https://www.packet.net/developers/api/paymentmethods/

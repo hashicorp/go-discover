@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package aws provides core functionality for making requests to AWS services.
 package aws
 

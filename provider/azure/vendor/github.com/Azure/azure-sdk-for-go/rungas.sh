@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright IBM Corp. 2017, 2026
+
 GITBRANCH=`git rev-parse --abbrev-ref HEAD`
 #We intend to only run gas on release branches.
 if [ "master" != $GITBRANCH ]; then

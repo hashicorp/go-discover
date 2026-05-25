@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package flavors provides information and interaction with the flavor API
 in the OpenStack Compute service.

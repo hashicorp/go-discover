@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package packngo
 
 // Rate provides the API request rate limit details

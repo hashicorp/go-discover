@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package tokens
 
 import "github.com/gophercloud/gophercloud"

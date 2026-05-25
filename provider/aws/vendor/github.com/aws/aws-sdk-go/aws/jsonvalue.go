@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package aws
 
 // JSONValue is a representation of a grab bag type that will be marshaled

@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package corehandlers
 
 import "github.com/aws/aws-sdk-go/aws/request"

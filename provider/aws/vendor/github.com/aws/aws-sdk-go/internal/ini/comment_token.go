@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package ini
 
 // isComment will return whether or not the next byte(s) is a

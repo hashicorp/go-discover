@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // API on Network
 
 package ecs

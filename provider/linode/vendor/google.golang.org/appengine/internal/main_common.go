@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package internal
 
 // MainPath stores the file path of the main package. On App Engine Standard

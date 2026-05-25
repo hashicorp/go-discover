@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package endpoints
 
 var legacyGlobalRegions = map[string]map[string]struct{}{

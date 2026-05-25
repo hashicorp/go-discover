@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package aws
 
 import "github.com/aws/aws-sdk-go/aws/awserr"

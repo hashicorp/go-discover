@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // +build !go1.9
 
 package aws

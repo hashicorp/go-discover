@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 package ini
 
 // Walk will traverse the AST using the v, the Visitor.

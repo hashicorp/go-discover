@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package tokens provides information and interaction with the token API
 resource for the OpenStack Identity service.

@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package csm provides the Client Side Monitoring (CSM) client which enables
 // sending metrics via UDP connection to the CSM agent. This package provides
 // control options, and configuration for the CSM client. The client can be

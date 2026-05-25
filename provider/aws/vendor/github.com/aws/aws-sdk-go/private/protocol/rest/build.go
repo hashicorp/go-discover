@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 // Package rest provides RESTful serialization of AWS requests and responses.
 package rest
 

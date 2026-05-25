@@ -1,4 +1,6 @@
 #!/bin/bash -e
+# Copyright IBM Corp. 2017, 2026
+
 #
 # This script rebuilds the generated code for the protocol buffers.
 # To run this you will need protoc and goprotobuf installed;

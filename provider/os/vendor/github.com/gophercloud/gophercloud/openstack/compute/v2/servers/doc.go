@@ -1,3 +1,5 @@
+// Copyright IBM Corp. 2017, 2026
+
 /*
 Package servers provides information and interaction with the server API
 resource in the OpenStack Compute service.
