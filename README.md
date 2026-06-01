@@ -33,6 +33,7 @@ function.
  * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/os/os_discover.go#L29-L44)
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/softlayer/softlayer_discover.go#L16-L25)
+ * SRV [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/srv/srv_discover.go#L14-L25)
  * TencentCloud [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/tencentcloud/tencentcloud_discover.go#L23-L37)
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/triton/triton_discover.go#L17-L27)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/vsphere/vsphere_discover.go#L145-L157)
@@ -80,6 +81,9 @@ provider=scaleway organization=my-org tag_name=consul-server token=... region=..
 
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
+
+# SRV
+provider=srv service=consul proto=tcp domain=consul
 
 # TencentCloud
 provider=tencentcloud region=ap-guangzhou tag_key=consul tag_value=... access_key_id=... access_key_secret=...

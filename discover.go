@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-discover/provider/packet"
 	"github.com/hashicorp/go-discover/provider/scaleway"
 	"github.com/hashicorp/go-discover/provider/softlayer"
+	"github.com/hashicorp/go-discover/provider/srv"
 	"github.com/hashicorp/go-discover/provider/tencentcloud"
 	"github.com/hashicorp/go-discover/provider/triton"
 	"github.com/hashicorp/go-discover/provider/vsphere"
@@ -58,6 +59,7 @@ var Providers = map[string]Provider{
 	"os":           &os.Provider{},
 	"scaleway":     &scaleway.Provider{},
 	"softlayer":    &softlayer.Provider{},
+	"srv":          &srv.Provider{},
 	"tencentcloud": &tencentcloud.Provider{},
 	"triton":       &triton.Provider{},
 	"vsphere":      &vsphere.Provider{},
