@@ -46,7 +46,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if domain == "" || service == "" {
 		return nil, fmt.Errorf("discover-srv: service or domain is required")
 	}
-	log.Printf("[INFO] srv: Using service=%s proto=%s domain=%s", service, proto, domain)
+	l.Printf("[INFO] srv: Using service=%s proto=%s domain=%s", service, proto, domain)
 
 	_, records, err := net.LookupSRV(service, proto, domain)
 	if err != nil {
