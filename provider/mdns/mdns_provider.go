@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2017, 2025
+// Copyright IBM Corp. 2017, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 // Package mdns provides node discovery via mDNS.
@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	m "github.com/hashicorp/mdns"
@@ -92,11 +93,16 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	// init entries channel
 	ch = make(chan *m.ServiceEntry)
-	defer close(ch)
 	params.Entries = ch
 
-	// build addresses
+	// build addresses in a background goroutine as Query sends entries on
+	// the channel. A WaitGroup ensures we don't return before all entries
+	// have been processed.
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	go func() {
+		defer wg.Done()
 		var addr string
 		for e := range ch {
 			addr = "" // reset addr each loop
@@ -117,6 +123,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		}
 	}()
 
-	// lookup and return
-	return addrs, m.Query(params)
+	// Perform the mDNS query. Once Query returns, close the channel to
+	// signal the goroutine that no more entries will arrive, then wait
+	// for it to finish processing before returning the collected addrs.
+	err = m.Query(params)
+	close(ch)
+	wg.Wait()
+
+	return addrs, err
 }
