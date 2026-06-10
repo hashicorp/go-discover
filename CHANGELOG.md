@@ -1,4 +1,7 @@
-## 1.2.1 (2026-06-10)
+## 1.3.0 (2026-06-10)
+
+### Improvements
+* provider: Added new SRV service discovery provider that uses DNS SRV records for service discovery. [GH-335](https://github.com/hashicorp/go-discover/pull/335)
 
 ### Fixed
 * mdns: Fixed a bug where the mDNS provider could return empty or partial results [GH-337](https://github.com/hashicorp/go-discover/pull/337)
