@@ -1,14 +1,9 @@
-## Unreleased
-
-### Improvements
-
-### Changes
+## 1.2.1 (2026-06-10)
 
 ### Fixed
-
 * mdns: Fixed a bug where the mDNS provider could return empty or partial results [GH-337](https://github.com/hashicorp/go-discover/pull/337)
 
-### Security
+## 1.2.0 (2026-04-24)
 
 ## 1.1.0 (2025-06-12)
 
