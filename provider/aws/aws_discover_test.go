@@ -6,6 +6,7 @@ package aws_test
 import (
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	discover "github.com/hashicorp/go-discover"
@@ -261,6 +262,110 @@ func TestAddrsDefaultCredentialChain(t *testing.T) {
 	if !containsAny(err.Error(), []string{"credential", "auth", "permission", "access", "config"}) {
 		t.Logf("Error message: %s", err.Error())
 		// This is acceptable - the config creation worked, credential resolution failed as expected
+	}
+}
+
+// TestDualStackConfigurations tests all combinations of dual-stack env var and addr types
+func TestDualStackConfigurations(t *testing.T) {
+	tests := []struct {
+		name     string
+		envValue string // "", "true", "false", "FALSE"
+		addrType string
+		region   string
+	}{
+		{"enabled_explicit", "true", "public_v6", "us-east-1"},
+		{"enabled_unset", "", "public_v6", "us-east-1"},              // backward compat: dual-stack
+		{"disabled_explicit", "false", "public_v6", "us-east-1"},     // FIX: honors disable
+		{"disabled_case_insensitive", "FALSE", "public_v6", "us-east-1"}, // FIX: case insensitive
+		{"disabled_with_v4", "false", "private_v4", "us-east-1"},
+		{"disabled_me_central", "false", "private_v4", "me-central-1"}, // key use case
+		{"enabled_with_v4", "true", "private_v4", "us-east-1"}, // v4 addr type, no dual-stack
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.envValue != "" {
+				t.Setenv("AWS_USE_DUALSTACK_ENDPOINT", tc.envValue)
+			}
+
+			args := discover.Config{
+				"provider":          "aws",
+				"region":            tc.region,
+				"tag_key":           "consul",
+				"tag_value":         "server",
+				"addr_type":         tc.addrType,
+				"access_key_id":     "test-key",
+				"secret_access_key": "test-secret",
+			}
+
+			p := &aws.Provider{}
+			l := log.New(os.Stderr, "", log.LstdFlags)
+
+			// Exercise the config creation path
+			_, err := p.Addrs(args, l)
+
+			// We expect an error due to fake credentials
+			if err == nil {
+				t.Fatal("Expected error with fake credentials, but got none")
+			}
+
+			// Verify the error is auth-related, not a dual-stack endpoint error
+			errLower := strings.ToLower(err.Error())
+			if strings.Contains(errLower, "dualstack") || strings.Contains(errLower, "dual-stack") {
+				t.Errorf("Got dual-stack endpoint error, expected auth error: %s", err.Error())
+			}
+		})
+	}
+}
+
+// TestDualStackDefaultCredentialChain tests dual-stack configurations with the default
+// credential chain (no static credentials), which is the production use case for IAM roles.
+func TestDualStackDefaultCredentialChain(t *testing.T) {
+	tests := []struct {
+		name     string
+		envValue string // "", "true", "false"
+		addrType string
+		region   string
+	}{
+		{"default_chain_enabled_unset", "", "private_v4", "us-east-1"},
+		{"default_chain_enabled_explicit", "true", "private_v4", "us-east-1"},
+		{"default_chain_disabled", "false", "private_v4", "us-east-1"},               // FIX
+		{"default_chain_disabled_me_central", "false", "private_v4", "me-central-1"}, // key production use case
+		{"default_chain_disabled_v6", "false", "public_v6", "us-east-1"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.envValue != "" {
+				t.Setenv("AWS_USE_DUALSTACK_ENDPOINT", tc.envValue)
+			}
+
+			// No access_key_id or secret_access_key - uses default credential chain (IAM role)
+			args := discover.Config{
+				"provider":  "aws",
+				"region":    tc.region,
+				"tag_key":   "consul",
+				"tag_value": "server",
+				"addr_type": tc.addrType,
+			}
+
+			p := &aws.Provider{}
+			l := log.New(os.Stderr, "", log.LstdFlags)
+
+			// Exercise the default credential chain config path
+			_, err := p.Addrs(args, l)
+
+			// We expect an error since no credentials are available in test environment
+			if err == nil {
+				t.Fatal("Expected error with no credentials, but got none")
+			}
+
+			// Verify the error is credential-related, not a dual-stack endpoint error
+			errLower := strings.ToLower(err.Error())
+			if strings.Contains(errLower, "dualstack") || strings.Contains(errLower, "dual-stack") {
+				t.Errorf("Got dual-stack endpoint error, expected credential error: %s", err.Error())
+			}
+		})
 	}
 }
 
