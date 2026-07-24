@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package azure provides node discovery for Microsoft Azure.
 package azure
 
@@ -75,7 +78,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	var authorizer autorest.Authorizer
 
 	if args["provider"] != "azure" {
-		return nil, fmt.Errorf("discover-azure: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-azure: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

@@ -1,7 +1,7 @@
 # Go Discover Nodes for Cloud Providers [![GoDoc](https://godoc.org/github.com/hashicorp/go-discover?status.svg)](https://godoc.org/github.com/hashicorp/go-discover)
 
 > **Note**
-> `go-discover` is considered feature complete and is currently maintained on an as-need basis for use with Vault and Consul. Currently another solution [go-netaddrs]( https://github.com/hashicorp/go-netaddrs) is being actively maintained, which provides a more flexible way of discovering ip addresses without having to tie it to specific infrastructure. 
+> `go-discover` is considered feature complete and is currently maintained on an as-need basis for use with Vault and Consul. Currently another solution [go-netaddrs]( https://github.com/hashicorp/go-netaddrs) is being actively maintained, which provides a more flexible way of discovering ip addresses without having to tie it to specific infrastructure.
 
 `go-discover` is a Go (golang) library and command line tool to discover
 ip addresses of nodes in cloud environments based on meta information
@@ -33,6 +33,7 @@ function.
  * Openstack [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/os/os_discover.go#L29-L44)
  * Scaleway [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/scaleway/scaleway_discover.go#L14-L22)
  * SoftLayer [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/softlayer/softlayer_discover.go#L16-L25)
+ * SRV [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/srv/srv_discover.go#L14-L25)
  * TencentCloud [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/tencentcloud/tencentcloud_discover.go#L23-L37)
  * Triton [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/triton/triton_discover.go#L17-L27)
  * vSphere [Config options](https://github.com/hashicorp/go-discover/blob/8b3ddf4/provider/vsphere/vsphere_discover.go#L145-L157)
@@ -50,7 +51,7 @@ currently are: Amazon AWS, Microsoft Azure, Google Cloud, DigitalOcean, Triton, 
 
 ### Config Example
 
-```
+```bash
 # Aliyun (Alibaba) Cloud
 provider=aliyun region=... tag_key=consul tag_value=... access_key_id=... access_key_secret=...
 
@@ -61,7 +62,7 @@ provider=aws region=eu-west-1 tag_key=consul tag_value=... access_key_id=... sec
 provider=digitalocean region=... tag_name=... api_token=...
 
 # Google Cloud
-provider=gce project_name=... zone_pattern=eu-west-* tag_value=consul credentials_file=...
+provider=gce project_name=... zone_pattern=eu-west-* tag_value=... label_key=... label_value=... credentials_file=...
 
 # Linode
 provider=linode tag_name=... region=us-east address_type=private_v4 api_token=...
@@ -80,6 +81,9 @@ provider=scaleway organization=my-org tag_name=consul-server token=... region=..
 
 # SoftLayer
 provider=softlayer datacenter=dal06 tag_value=consul username=... api_key=...
+
+# SRV
+provider=srv service=consul proto=tcp domain=consul
 
 # TencentCloud
 provider=tencentcloud region=ap-guangzhou tag_key=consul tag_value=... access_key_id=... access_key_secret=...
@@ -101,21 +105,21 @@ provider=k8s label_selector="app = consul-server"
 
 Install the command line tool with:
 
-```
+```bash
 go get -u github.com/hashicorp/go-discover/cmd/discover
 ```
 
 Then run it with:
 
-```
-$ discover addrs provider=aws region=eu-west-1 ...
+```bash
+discover addrs provider=aws region=eu-west-1 ...
 ```
 
 ## Library Usage
 
 Install the library with:
 
-```
+```bash
 go get -u github.com/hashicorp/go-discover
 ```
 
@@ -168,12 +172,12 @@ sub-package.
 
 ## Testing
 
-**Note: Due to the `go.sum` checksum errors referenced in [#68](https://github.com/hashicorp/go-discover/issues/68), 
+**Note: Due to the `go.sum` checksum errors referenced in [#68](https://github.com/hashicorp/go-discover/issues/68),
 you will need Go 1.11.4+ to build/test go-discover.**
 
 Configuration tests can be run with Go:
 
-```
+```bash
 $ go test ./...
 ```
 
@@ -183,7 +187,7 @@ environment variables.
 
 **Note: This will make real API calls to the account provided by the credentials.**
 
-```
+```bash
 $ AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=... go test -v ./provider/aws
 ```
 
@@ -195,7 +199,7 @@ in the `test/tf` directory for supported providers.
 You must use the same account and access credentials above. The same
 environment variables should be applicable and read by Terraform.
 
-```
+```bash
 $ cd test/tf/aws
 $ export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=...
 $ terraform init
@@ -208,13 +212,13 @@ After Terraform successfully runs, you should be able to successfully
 run the tests, assuming you have exported credentials into
 your environment:
 
-```
+```bash
 $ go test -v ./provider/aws
 ```
 
 To destroy the resources you need to use Terraform again:
 
-```
+```bash
 $ cd test/tf/aws
 $ terraform destroy
 ...

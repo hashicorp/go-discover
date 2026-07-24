@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 // Package discover provides functions to get metadata for different
 // cloud environments.
 package discover
@@ -20,6 +23,7 @@ import (
 	"github.com/hashicorp/go-discover/provider/packet"
 	"github.com/hashicorp/go-discover/provider/scaleway"
 	"github.com/hashicorp/go-discover/provider/softlayer"
+	"github.com/hashicorp/go-discover/provider/srv"
 	"github.com/hashicorp/go-discover/provider/tencentcloud"
 	"github.com/hashicorp/go-discover/provider/triton"
 	"github.com/hashicorp/go-discover/provider/vsphere"
@@ -55,6 +59,7 @@ var Providers = map[string]Provider{
 	"os":           &os.Provider{},
 	"scaleway":     &scaleway.Provider{},
 	"softlayer":    &softlayer.Provider{},
+	"srv":          &srv.Provider{},
 	"tencentcloud": &tencentcloud.Provider{},
 	"triton":       &triton.Provider{},
 	"vsphere":      &vsphere.Provider{},
@@ -173,7 +178,7 @@ func (d *Discover) Addrs(cfg string, l *log.Logger) ([]string, error) {
 
 	p := providers[name]
 	if p == nil {
-		return nil, fmt.Errorf("discover: unknown provider " + name)
+		return nil, fmt.Errorf("discover: unknown provider %s", name)
 	}
 	l.Printf("[DEBUG] discover: Using provider %q", name)
 

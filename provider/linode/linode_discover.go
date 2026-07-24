@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 // Package linode provides node discovery for Linode.
 package linode
 
@@ -33,7 +36,7 @@ func (p *Provider) Help() string {
     api_token:    The Linode API token to use
     region:       The Linode region to filter on
     tag_name:     The tag name to filter on
-    address_type: "private_v4", "public_v4", "private_v6" or "public_v6". (default: "private_v4")
+    address_type: "private_v4", "public_v4", "private_v6", "public_v6" or "vpc_v4". (default: "private_v4")
 
     Variables can also be provided by environment variables:
     export LINODE_TOKEN for api_token
@@ -42,7 +45,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "linode" {
-		return nil, fmt.Errorf("discover-linode: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-linode: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
@@ -95,6 +98,16 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 				break
 			}
 			addrs = append(addrs, addr.IPv4.Private[0].Address)
+		case "vpc_v4":
+			if len(addr.IPv4.VPC) == 0 {
+				break
+			}
+
+			if addr.IPv4.VPC[0].Address != nil {
+				addrs = append(addrs, *addr.IPv4.VPC[0].Address)
+			} else {
+				l.Printf("discover-linode: address type vpc_v4 selected but vpc address is empty")
+			}
 		case "public_v6":
 			if addr.IPv6.SLAAC.Address == "" {
 				break

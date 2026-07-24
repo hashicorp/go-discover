@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package vsphere provides node discovery for VMware vSphere.
 //
 // The package performs discovery by searching vCenter for all nodes matching a
@@ -184,7 +187,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	client, err := newVSphereClient(ctx, host, user, password, insecure)
 	if err != nil {
-		return nil, discoverErr(err.Error())
+		return nil, discoverErr("%s", err)
 	}
 
 	if tagName == "" || categoryName == "" {
@@ -195,12 +198,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 	tagID, err := tagIDFromName(ctx, client.TagsClient, tagName, categoryName)
 	if err != nil {
-		return nil, discoverErr(err.Error())
+		return nil, discoverErr("%s", err)
 	}
 
 	addrs, err := virtualMachineIPsForTag(ctx, client, tagID)
 	if err != nil {
-		return nil, discoverErr(err.Error())
+		return nil, discoverErr("%s", err)
 	}
 
 	logger.Printf("[INFO] Final IP address list: %s", strings.Join(addrs, ","))

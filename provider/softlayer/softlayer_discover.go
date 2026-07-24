@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package softlayer provides node discovery for Softlayer.
 package softlayer
 
@@ -26,7 +29,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "softlayer" {
-		return nil, fmt.Errorf("discover-softlayer: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-softlayer: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

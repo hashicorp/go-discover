@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package scaleway provides node discovery for Scaleway.
 package scaleway
 
@@ -24,7 +27,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "scaleway" {
-		return nil, fmt.Errorf("discover-scaleway: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-scaleway: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

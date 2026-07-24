@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package os provides node discovery for Openstack.
 package os
 
@@ -45,7 +48,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "os" {
-		return nil, fmt.Errorf("discover-os: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-os: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

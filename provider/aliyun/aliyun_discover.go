@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package aliyun provides node discovery for Aliyun.
 package aliyun
 
@@ -35,7 +38,7 @@ func (p *Provider) Help() string {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "aliyun" {
-		return nil, fmt.Errorf("discover-aliyun: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-aliyun: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {

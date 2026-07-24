@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2017, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package digitalocean provides node discovery for DigitalOcean.
 package digitalocean
 
@@ -72,7 +75,7 @@ func listDropletsByTag(c *godo.Client, tagName string) ([]godo.Droplet, error) {
 
 func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error) {
 	if args["provider"] != "digitalocean" {
-		return nil, fmt.Errorf("discover-digitalocean: invalid provider " + args["provider"])
+		return nil, fmt.Errorf("discover-digitalocean: invalid provider %s", args["provider"])
 	}
 
 	if l == nil {
