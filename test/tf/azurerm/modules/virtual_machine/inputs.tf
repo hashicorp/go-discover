@@ -14,7 +14,7 @@ variable "subnet_id" {
 }
 
 variable "size" {
-  default = "Standard_A1_v2"
+  default = "Standard_DC1ds_v3"
 }
 
 variable "username" {

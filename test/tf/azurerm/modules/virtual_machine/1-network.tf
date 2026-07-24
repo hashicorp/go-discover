@@ -17,7 +17,7 @@ resource "azurerm_network_interface" "internal" {
   ip_configuration {
     name                          = "private"
     subnet_id                     = var.subnet_id
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.external.id
   }
 
@@ -28,6 +28,6 @@ resource "random_string" "resource_name" {
   length  = 16
   special = false
   upper   = false
-  number  = false
+  numeric = false
 }
 

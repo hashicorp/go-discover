@@ -144,7 +144,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	}
 
 	// Try to use the argument and environment provided arguments first, if this fails fall back to the SDK's
-	// DefaultCredential which attempts to find default configurs for Azure envars, AzureWorkloadIdentityCredentials,
+	// DefaultCredential which attempts to find default config for Azure envars, AzureWorkloadIdentityCredentials,
 	// Azure ManagedIdentityCredentials, as well as local credentials
 	// https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#DefaultAzureCredential
 
