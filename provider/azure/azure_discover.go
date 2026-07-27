@@ -45,7 +45,11 @@ func (p *Provider) Help() string {
     export ARM_TENANT_ID for tenant
     export ARM_CLIENT_ID for client
     export ARM_CLIENT_SECRET for secret access key
-    export OPT_IN_MSFT_TELEMETRY to opt in to sending telemetry to Microsfot
+
+   Set the following environment variables to enable AzureSDK client's log and telemetry:
+	export AZURE_SDK_GO_LOGGING=all
+	export OPT_IN_MSFT_TELEMETRY=true
+
 
    If none of those options are given, the Azure SDK is using the default  environment based authentication outlined
    here https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization#use-environment-based-authentication
@@ -111,15 +115,6 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	// We will:
 	// -Relay any user provided userAgent configuration
 	// -Turn off MSFT telemetry unless go-discover users opt-in.
-	// -Enable azure client logging to match use of autorest.WithLogging in sender
-
-	// The only way to enable logging is by setting the `AZURE_SDK_GO_LOGGING` envvar to all
-	// https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/internal/log/log.go#L79
-	// https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azcore#hdr-Built_in_Logging
-	err := os.Setenv("AZURE_SDK_GO_LOGGING", "all")
-	if err != nil {
-		l.Print("[DEBUG] discover-azure: azure client logging not configured")
-	}
 
 	if p.userAgent != "" {
 		policyFunc := policyFunc(func(req *policy.Request) (*http.Response, error) {
@@ -158,13 +153,13 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 			&azidentity.ClientSecretCredentialOptions{ClientOptions: clientOpts})
 
 		if err != nil {
-			return nil, fmt.Errorf("discover-azure (ClientCredentials): %s", err)
+			return nil, fmt.Errorf("discover-azure (ClientCredentials): %w", err)
 		}
 	} else {
 		var err error
 		defaultCred, err = azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{ClientOptions: clientOpts})
 		if err != nil {
-			return nil, fmt.Errorf("discover-azure (EnvironmentCredentials): %s", err)
+			return nil, fmt.Errorf("discover-azure (EnvironmentCredentials): %w", err)
 		}
 	}
 
@@ -177,7 +172,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	vmScaleSet := args["vm_scale_set"]
 
 	if subscriptionID == "" {
-		return nil, fmt.Errorf("discover-azure (Credentials): SubscriptionID not provided as argument or environment variable")
+		return nil, fmt.Errorf("discover-azure (Credentials): subscription_id not provided as argument or environment variable")
 	}
 	// Create NetworkInterfaceClient with the appropriate credential and no additional configuration
 	// as the client will inherit telemetry config from the credentials
@@ -185,12 +180,12 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	if clientSecretCred != nil {
 		vmnet, err = armnetwork.NewInterfacesClient(subscriptionID, clientSecretCred, nil)
 		if err != nil {
-			return nil, fmt.Errorf("discover-azure (Azure Client): %s", err)
+			return nil, fmt.Errorf("discover-azure (Azure Client): %w", err)
 		}
 	} else {
 		vmnet, err = armnetwork.NewInterfacesClient(subscriptionID, defaultCred, nil)
 		if err != nil {
-			return nil, fmt.Errorf("discover-azure (Azure Client): %s", err)
+			return nil, fmt.Errorf("discover-azure (Azure Client): %w", err)
 		}
 	}
 
@@ -218,7 +213,7 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet armnetwork.Interf
 
 		page, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("discover-azure: %s", err)
+			return nil, fmt.Errorf("discover-azure: %w", err)
 		}
 		if len(page.Value) == 0 {
 			return nil, fmt.Errorf("discover-azure: no interfaces")
@@ -273,7 +268,7 @@ func fetchAddrsWithVmScaleSet(resourceGroup string, vmScaleSet string, vmnet arm
 	for pager.More() {
 		page, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("discover-azure: %s", err)
+			return nil, fmt.Errorf("discover-azure: %w", err)
 		}
 		if len(page.Value) == 0 {
 			return nil, fmt.Errorf("discover-azure: no interfaces")
@@ -284,7 +279,7 @@ func fetchAddrsWithVmScaleSet(resourceGroup string, vmScaleSet string, vmnet arm
 			if v.ID != nil {
 				id = *v.ID
 			} else {
-				id = "ip address id not found"
+				continue
 			}
 			if v.Properties.IPConfigurations == nil {
 				l.Printf("[DEBUG] discover-azure: Interface %s had no ip configuration", id)

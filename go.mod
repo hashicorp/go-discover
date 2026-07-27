@@ -1,6 +1,9 @@
 module github.com/hashicorp/go-discover
 
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.1
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork v1.1.0
 	github.com/TritonDataCenter/triton-go/v2 v2.0.0-pre4
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.200.0
 	github.com/denverdino/aliyungo v0.0.0-20170926055100-d3308649c661
@@ -23,12 +26,6 @@ require (
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
-)
-
-require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.1
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork v1.1.0
 )
 
 require (

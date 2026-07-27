@@ -340,7 +340,7 @@ jobs:
     needs:
     - lint
     - go-test
-    #- alicloud-provider
+    - alicloud-provider
     # - aws-provider
     - azure-vmss-provider
     - azurerm-provider
