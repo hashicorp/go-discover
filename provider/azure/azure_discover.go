@@ -224,7 +224,7 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet armnetwork.Interf
 			if v.ID != nil {
 				id = *v.ID
 			} else {
-				id = "ip address id not found"
+				id = "unknown_interface_id"
 			}
 			if v.Tags == nil {
 				l.Printf("[DEBUG] discover-azure: Interface %s has no tags", id)
@@ -239,8 +239,8 @@ func fetchAddrsWithTags(tagName string, tagValue string, vmnet armnetwork.Interf
 				l.Printf("[DEBUG] discover-azure: Interface %s tag value was: %s which did not match: %s", id, *tv, tagValue)
 				continue
 			}
-			if v.Properties.IPConfigurations == nil {
-				l.Printf("[DEBUG] discover-azure: Interface %s had no ip configuration", id)
+			if v.Properties == nil {
+				l.Printf("[DEBUG] discover-azure: Interface %s had no properties", id)
 				continue
 			}
 			for _, x := range v.Properties.IPConfigurations {
@@ -279,10 +279,10 @@ func fetchAddrsWithVmScaleSet(resourceGroup string, vmScaleSet string, vmnet arm
 			if v.ID != nil {
 				id = *v.ID
 			} else {
-				continue
+				id = "unknown_interface_id"
 			}
-			if v.Properties.IPConfigurations == nil {
-				l.Printf("[DEBUG] discover-azure: Interface %s had no ip configuration", id)
+			if v.Properties == nil {
+				l.Printf("[DEBUG] discover-azure: Interface %s had properties", id)
 				continue
 			}
 
