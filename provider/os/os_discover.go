@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2017, 2025
+// Copyright IBM Corp. 2017, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 // Package os provides node discovery for Openstack.
@@ -131,7 +131,7 @@ func newClient(args map[string]string, l *log.Logger) (*gophercloud.ServiceClien
 
 	if projectID == "" && projectName == "" { // Use the one on the instance if not provided either by parameter or env
 		l.Printf("[INFO] discover-os: ProjectID not provided. Looking up in metadata...")
-		var err error;
+		var err error
 		projectID, err = getProjectID()
 		if err != nil {
 			return nil, err
