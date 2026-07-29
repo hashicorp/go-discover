@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2017, 2025
+# Copyright IBM Corp. 2017, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 resource "azurerm_virtual_machine" "main" {
@@ -10,8 +10,8 @@ resource "azurerm_virtual_machine" "main" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "14.04.5-LTS"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "minimal"
     version   = "latest"
   }
 

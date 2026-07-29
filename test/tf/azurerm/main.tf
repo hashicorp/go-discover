@@ -1,16 +1,24 @@
-# Copyright IBM Corp. 2017, 2025
+# Copyright IBM Corp. 2017, 2026
 # SPDX-License-Identifier: MPL-2.0
-
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "registry.terraform.io/hashicorp/azurerm"
+      version = "~> 4.81.0"
+    }
+    random = {
+      source  = "registry.terraform.io/hashicorp/random"
+      version = "~>3.8.1"
+    }
+  }
+}
 provider "azurerm" {
-  version = "~> 2.7.0"
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
-
-provider "random" {
-  version = "~> 2.2.1"
-}
-
-
 variable "prefix" {
   default = "go-discover-azurerm"
 }
@@ -26,7 +34,7 @@ module "network" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = "10.0.0.0/16"
-  subnet_cidr         = "10.0.1.0/24"
+  subnet_cidr         = ["10.0.1.0/24"]
 }
 
 module "vm01" {

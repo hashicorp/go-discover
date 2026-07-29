@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2017, 2025
+# Copyright IBM Corp. 2017, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 variable "name" {
@@ -14,7 +14,7 @@ variable "subnet_id" {
 }
 
 variable "size" {
-  default = "Standard_A1_v2"
+  default = "Standard_DC1ds_v3"
 }
 
 variable "username" {

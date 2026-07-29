@@ -1,15 +1,18 @@
-# Copyright IBM Corp. 2017, 2025
+# Copyright IBM Corp. 2017, 2026
 # SPDX-License-Identifier: MPL-2.0
 
-provider "azurerm" {
-  version = "~> 2.7.0"
-  features {}
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "registry.terraform.io/hashicorp/azurerm"
+      version = "~> 4.81.0"
+    }
+    random = {
+      source  = "registry.terraform.io/hashicorp/random"
+      version = "~> 3.8.1"
+    }
+  }
 }
-
-provider "random" {
-  version = "~> 2.2.1"
-}
-
 resource "azurerm_public_ip" "test" {
   name                = "${var.name}-pip"
   location            = var.location
@@ -32,9 +35,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "bpepool" {
-  resource_group_name = var.resource_group
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "${var.resource_group}-${random_string.resource_name.result}"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "${var.resource_group}-${random_string.resource_name.result}"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -52,10 +54,11 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   storage_profile_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "minimal"
     version   = "latest"
   }
+
 
   storage_profile_os_disk {
     name              = ""

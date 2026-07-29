@@ -7,6 +7,7 @@ name: Acceptance
 
 on:
   push:
+    branches: master
   pull_request:
 
 permissions:
@@ -92,7 +93,7 @@ jobs:
       # XXX
       # ALICLOUD_REGION: xxx
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: 'stable'
@@ -131,60 +132,62 @@ jobs:
   #         aws-region: ${{ vars.AWS_REGION }}
   #         aws-role-arn: ${{ secrets.SERVICE_GO_DISCOVER_TESTS_ROLE_ARN }}
 
-  # azure-vmss-provider:
-  #   # don't run on fork PRs
-  #   if: github.repository_owner == 'hashicorp'
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - go-test
-  #   env:
-  #     ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-  #     ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  #     ARM_ENVIRONMENT: ${{ vars.ARM_ENVIRONMENT }}
-  #     ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  #     ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-  #   steps:
-  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-  #     - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-  #       with:
-  #         go-version: 'stable'
-  #     - uses: autero1/action-gotestsum@7263b9d73912eec65f46337689e59fac865c425f # v2.0.0
-  #       with:
-  #         gotestsum_version: 1.9.0
+  azure-vmss-provider:
+     # don't run on fork PRs
+     if: github.repository_owner == 'hashicorp' && vars.ARM_ACTIVE_SUBSCRIPTION == true
+     runs-on: ubuntu-latest
+     needs:
+       - go-test
+     env:
+       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+       ARM_ENVIRONMENT: ${{ vars.ARM_ENVIRONMENT }}
+       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+     steps:
 
-  #     - uses: "./.github/actions/acctest"
-  #       with:
-  #         provider-test-infra-dir: azure-vmss
-  #         provider-go-test-dir: azure
-  #         provider-go-test-tags: TestVmScaleSetAddrs
+       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+         with:
+           go-version: 'stable'
+       - uses: autero1/action-gotestsum@7263b9d73912eec65f46337689e59fac865c425f # v2.0.0
+         with:
+           gotestsum_version: 1.9.0
+       - uses: "./.github/actions/acctest"
+         with:
+           provider-test-infra-dir: azure-vmss
+           provider-go-test-dir: azure
+           provider-go-test-tags: TestVmScaleSetAddrs
+           provider-run-tf-apply: 'true'
 
-  # azurerm-provider:
-  #   # don't run on fork PRs
-  #   if: github.repository_owner == 'hashicorp'
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - go-test
-  #   env:
-  #     ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-  #     ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  #     ARM_ENVIRONMENT: ${{ vars.ARM_ENVIRONMENT }}
-  #     ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  #     ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-  #   steps:
-  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-  #     - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-  #       with:
-  #         go-version: 'stable'
-  #     - uses: autero1/action-gotestsum@7263b9d73912eec65f46337689e59fac865c425f # v2.0.0
-  #       with:
-  #         gotestsum_version: 1.9.0
+  azurerm-provider:
+     # don't run on fork PRs
+     if: github.repository_owner == 'hashicorp' && vars.ARM_ACTIVE_SUBSCRIPTION == true
+     runs-on: ubuntu-latest
+     needs:
+       - go-test
+     env:
+       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+       ARM_ENVIRONMENT: ${{ vars.ARM_ENVIRONMENT }}
+       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+     steps:
+       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+         with:
+           go-version: 'stable'
+       - uses: autero1/action-gotestsum@7263b9d73912eec65f46337689e59fac865c425f # v2.0.0
+         with:
+           gotestsum_version: 1.9.0
 
-  #     - uses: "./.github/actions/acctest"
-  #       with:
-  #         provider-test-infra-dir: azurerm
-  #         provider-go-test-dir: azure
-  #         provider-go-test-tags: TestTagAddrs
 
+       - uses: "./.github/actions/acctest"
+         with:
+           provider-test-infra-dir: azurerm
+           provider-go-test-dir: azure
+           provider-go-test-tags: TestTagAddrs
+           provider-run-tf-apply: 'true'
   # digitalocean-provider:
   #   # don't run on fork PRs
   #   if: github.repository_owner == 'hashicorp'
@@ -341,8 +344,8 @@ jobs:
     - go-test
     - alicloud-provider
     # - aws-provider
-    # - azure-vmss-provider
-    # - azurerm-provider
+    - azure-vmss-provider
+    - azurerm-provider
     # - digitalocean-provider
     # - gce-provider
     # - k8s-provider
