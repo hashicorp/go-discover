@@ -1,24 +1,14 @@
-/*
-Copyright (c) 2015 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package property
 
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sync"
 
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
@@ -27,12 +17,19 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
+// ErrConcurrentCollector is returned from WaitForUpdates, WaitForUpdatesEx,
+// or CheckForUpdates if any of those calls are unable to obtain an exclusive
+// lock for the property collector.
+var ErrConcurrentCollector = fmt.Errorf(
+	"only one goroutine may invoke WaitForUpdates, WaitForUpdatesEx, " +
+		"or CheckForUpdates on a given PropertyCollector")
+
 // Collector models the PropertyCollector managed object.
 //
 // For more information, see:
-// http://pubs.vmware.com/vsphere-60/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvmodl.query.PropertyCollector.html
-//
+// https://developer.broadcom.com/xapis/vsphere-web-services-api/latest/vmodl.query.PropertyCollector.html
 type Collector struct {
+	mu           sync.Mutex
 	roundTripper soap.RoundTripper
 	reference    types.ManagedObjectReference
 }
@@ -47,7 +44,7 @@ func DefaultCollector(c *vim25.Client) *Collector {
 	return &p
 }
 
-func (p Collector) Reference() types.ManagedObjectReference {
+func (p *Collector) Reference() types.ManagedObjectReference {
 	return p.reference
 }
 
@@ -86,21 +83,37 @@ func (p *Collector) Destroy(ctx context.Context) error {
 	return nil
 }
 
-func (p *Collector) CreateFilter(ctx context.Context, req types.CreateFilter) error {
+func (p *Collector) CreateFilter(ctx context.Context, req types.CreateFilter) (*Filter, error) {
 	req.This = p.Reference()
 
-	_, err := methods.CreateFilter(ctx, p.roundTripper, &req)
+	resp, err := methods.CreateFilter(ctx, p.roundTripper, &req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &Filter{roundTripper: p.roundTripper, reference: resp.Returnval}, nil
 }
 
-func (p *Collector) WaitForUpdates(ctx context.Context, v string) (*types.UpdateSet, error) {
+// Deprecated: Please use WaitForUpdatesEx instead.
+func (p *Collector) WaitForUpdates(
+	ctx context.Context,
+	version string,
+	opts ...*types.WaitOptions) (*types.UpdateSet, error) {
+
+	if !p.mu.TryLock() {
+		return nil, ErrConcurrentCollector
+	}
+	defer p.mu.Unlock()
+
 	req := types.WaitForUpdatesEx{
 		This:    p.Reference(),
-		Version: v,
+		Version: version,
+	}
+
+	if len(opts) == 1 {
+		req.Options = opts[0]
+	} else if len(opts) > 1 {
+		panic("only one option may be specified")
 	}
 
 	res, err := methods.WaitForUpdatesEx(ctx, p.roundTripper, &req)
@@ -111,39 +124,65 @@ func (p *Collector) WaitForUpdates(ctx context.Context, v string) (*types.Update
 	return res.Returnval, nil
 }
 
-func (p *Collector) RetrieveProperties(ctx context.Context, req types.RetrieveProperties) (*types.RetrievePropertiesResponse, error) {
-	req.This = p.Reference()
-	return methods.RetrieveProperties(ctx, p.roundTripper, &req)
+func (p *Collector) CancelWaitForUpdates(ctx context.Context) error {
+	req := &types.CancelWaitForUpdates{This: p.Reference()}
+	_, err := methods.CancelWaitForUpdates(ctx, p.roundTripper, req)
+	return err
+}
+
+// RetrieveProperties wraps RetrievePropertiesEx and ContinueRetrievePropertiesEx to collect properties in batches.
+func (p *Collector) RetrieveProperties(
+	ctx context.Context,
+	req types.RetrieveProperties,
+	maxObjectsArgs ...int32) (*types.RetrievePropertiesResponse, error) {
+
+	var opts types.RetrieveOptions
+	if l := len(maxObjectsArgs); l > 1 {
+		return nil, fmt.Errorf("maxObjectsArgs accepts a single value")
+	} else if l == 1 {
+		opts.MaxObjects = maxObjectsArgs[0]
+	}
+
+	objects, err := mo.RetrievePropertiesEx(ctx, p.roundTripper, types.RetrievePropertiesEx{
+		This:    p.Reference(),
+		SpecSet: req.SpecSet,
+		Options: opts,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.RetrievePropertiesResponse{Returnval: objects}, nil
 }
 
 // Retrieve loads properties for a slice of managed objects. The dst argument
 // must be a pointer to a []interface{}, which is populated with the instances
 // of the specified managed objects, with the relevant properties filled in. If
 // the properties slice is nil, all properties are loaded.
-func (p *Collector) Retrieve(ctx context.Context, objs []types.ManagedObjectReference, ps []string, dst interface{}) error {
+// Note that pointer types are optional fields that may be left as a nil value.
+// The caller should check such fields for a nil value before dereferencing.
+func (p *Collector) Retrieve(ctx context.Context, objs []types.ManagedObjectReference, ps []string, dst any) error {
 	if len(objs) == 0 {
 		return errors.New("object references is empty")
 	}
 
-	var propSpec *types.PropertySpec
+	kinds := make(map[string]bool)
+
+	var propSet []types.PropertySpec
 	var objectSet []types.ObjectSpec
 
 	for _, obj := range objs {
-		// Ensure that all object reference types are the same
-		if propSpec == nil {
-			propSpec = &types.PropertySpec{
+		if _, ok := kinds[obj.Type]; !ok {
+			spec := types.PropertySpec{
 				Type: obj.Type,
 			}
-
-			if ps == nil {
-				propSpec.All = types.NewBool(true)
+			if len(ps) == 0 {
+				spec.All = types.NewBool(true)
 			} else {
-				propSpec.PathSet = ps
+				spec.PathSet = ps
 			}
-		} else {
-			if obj.Type != propSpec.Type {
-				return errors.New("object references must have the same type")
-			}
+			propSet = append(propSet, spec)
+			kinds[obj.Type] = true
 		}
 
 		objectSpec := types.ObjectSpec{
@@ -158,7 +197,7 @@ func (p *Collector) Retrieve(ctx context.Context, objs []types.ManagedObjectRefe
 		SpecSet: []types.PropertyFilterSpec{
 			{
 				ObjectSet: objectSet,
-				PropSet:   []types.PropertySpec{*propSpec},
+				PropSet:   propSet,
 			},
 		},
 	}
@@ -173,11 +212,18 @@ func (p *Collector) Retrieve(ctx context.Context, objs []types.ManagedObjectRefe
 		return nil
 	}
 
-	return mo.LoadRetrievePropertiesResponse(res, dst)
+	return mo.LoadObjectContent(res.Returnval, dst)
 }
 
-// RetrieveWithFilter populates dst as Retrieve does, but only for entities matching the given filter.
-func (p *Collector) RetrieveWithFilter(ctx context.Context, objs []types.ManagedObjectReference, ps []string, dst interface{}, filter Filter) error {
+// RetrieveWithFilter populates dst as Retrieve does, but only for entities
+// that match the specified filter.
+func (p *Collector) RetrieveWithFilter(
+	ctx context.Context,
+	objs []types.ManagedObjectReference,
+	ps []string,
+	dst any,
+	filter Match) error {
+
 	if len(filter) == 0 {
 		return p.Retrieve(ctx, objs, ps, dst)
 	}
@@ -189,7 +235,7 @@ func (p *Collector) RetrieveWithFilter(ctx context.Context, objs []types.Managed
 		return err
 	}
 
-	objs = filter.MatchObjectContent(content)
+	objs = filter.ObjectContent(content)
 
 	if len(objs) == 0 {
 		return nil
@@ -198,8 +244,85 @@ func (p *Collector) RetrieveWithFilter(ctx context.Context, objs []types.Managed
 	return p.Retrieve(ctx, objs, ps, dst)
 }
 
-// RetrieveOne calls Retrieve with a single managed object reference.
-func (p *Collector) RetrieveOne(ctx context.Context, obj types.ManagedObjectReference, ps []string, dst interface{}) error {
+// RetrieveOne calls Retrieve with a single managed object reference via Collector.Retrieve().
+func (p *Collector) RetrieveOne(ctx context.Context, obj types.ManagedObjectReference, ps []string, dst any) error {
 	var objs = []types.ManagedObjectReference{obj}
 	return p.Retrieve(ctx, objs, ps, dst)
+}
+
+// WaitForUpdatesEx waits for any of the specified properties of the specified
+// managed object to change. It calls the specified function for every update it
+// receives an update - including the empty filter set, which can occur if no
+// objects are eligible for updates.
+//
+// If this function returns false, it continues waiting for
+// subsequent updates. If this function returns true, it stops waiting and
+// returns upon receiving the first non-empty filter set.
+//
+// If the Context is canceled, a call to CancelWaitForUpdates() is made and its
+// error value is returned.
+//
+// By default, ObjectUpdate.MissingSet faults are not propagated to the returned
+// error, set WaitFilter.PropagateMissing=true to enable MissingSet fault
+// propagation.
+func (p *Collector) WaitForUpdatesEx(
+	ctx context.Context,
+	opts *WaitOptions,
+	onUpdatesFn func([]types.ObjectUpdate) bool) error {
+
+	if !p.mu.TryLock() {
+		return ErrConcurrentCollector
+	}
+	defer p.mu.Unlock()
+
+	req := types.WaitForUpdatesEx{
+		This:    p.Reference(),
+		Options: opts.Options,
+	}
+
+	for {
+		res, err := methods.WaitForUpdatesEx(ctx, p.roundTripper, &req)
+		if err != nil {
+			if ctx.Err() == context.Canceled {
+				return p.CancelWaitForUpdates(context.Background())
+			}
+			return err
+		}
+
+		set := res.Returnval
+		if set == nil {
+			if req.Options != nil && req.Options.MaxWaitSeconds != nil {
+				return nil // WaitOptions.MaxWaitSeconds exceeded
+			}
+			// Retry if the result came back empty
+			continue
+		}
+
+		req.Version = set.Version
+		opts.Truncated = false
+		if set.Truncated != nil {
+			opts.Truncated = *set.Truncated
+		}
+
+		if len(set.FilterSet) == 0 {
+			// Trigger callbacks in case callers need to be notified
+			// of the empty filter set.
+			_ = onUpdatesFn(make([]types.ObjectUpdate, 0))
+		}
+
+		for _, fs := range set.FilterSet {
+			if opts.PropagateMissing {
+				for i := range fs.ObjectSet {
+					for _, p := range fs.ObjectSet[i].MissingSet {
+						// Same behavior as mo.ObjectContentToType()
+						return soap.WrapVimFault(p.Fault.Fault)
+					}
+				}
+			}
+
+			if onUpdatesFn(fs.ObjectSet) {
+				return nil
+			}
+		}
+	}
 }

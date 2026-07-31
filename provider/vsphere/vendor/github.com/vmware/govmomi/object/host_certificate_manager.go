@@ -1,28 +1,18 @@
-/*
-Copyright (c) 2016 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package object
 
 import (
 	"context"
 
+	"github.com/vmware/govmomi/fault"
 	"github.com/vmware/govmomi/property"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/mo"
+	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -66,7 +56,7 @@ func (m HostCertificateManager) CertificateInfo(ctx context.Context) (*HostCerti
 // Use InstallServerCertificate to import this certificate.
 func (m HostCertificateManager) GenerateCertificateSigningRequest(ctx context.Context, useIPAddressAsCommonName bool) (string, error) {
 	req := types.GenerateCertificateSigningRequest{
-		This: m.Reference(),
+		This:                     m.Reference(),
 		UseIpAddressAsCommonName: useIPAddressAsCommonName,
 	}
 
@@ -108,16 +98,24 @@ func (m HostCertificateManager) InstallServerCertificate(ctx context.Context, ce
 
 	// NotifyAffectedService is internal, not exposing as we don't have a use case other than with InstallServerCertificate
 	// Without this call, hostd needs to be restarted to use the updated certificate
-	// Note: using Refresh as it has the same struct/signature, we just need to use different xml name tags
-	body := struct {
-		Req *types.Refresh         `xml:"urn:vim25 NotifyAffectedServices,omitempty"`
-		Res *types.RefreshResponse `xml:"urn:vim25 NotifyAffectedServicesResponse,omitempty"`
-		methods.RefreshBody
-	}{
-		Req: &types.Refresh{This: m.Reference()},
-	}
+	var body notifyAffectedServicesBody
+	body.Req = &types.Refresh{This: m.Reference()}
 
-	return m.Client().RoundTrip(ctx, &body, &body)
+	err = m.Client().RoundTrip(ctx, &body, &body)
+	if err != nil && fault.Is(err, &types.MethodNotFound{}) {
+		return nil
+	}
+	return err
+}
+
+type notifyAffectedServicesBody struct {
+	Req    *types.Refresh         `xml:"urn:vim25 NotifyAffectedServices,omitempty"`
+	Res    *types.RefreshResponse `xml:"urn:vim25 NotifyAffectedServicesResponse,omitempty"`
+	Fault_ *soap.Fault            `xml:"http://schemas.xmlsoap.org/soap/envelope/ Fault,omitempty"`
+}
+
+func (b *notifyAffectedServicesBody) Fault() *soap.Fault {
+	return b.Fault_
 }
 
 // ListCACertificateRevocationLists returns the SSL CRLs of Certificate Authorities that are trusted by the host system.

@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2015 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package object
 
@@ -93,7 +81,18 @@ func (s SearchIndex) FindByInventoryPath(ctx context.Context, path string) (Refe
 	if res.Returnval == nil {
 		return nil, nil
 	}
-	return NewReference(s.c, *res.Returnval), nil
+
+	r := NewReference(s.c, *res.Returnval)
+
+	type common interface {
+		SetInventoryPath(string)
+	}
+
+	if c, ok := r.(common); ok {
+		c.SetInventoryPath(path)
+	}
+
+	return r, nil
 }
 
 // FindByIp finds a virtual machine or host by IP address.
@@ -160,4 +159,89 @@ func (s SearchIndex) FindChild(ctx context.Context, entity Reference, name strin
 		return nil, nil
 	}
 	return NewReference(s.c, *res.Returnval), nil
+}
+
+// FindAllByDnsName finds all virtual machines or hosts by DNS name.
+func (s SearchIndex) FindAllByDnsName(ctx context.Context, dc *Datacenter, dnsName string, vmSearch bool) ([]Reference, error) {
+	req := types.FindAllByDnsName{
+		This:     s.Reference(),
+		DnsName:  dnsName,
+		VmSearch: vmSearch,
+	}
+	if dc != nil {
+		ref := dc.Reference()
+		req.Datacenter = &ref
+	}
+
+	res, err := methods.FindAllByDnsName(ctx, s.c, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Returnval) == 0 {
+		return nil, nil
+	}
+
+	var references []Reference
+	for _, returnval := range res.Returnval {
+		references = append(references, NewReference(s.c, returnval))
+	}
+	return references, nil
+}
+
+// FindAllByIp finds all virtual machines or hosts by IP address.
+func (s SearchIndex) FindAllByIp(ctx context.Context, dc *Datacenter, ip string, vmSearch bool) ([]Reference, error) {
+	req := types.FindAllByIp{
+		This:     s.Reference(),
+		Ip:       ip,
+		VmSearch: vmSearch,
+	}
+	if dc != nil {
+		ref := dc.Reference()
+		req.Datacenter = &ref
+	}
+
+	res, err := methods.FindAllByIp(ctx, s.c, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Returnval) == 0 {
+		return nil, nil
+	}
+
+	var references []Reference
+	for _, returnval := range res.Returnval {
+		references = append(references, NewReference(s.c, returnval))
+	}
+	return references, nil
+}
+
+// FindAllByUuid finds all virtual machines or hosts by UUID.
+func (s SearchIndex) FindAllByUuid(ctx context.Context, dc *Datacenter, uuid string, vmSearch bool, instanceUuid *bool) ([]Reference, error) {
+	req := types.FindAllByUuid{
+		This:         s.Reference(),
+		Uuid:         uuid,
+		VmSearch:     vmSearch,
+		InstanceUuid: instanceUuid,
+	}
+	if dc != nil {
+		ref := dc.Reference()
+		req.Datacenter = &ref
+	}
+
+	res, err := methods.FindAllByUuid(ctx, s.c, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res.Returnval) == 0 {
+		return nil, nil
+	}
+
+	var references []Reference
+	for _, returnval := range res.Returnval {
+		references = append(references, NewReference(s.c, returnval))
+	}
+	return references, nil
 }

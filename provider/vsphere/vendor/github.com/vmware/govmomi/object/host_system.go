@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2015 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package object
 
@@ -21,6 +9,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/vmware/govmomi/internal"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/mo"
@@ -50,7 +39,7 @@ func (h HostSystem) ResourcePool(ctx context.Context) (*ResourcePool, error) {
 	}
 
 	var mcr *mo.ComputeResource
-	var parent interface{}
+	var parent any
 
 	switch mh.Parent.Type {
 	case "ComputeResource":
@@ -81,17 +70,17 @@ func (h HostSystem) ManagementIPs(ctx context.Context) ([]net.IP, error) {
 		return nil, err
 	}
 
-	var ips []net.IP
-	for _, nc := range mh.Config.VirtualNicManagerInfo.NetConfig {
-		if nc.NicType == "management" && len(nc.CandidateVnic) > 0 {
-			ip := net.ParseIP(nc.CandidateVnic[0].Spec.Ip.IpAddress)
-			if ip != nil {
-				ips = append(ips, ip)
-			}
-		}
+	config := mh.Config
+	if config == nil {
+		return nil, nil
 	}
 
-	return ips, nil
+	info := config.VirtualNicManagerInfo
+	if info == nil {
+		return nil, nil
+	}
+
+	return internal.HostSystemManagementIPs(info.NetConfig), nil
 }
 
 func (h HostSystem) Disconnect(ctx context.Context) (*Task, error) {
@@ -150,4 +139,26 @@ func (h HostSystem) ExitMaintenanceMode(ctx context.Context, timeout int32) (*Ta
 	}
 
 	return NewTask(h.c, res.Returnval), nil
+}
+
+func (h HostSystem) UpdatePodVMProperty(ctx context.Context, propertyPath string,
+	podVMInfo types.HostRuntimeInfoPodVMInfo) error {
+	req := types.UpdatePodVMProperty{
+		This:         h.Reference(),
+		PropertyPath: propertyPath,
+	}
+
+	switch propertyPath {
+	case "podVMOverheadInfo":
+		req.Property = podVMInfo.PodVMOverheadInfo
+	case "hasPageSharingPodVM":
+		req.Property = podVMInfo.HasPageSharingPodVM
+	case "podVMInfo":
+		req.Property = podVMInfo
+	default:
+		return fmt.Errorf("unsupported propertyPath: %s", propertyPath)
+	}
+
+	_, err := methods.UpdatePodVMProperty(ctx, h.c, &req)
+	return err
 }

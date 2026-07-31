@@ -1,33 +1,20 @@
-/*
-Copyright (c) 2015-2017 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package nfc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"path"
 
 	"github.com/vmware/govmomi/property"
+	"github.com/vmware/govmomi/task"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/mo"
-	"github.com/vmware/govmomi/vim25/progress"
 	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -72,17 +59,17 @@ func (l *Lease) Complete(ctx context.Context) error {
 }
 
 // GetManifest wraps methods.GetManifest
-func (l *Lease) GetManifest(ctx context.Context) error {
+func (l *Lease) GetManifest(ctx context.Context) ([]types.HttpNfcLeaseManifestEntry, error) {
 	req := types.HttpNfcLeaseGetManifest{
 		This: l.Reference(),
 	}
 
-	_, err := methods.HttpNfcLeaseGetManifest(ctx, l.c, &req)
+	res, err := methods.HttpNfcLeaseGetManifest(ctx, l.c, &req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return res.Returnval, nil
 }
 
 // Progress wraps methods.Progress
@@ -98,6 +85,29 @@ func (l *Lease) Progress(ctx context.Context, percent int32) error {
 	}
 
 	return nil
+}
+
+// Properties returns a mo.HttpNfcLease with the specified properties.
+// If no properties are requested, all properties are returned.
+func (l *Lease) Properties(
+	ctx context.Context,
+	props ...string) (mo.HttpNfcLease, error) {
+
+	if len(props) == 0 {
+		props = []string{
+			"initializeProgress",
+			"transferProgress",
+			"mode",
+			"capabilities",
+			"info",
+			"state",
+			"error",
+		}
+	}
+
+	var o mo.HttpNfcLease
+	pc := property.DefaultCollector(l.c)
+	return o, pc.RetrieveOne(ctx, l.Reference(), props, &o)
 }
 
 type LeaseInfo struct {
@@ -146,7 +156,11 @@ func (l *Lease) newLeaseInfo(li *types.HttpNfcLeaseInfo, items []types.OvfFileIt
 		// this is an import
 		for _, item := range items {
 			if device.ImportKey == item.DeviceId {
-				info.Items = append(info.Items, NewFileItem(u, item))
+				fi := NewFileItem(u, item)
+				fi.Thumbprint = device.SslThumbprint
+
+				info.Items = append(info.Items, fi)
+
 				break
 			}
 		}
@@ -195,7 +209,7 @@ func (l *Lease) Wait(ctx context.Context, items []types.OvfFileItem) (*LeaseInfo
 	}
 
 	if lease.Error != nil {
-		return nil, errors.New(lease.Error.LocalizedMessage)
+		return nil, &task.Error{LocalizedMethodFault: lease.Error}
 	}
 
 	return nil, fmt.Errorf("unexpected nfc lease state: %s", lease.State)
@@ -208,8 +222,6 @@ func (l *Lease) StartUpdater(ctx context.Context, info *LeaseInfo) *LeaseUpdater
 func (l *Lease) Upload(ctx context.Context, item FileItem, f io.Reader, opts soap.Upload) error {
 	if opts.Progress == nil {
 		opts.Progress = item
-	} else {
-		opts.Progress = progress.Tee(item, opts.Progress)
 	}
 
 	// Non-disk files (such as .iso) use the PUT method.
@@ -230,8 +242,6 @@ func (l *Lease) Upload(ctx context.Context, item FileItem, f io.Reader, opts soa
 func (l *Lease) DownloadFile(ctx context.Context, file string, item FileItem, opts soap.Download) error {
 	if opts.Progress == nil {
 		opts.Progress = item
-	} else {
-		opts.Progress = progress.Tee(item, opts.Progress)
 	}
 
 	return l.c.DownloadFile(ctx, file, item.URL, &opts)

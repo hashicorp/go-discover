@@ -1,86 +1,80 @@
-[![Build Status](https://travis-ci.org/vmware/govmomi.png?branch=master)](https://travis-ci.org/vmware/govmomi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/vmware/govmomi)](https://goreportcard.com/report/github.com/vmware/govmomi)
+<!-- markdownlint-disable first-line-h1 no-inline-html -->
+
+[![Build](https://github.com/vmware/govmomi/actions/workflows/govmomi-build.yaml/badge.svg)][ci-build]
+[![Tests](https://github.com/vmware/govmomi/actions/workflows/govmomi-go-tests.yaml/badge.svg)][ci-tests]
+[![Go Report Card](https://goreportcard.com/badge/github.com/vmware/govmomi)][go-report-card]
+[![Latest Release](https://img.shields.io/github/release/vmware/govmomi.svg?logo=github&style=flat-square)][latest-release]
+[![Go Reference](https://pkg.go.dev/badge/github.com/vmware/govmomi.svg)][go-reference]
+[![go.mod Go version](https://img.shields.io/github/go-mod/go-version/vmware/govmomi)][go-version]
 
 # govmomi
 
-A Go library for interacting with VMware vSphere APIs (ESXi and/or vCenter).
+A Go library for interacting with VMware vSphere APIs (ESXi and/or vCenter Server).
 
 In addition to the vSphere API client, this repository includes:
 
-* [govc](./govc) - vSphere CLI
-
-* [vcsim](./vcsim) - vSphere API mock framework
-
-* [toolbox](./toolbox) - VM guest tools framework
+* [govc][govc] - vSphere CLI
+* [vcsim][vcsim] - vSphere API mock framework
+* [toolbox][toolbox] - VM guest tools framework
 
 ## Compatibility
 
-This library is built for and tested against ESXi and vCenter 6.0, 6.5 and 6.7.
-
-It may work with versions 5.5 and 5.1, but neither are officially supported.
+vSphere 7.0 and higher.
 
 ## Documentation
 
-The APIs exposed by this library very closely follow the API described in the [VMware vSphere API Reference Documentation][apiref].
-Refer to this document to become familiar with the upstream API.
+The APIs exposed by this library closely follow the API described in the [VMware vSphere API Reference Documentation][reference-api]. Refer to the documentation to become familiar with the upstream API.
 
-The code in the `govmomi` package is a wrapper for the code that is generated from the vSphere API description.
-It primarily provides convenience functions for working with the vSphere API.
-See [godoc.org][godoc] for documentation.
-
-[apiref]:http://pubs.vmware.com/vsphere-6-5/index.jsp#com.vmware.wssdk.apiref.doc/right-pane.html
-[godoc]:http://godoc.org/github.com/vmware/govmomi
+The code in the `govmomi` package is a wrapper for the code that is generated from the vSphere API description. It primarily provides convenience functions for working with the vSphere API. See [godoc.org][reference-godoc] for documentation.
 
 ## Installation
 
-```sh
-go get -u github.com/vmware/govmomi
-```
+### Binaries and Docker Images for `govc` and `vcsim`
+
+Installation instructions, released binaries, and Docker images are documented in the respective README files of [`govc`][govc] and [`vcsim`][vcsim].
 
 ## Discussion
 
-Contributors and users are encouraged to collaborate using GitHub issues and/or
-[Slack](https://vmwarecode.slack.com/messages/govmomi).
-Access to Slack requires a [VMware {code} membership](https://code.vmware.com/join/).
+Collaborate with the community using GitHub [discussions][govmomi-github-discussions] and GitHub [issues][govmomi-github-issues].
 
 ## Status
 
-Changes to the API are subject to [semantic versioning](http://semver.org).
+Changes to the API are subject to [semantic versioning][reference-semver].
 
-Refer to the [CHANGELOG](CHANGELOG.md) for version to version changes.
+Refer to the [CHANGELOG][govmomi-changelog] for version to version changes.
 
-## Projects using govmomi
+## Related Projects
 
-* [Docker Machine](https://github.com/docker/machine/tree/master/drivers/vmwarevsphere)
-
-* [Docker InfraKit](https://github.com/docker/infrakit/tree/master/pkg/provider/vsphere)
-
-* [Docker LinuxKit](https://github.com/linuxkit/linuxkit/tree/master/src/cmd/linuxkit)
-
-* [Kubernetes](https://github.com/kubernetes/kubernetes/tree/master/pkg/cloudprovider/providers/vsphere)
-
-* [Kubernetes kops](https://github.com/kubernetes/kops/tree/master/upup/pkg/fi/cloudup/vsphere)
-
-* [Terraform](https://github.com/terraform-providers/terraform-provider-vsphere)
-
-* [Packer](https://github.com/jetbrains-infra/packer-builder-vsphere)
-
-* [VMware VIC Engine](https://github.com/vmware/vic)
-
-* [Travis CI](https://github.com/travis-ci/jupiter-brain)
-
-* [collectd-vsphere](https://github.com/travis-ci/collectd-vsphere)
-
-* [Gru](https://github.com/dnaeon/gru)
-
-* [Libretto](https://github.com/apcera/libretto/tree/master/virtualmachine/vsphere)
-
-## Related projects
-
-* [rbvmomi](https://github.com/vmware/rbvmomi)
-
-* [pyvmomi](https://github.com/vmware/pyvmomi)
+* [pyvmomi][reference-pyvmomi]
+* [rbvmomi][reference-rbvmomi]
 
 ## License
 
-govmomi is available under the [Apache 2 license](LICENSE).
+govmomi is available under the [Apache 2 License][govmomi-license].
+
+## Name
+
+Pronounced: _go·​v·​mom·​e_
+
+Follows pyvmomi and rbvmomi: language prefix + the vSphere acronym "VM Object Management Infrastructure".
+
+[//]: Links
+
+[ci-build]: https://github.com/vmware/govmomi/actions/workflows/govmomi-build.yaml
+[ci-tests]: https://github.com/vmware/govmomi/actions/workflows/govmomi-go-tests.yaml
+[latest-release]: https://github.com/vmware/govmomi/releases/latest
+[govc]: govc/README.md
+[govmomi-github-issues]: https://github.com/vmware/govmomi/issues
+[govmomi-github-discussions]: https://github.com/vmware/govmomi/discussions
+[govmomi-changelog]: CHANGELOG.md
+[govmomi-license]: LICENSE.txt
+[go-reference]: https://pkg.go.dev/github.com/vmware/govmomi
+[go-report-card]: https://goreportcard.com/report/github.com/vmware/govmomi
+[go-version]: https://github.com/vmware/govmomi
+[reference-api]: https://developer.broadcom.com/xapis/vsphere-web-services-api/latest/
+[reference-godoc]: https://pkg.go.dev/github.com/vmware/govmomi
+[reference-pyvmomi]: https://github.com/vmware/pyvmomi
+[reference-rbvmomi]: https://github.com/vmware/rbvmomi
+[reference-semver]: http://semver.org
+[toolbox]: toolbox/README.md
+[vcsim]: vcsim/README.md

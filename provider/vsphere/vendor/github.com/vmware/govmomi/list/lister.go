@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2014-2016 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package list
 
@@ -22,9 +10,9 @@ import (
 	"path"
 	"reflect"
 
+	"github.com/vmware/govmomi/fault"
 	"github.com/vmware/govmomi/property"
 	"github.com/vmware/govmomi/vim25/mo"
-	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -42,7 +30,7 @@ func ToElement(r mo.Reference, prefix string) Element {
 
 	// Comments about types to be expected in folders copied from the
 	// documentation of the Folder managed object:
-	// http://pubs.vmware.com/vsphere-55/topic/com.vmware.wssdk.apiref.doc/vim.Folder.html
+	// https://developer.broadcom.com/xapis/vsphere-web-services-api/latest/vim.Folder.html
 	switch m := r.(type) {
 	case mo.Folder:
 		name = m.Name
@@ -116,7 +104,7 @@ type Lister struct {
 	All       bool
 }
 
-func (l Lister) retrieveProperties(ctx context.Context, req types.RetrieveProperties, dst *[]interface{}) error {
+func (l Lister) retrieveProperties(ctx context.Context, req types.RetrieveProperties, dst *[]any) error {
 	res, err := l.Collector.RetrieveProperties(ctx, req)
 	if err != nil {
 		return err
@@ -132,12 +120,8 @@ func (l Lister) retrieveProperties(ctx context.Context, req types.RetrieveProper
 	for _, p := range res.Returnval {
 		v, err := mo.ObjectContentToType(p)
 		if err != nil {
-			// Ignore fault if it is ManagedObjectNotFound
-			if soap.IsVimFault(err) {
-				switch soap.ToVimFault(err).(type) {
-				case *types.ManagedObjectNotFound:
-					continue
-				}
+			if fault.Is(err, &types.ManagedObjectNotFound{}) {
+				continue
 			}
 
 			return err
@@ -165,8 +149,10 @@ func (l Lister) List(ctx context.Context) ([]Element, error) {
 		return l.ListHostSystem(ctx)
 	case "VirtualApp":
 		return l.ListVirtualApp(ctx)
+	case "VmwareDistributedVirtualSwitch", "DistributedVirtualSwitch":
+		return l.ListDistributedVirtualSwitch(ctx)
 	default:
-		return nil, fmt.Errorf("cannot traverse type " + l.Reference.Type)
+		return nil, fmt.Errorf("cannot traverse type %s", l.Reference.Type)
 	}
 }
 
@@ -229,7 +215,7 @@ func (l Lister) ListFolder(ctx context.Context) ([]Element, error) {
 		SpecSet: []types.PropertyFilterSpec{spec},
 	}
 
-	var dst []interface{}
+	var dst []any
 
 	err := l.retrieveProperties(ctx, req, &dst)
 	if err != nil {
@@ -287,7 +273,7 @@ func (l Lister) ListDatacenter(ctx context.Context) ([]Element, error) {
 		},
 	}
 
-	var dst []interface{}
+	var dst []any
 
 	err := l.retrieveProperties(ctx, req, &dst)
 	if err != nil {
@@ -310,6 +296,7 @@ func (l Lister) ListComputeResource(ctx context.Context) ([]Element, error) {
 
 	fields := []string{
 		"host",
+		"network",
 		"resourcePool",
 	}
 
@@ -325,6 +312,7 @@ func (l Lister) ListComputeResource(ctx context.Context) ([]Element, error) {
 
 	childTypes := []string{
 		"HostSystem",
+		"Network",
 		"ResourcePool",
 	}
 
@@ -352,7 +340,7 @@ func (l Lister) ListComputeResource(ctx context.Context) ([]Element, error) {
 		},
 	}
 
-	var dst []interface{}
+	var dst []any
 
 	err := l.retrieveProperties(ctx, req, &dst)
 	if err != nil {
@@ -415,7 +403,7 @@ func (l Lister) ListResourcePool(ctx context.Context) ([]Element, error) {
 		},
 	}
 
-	var dst []interface{}
+	var dst []any
 
 	err := l.retrieveProperties(ctx, req, &dst)
 	if err != nil {
@@ -482,7 +470,70 @@ func (l Lister) ListHostSystem(ctx context.Context) ([]Element, error) {
 		},
 	}
 
-	var dst []interface{}
+	var dst []any
+
+	err := l.retrieveProperties(ctx, req, &dst)
+	if err != nil {
+		return nil, err
+	}
+
+	es := []Element{}
+	for _, v := range dst {
+		es = append(es, ToElement(v.(mo.Reference), l.Prefix))
+	}
+
+	return es, nil
+}
+
+func (l Lister) ListDistributedVirtualSwitch(ctx context.Context) ([]Element, error) {
+	ospec := types.ObjectSpec{
+		Obj:  l.Reference,
+		Skip: types.NewBool(true),
+	}
+
+	fields := []string{
+		"portgroup",
+	}
+
+	for _, f := range fields {
+		tspec := types.TraversalSpec{
+			Path: f,
+			Skip: types.NewBool(false),
+			Type: "DistributedVirtualSwitch",
+		}
+
+		ospec.SelectSet = append(ospec.SelectSet, &tspec)
+	}
+
+	childTypes := []string{
+		"DistributedVirtualPortgroup",
+	}
+
+	var pspecs []types.PropertySpec
+	for _, t := range childTypes {
+		pspec := types.PropertySpec{
+			Type: t,
+		}
+
+		if l.All {
+			pspec.All = types.NewBool(true)
+		} else {
+			pspec.PathSet = []string{"name"}
+		}
+
+		pspecs = append(pspecs, pspec)
+	}
+
+	req := types.RetrieveProperties{
+		SpecSet: []types.PropertyFilterSpec{
+			{
+				ObjectSet: []types.ObjectSpec{ospec},
+				PropSet:   pspecs,
+			},
+		},
+	}
+
+	var dst []any
 
 	err := l.retrieveProperties(ctx, req, &dst)
 	if err != nil {
@@ -547,7 +598,7 @@ func (l Lister) ListVirtualApp(ctx context.Context) ([]Element, error) {
 		},
 	}
 
-	var dst []interface{}
+	var dst []any
 
 	err := l.retrieveProperties(ctx, req, &dst)
 	if err != nil {

@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2015 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package object
 
@@ -98,18 +86,18 @@ func (o HostNetworkSystem) AddVirtualSwitch(ctx context.Context, vswitchName str
 }
 
 // QueryNetworkHint wraps methods.QueryNetworkHint
-func (o HostNetworkSystem) QueryNetworkHint(ctx context.Context, device []string) error {
+func (o HostNetworkSystem) QueryNetworkHint(ctx context.Context, device []string) ([]types.PhysicalNicHintInfo, error) {
 	req := types.QueryNetworkHint{
 		This:   o.Reference(),
 		Device: device,
 	}
 
-	_, err := methods.QueryNetworkHint(ctx, o.c, &req)
+	res, err := methods.QueryNetworkHint(ctx, o.c, &req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return res.Returnval, err
 }
 
 // RefreshNetworkSystem wraps methods.RefreshNetworkSystem

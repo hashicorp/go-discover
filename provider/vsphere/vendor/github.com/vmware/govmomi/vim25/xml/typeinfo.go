@@ -1,4 +1,4 @@
-// Copyright 2011 The Go Authors.  All rights reserved.
+// Copyright 2011 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -11,17 +11,18 @@ import (
 	"sync"
 )
 
-// typeInfo holds details for the xml representation of a type.
-type typeInfo struct {
-	xmlname *fieldInfo
-	fields  []fieldInfo
+// TypeInfo holds details for the xml representation of a type.
+type TypeInfo struct {
+	XmlName    *FieldInfo
+	Fields     map[string]FieldInfo
+	FieldNames []string
 }
 
-// fieldInfo holds details for the xml representation of a single field.
-type fieldInfo struct {
+// FieldInfo holds details for the xml representation of a single field.
+type FieldInfo struct {
+	Name    string
+	Xmlns   string
 	idx     []int
-	name    string
-	xmlns   string
 	flags   fieldFlags
 	parents []string
 }
@@ -31,55 +32,58 @@ type fieldFlags int
 const (
 	fElement fieldFlags = 1 << iota
 	fAttr
+	fCDATA
 	fCharData
-	fInnerXml
+	fInnerXML
 	fComment
 	fAny
 
 	fOmitEmpty
 	fTypeAttr
 
-	fMode = fElement | fAttr | fCharData | fInnerXml | fComment | fAny
+	fMode = fElement | fAttr | fCDATA | fCharData | fInnerXML | fComment | fAny
+
+	xmlName = "XMLName"
 )
 
-var tinfoMap = make(map[reflect.Type]*typeInfo)
-var tinfoLock sync.RWMutex
+var tinfoMap sync.Map // map[reflect.Type]*TypeInfo
 
-var nameType = reflect.TypeOf(Name{})
+var nameType = reflect.TypeFor[Name]()
 
-// getTypeInfo returns the typeInfo structure with details necessary
-// for marshalling and unmarshalling typ.
-func getTypeInfo(typ reflect.Type) (*typeInfo, error) {
-	tinfoLock.RLock()
-	tinfo, ok := tinfoMap[typ]
-	tinfoLock.RUnlock()
-	if ok {
-		return tinfo, nil
+// GetTypeInfo returns the TypeInfo structure with details necessary
+// for marshaling and unmarshaling typ.
+func GetTypeInfo(typ reflect.Type) (*TypeInfo, error) {
+	if ti, ok := tinfoMap.Load(typ); ok {
+		return ti.(*TypeInfo), nil
 	}
-	tinfo = &typeInfo{}
+
+	tinfo := &TypeInfo{
+		Fields: make(map[string]FieldInfo),
+	}
 	if typ.Kind() == reflect.Struct && typ != nameType {
 		n := typ.NumField()
 		for i := 0; i < n; i++ {
 			f := typ.Field(i)
-			if f.PkgPath != "" || f.Tag.Get("xml") == "-" {
+			if (!f.IsExported() && !f.Anonymous) || f.Tag.Get("xml") == "-" {
 				continue // Private field
 			}
 
 			// For embedded structs, embed its fields.
 			if f.Anonymous {
 				t := f.Type
-				if t.Kind() == reflect.Ptr {
+				if t.Kind() == reflect.Pointer {
 					t = t.Elem()
 				}
 				if t.Kind() == reflect.Struct {
-					inner, err := getTypeInfo(t)
+					inner, err := GetTypeInfo(t)
 					if err != nil {
 						return nil, err
 					}
-					if tinfo.xmlname == nil {
-						tinfo.xmlname = inner.xmlname
+					if tinfo.XmlName == nil {
+						tinfo.XmlName = inner.XmlName
 					}
-					for _, finfo := range inner.fields {
+					for _, name := range inner.FieldNames {
+						finfo := inner.Fields[name]
 						finfo.idx = append([]int{i}, finfo.idx...)
 						if err := addFieldInfo(typ, tinfo, &finfo); err != nil {
 							return nil, err
@@ -94,8 +98,8 @@ func getTypeInfo(typ reflect.Type) (*typeInfo, error) {
 				return nil, err
 			}
 
-			if f.Name == "XMLName" {
-				tinfo.xmlname = finfo
+			if f.Name == xmlName {
+				tinfo.XmlName = finfo
 				continue
 			}
 
@@ -105,20 +109,19 @@ func getTypeInfo(typ reflect.Type) (*typeInfo, error) {
 			}
 		}
 	}
-	tinfoLock.Lock()
-	tinfoMap[typ] = tinfo
-	tinfoLock.Unlock()
-	return tinfo, nil
+
+	ti, _ := tinfoMap.LoadOrStore(typ, tinfo)
+	return ti.(*TypeInfo), nil
 }
 
-// structFieldInfo builds and returns a fieldInfo for f.
-func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, error) {
-	finfo := &fieldInfo{idx: f.Index}
+// structFieldInfo builds and returns a FieldInfo for f.
+func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*FieldInfo, error) {
+	finfo := &FieldInfo{idx: f.Index}
 
 	// Split the tag from the xml namespace if necessary.
 	tag := f.Tag.Get("xml")
-	if i := strings.Index(tag, " "); i >= 0 {
-		finfo.xmlns, tag = tag[:i], tag[i+1:]
+	if ns, t, ok := strings.Cut(tag, " "); ok {
+		finfo.Xmlns, tag = ns, t
 	}
 
 	// Parse flags.
@@ -131,10 +134,12 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 			switch flag {
 			case "attr":
 				finfo.flags |= fAttr
+			case "cdata":
+				finfo.flags |= fCDATA
 			case "chardata":
 				finfo.flags |= fCharData
 			case "innerxml":
-				finfo.flags |= fInnerXml
+				finfo.flags |= fInnerXML
 			case "comment":
 				finfo.flags |= fComment
 			case "any":
@@ -151,8 +156,8 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 		switch mode := finfo.flags & fMode; mode {
 		case 0:
 			finfo.flags |= fElement
-		case fAttr, fCharData, fInnerXml, fComment, fAny:
-			if f.Name == "XMLName" || tag != "" && mode != fAttr {
+		case fAttr, fCDATA, fCharData, fInnerXML, fComment, fAny, fAny | fAttr:
+			if f.Name == xmlName || tag != "" && mode != fAttr {
 				valid = false
 			}
 		default:
@@ -172,16 +177,16 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 	}
 
 	// Use of xmlns without a name is not allowed.
-	if finfo.xmlns != "" && tag == "" {
+	if finfo.Xmlns != "" && tag == "" {
 		return nil, fmt.Errorf("xml: namespace without name in field %s of type %s: %q",
 			f.Name, typ, f.Tag.Get("xml"))
 	}
 
-	if f.Name == "XMLName" {
+	if f.Name == xmlName {
 		// The XMLName field records the XML element name. Don't
 		// process it as usual because its name should default to
 		// empty rather than to the field name.
-		finfo.name = tag
+		finfo.Name = tag
 		return finfo, nil
 	}
 
@@ -190,9 +195,9 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 		// default from XMLName of underlying struct if feasible,
 		// or field name otherwise.
 		if xmlname := lookupXMLName(f.Type); xmlname != nil {
-			finfo.xmlns, finfo.name = xmlname.xmlns, xmlname.name
+			finfo.Xmlns, finfo.Name = xmlname.Xmlns, xmlname.Name
 		} else {
-			finfo.name = f.Name
+			finfo.Name = f.Name
 		}
 		return finfo, nil
 	}
@@ -205,7 +210,7 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 	if parents[len(parents)-1] == "" {
 		return nil, fmt.Errorf("xml: trailing '>' in field %s of type %s", f.Name, typ)
 	}
-	finfo.name = parents[len(parents)-1]
+	finfo.Name = parents[len(parents)-1]
 	if len(parents) > 1 {
 		if (finfo.flags & fElement) == 0 {
 			return nil, fmt.Errorf("xml: %s chain not valid with %s flag", tag, strings.Join(tokens[1:], ","))
@@ -214,24 +219,24 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 	}
 
 	// If the field type has an XMLName field, the names must match
-	// so that the behavior of both marshalling and unmarshalling
+	// so that the behavior of both marshaling and unmarshaling
 	// is straightforward and unambiguous.
 	if finfo.flags&fElement != 0 {
 		ftyp := f.Type
 		xmlname := lookupXMLName(ftyp)
-		if xmlname != nil && xmlname.name != finfo.name {
+		if xmlname != nil && xmlname.Name != finfo.Name {
 			return nil, fmt.Errorf("xml: name %q in tag of %s.%s conflicts with name %q in %s.XMLName",
-				finfo.name, typ, f.Name, xmlname.name, ftyp)
+				finfo.Name, typ, f.Name, xmlname.Name, ftyp)
 		}
 	}
 	return finfo, nil
 }
 
-// lookupXMLName returns the fieldInfo for typ's XMLName field
+// lookupXMLName returns the FieldInfo for typ's XMLName field
 // in case it exists and has a valid xml field tag, otherwise
 // it returns nil.
-func lookupXMLName(typ reflect.Type) (xmlname *fieldInfo) {
-	for typ.Kind() == reflect.Ptr {
+func lookupXMLName(typ reflect.Type) (xmlname *FieldInfo) {
+	for typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 	if typ.Kind() != reflect.Struct {
@@ -239,11 +244,11 @@ func lookupXMLName(typ reflect.Type) (xmlname *fieldInfo) {
 	}
 	for i, n := 0, typ.NumField(); i < n; i++ {
 		f := typ.Field(i)
-		if f.Name != "XMLName" {
+		if f.Name != xmlName {
 			continue
 		}
 		finfo, err := structFieldInfo(typ, &f)
-		if finfo.name != "" && err == nil {
+		if err == nil && finfo.Name != "" {
 			return finfo
 		}
 		// Also consider errors as a non-existent field tag
@@ -253,13 +258,6 @@ func lookupXMLName(typ reflect.Type) (xmlname *fieldInfo) {
 	return nil
 }
 
-func min(a, b int) int {
-	if a <= b {
-		return a
-	}
-	return b
-}
-
 // addFieldInfo adds finfo to tinfo.fields if there are no
 // conflicts, or if conflicts arise from previous fields that were
 // obtained from deeper embedded structures than finfo. In the latter
@@ -267,16 +265,16 @@ func min(a, b int) int {
 // A conflict occurs when the path (parent + name) to a field is
 // itself a prefix of another path, or when two paths match exactly.
 // It is okay for field paths to share a common, shorter prefix.
-func addFieldInfo(typ reflect.Type, tinfo *typeInfo, newf *fieldInfo) error {
-	var conflicts []int
+func addFieldInfo(typ reflect.Type, tinfo *TypeInfo, newf *FieldInfo) error {
+	var conflicts []string
 Loop:
 	// First, figure all conflicts. Most working code will have none.
-	for i := range tinfo.fields {
-		oldf := &tinfo.fields[i]
+	for _, name := range tinfo.FieldNames {
+		oldf := tinfo.Fields[name]
 		if oldf.flags&fMode != newf.flags&fMode {
 			continue
 		}
-		if oldf.xmlns != "" && newf.xmlns != "" && oldf.xmlns != newf.xmlns {
+		if oldf.Xmlns != "" && newf.Xmlns != "" && oldf.Xmlns != newf.Xmlns {
 			continue
 		}
 		minl := min(len(newf.parents), len(oldf.parents))
@@ -286,36 +284,40 @@ Loop:
 			}
 		}
 		if len(oldf.parents) > len(newf.parents) {
-			if oldf.parents[len(newf.parents)] == newf.name {
-				conflicts = append(conflicts, i)
+			if oldf.parents[len(newf.parents)] == newf.Name {
+				conflicts = append(conflicts, name)
 			}
 		} else if len(oldf.parents) < len(newf.parents) {
-			if newf.parents[len(oldf.parents)] == oldf.name {
-				conflicts = append(conflicts, i)
+			if newf.parents[len(oldf.parents)] == oldf.Name {
+				conflicts = append(conflicts, name)
 			}
 		} else {
-			if newf.name == oldf.name {
-				conflicts = append(conflicts, i)
+			if newf.Name == oldf.Name && newf.Xmlns == oldf.Xmlns {
+				conflicts = append(conflicts, name)
 			}
 		}
 	}
+
+	newName := typ.FieldByIndex(newf.idx).Name
+
 	// Without conflicts, add the new field and return.
 	if conflicts == nil {
-		tinfo.fields = append(tinfo.fields, *newf)
+		tinfo.Fields[newName] = *newf
+		tinfo.FieldNames = append(tinfo.FieldNames, newName)
 		return nil
 	}
 
 	// If any conflict is shallower, ignore the new field.
 	// This matches the Go field resolution on embedding.
-	for _, i := range conflicts {
-		if len(tinfo.fields[i].idx) < len(newf.idx) {
+	for _, name := range conflicts {
+		if len(tinfo.Fields[name].idx) < len(newf.idx) {
 			return nil
 		}
 	}
 
 	// Otherwise, if any of them is at the same depth level, it's an error.
-	for _, i := range conflicts {
-		oldf := &tinfo.fields[i]
+	for _, name := range conflicts {
+		oldf := tinfo.Fields[name]
 		if len(oldf.idx) == len(newf.idx) {
 			f1 := typ.FieldByIndex(oldf.idx)
 			f2 := typ.FieldByIndex(newf.idx)
@@ -324,17 +326,25 @@ Loop:
 	}
 
 	// Otherwise, the new field is shallower, and thus takes precedence,
-	// so drop the conflicting fields from tinfo and append the new one.
-	for c := len(conflicts) - 1; c >= 0; c-- {
-		i := conflicts[c]
-		copy(tinfo.fields[i:], tinfo.fields[i+1:])
-		tinfo.fields = tinfo.fields[:len(tinfo.fields)-1]
+	// so drop the conflicting fields from tinfo and add the new one.
+	for _, name := range conflicts {
+		delete(tinfo.Fields, name)
 	}
-	tinfo.fields = append(tinfo.fields, *newf)
+
+	newNames := make([]string, 0, len(tinfo.FieldNames))
+	for _, name := range tinfo.FieldNames {
+		if _, ok := tinfo.Fields[name]; ok {
+			newNames = append(newNames, name)
+		}
+	}
+	tinfo.FieldNames = newNames
+
+	tinfo.Fields[newName] = *newf
+	tinfo.FieldNames = append(tinfo.FieldNames, newName)
 	return nil
 }
 
-// A TagPathError represents an error in the unmarshalling process
+// A TagPathError represents an error in the unmarshaling process
 // caused by the use of field tags with conflicting paths.
 type TagPathError struct {
 	Struct       reflect.Type
@@ -346,15 +356,25 @@ func (e *TagPathError) Error() string {
 	return fmt.Sprintf("%s field %q with tag %q conflicts with field %q with tag %q", e.Struct, e.Field1, e.Tag1, e.Field2, e.Tag2)
 }
 
+const (
+	initNilPointers     = true
+	dontInitNilPointers = false
+)
+
 // value returns v's field value corresponding to finfo.
-// It's equivalent to v.FieldByIndex(finfo.idx), but initializes
-// and dereferences pointers as necessary.
-func (finfo *fieldInfo) value(v reflect.Value) reflect.Value {
+// It's equivalent to v.FieldByIndex(finfo.idx), but when passed
+// initNilPointers, it initializes and dereferences pointers as necessary.
+// When passed dontInitNilPointers and a nil pointer is reached, the function
+// returns a zero reflect.Value.
+func (finfo *FieldInfo) value(v reflect.Value, shouldInitNilPointers bool) reflect.Value {
 	for i, x := range finfo.idx {
 		if i > 0 {
 			t := v.Type()
-			if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct {
+			if t.Kind() == reflect.Pointer && t.Elem().Kind() == reflect.Struct {
 				if v.IsNil() {
+					if !shouldInitNilPointers {
+						return reflect.Value{}
+					}
 					v.Set(reflect.New(v.Type().Elem()))
 				}
 				v = v.Elem()

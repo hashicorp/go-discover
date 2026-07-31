@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2015-2017 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package object
 
@@ -22,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"path"
+	"strings"
 
 	"github.com/vmware/govmomi/nfc"
 	"github.com/vmware/govmomi/property"
@@ -33,10 +22,39 @@ import (
 
 const (
 	PropRuntimePowerState = "summary.runtime.powerState"
+	PropConfigTemplate    = "summary.config.template"
 )
 
 type VirtualMachine struct {
 	Common
+}
+
+// extractDiskLayoutFiles is a helper function used to extract file keys for
+// all disk files attached to the virtual machine at the current point of
+// running.
+func extractDiskLayoutFiles(diskLayoutList []types.VirtualMachineFileLayoutExDiskLayout) []int {
+	var result []int
+
+	for _, layoutExDisk := range diskLayoutList {
+		for _, link := range layoutExDisk.Chain {
+			for i := range link.FileKey { // diskDescriptor, diskExtent pairs
+				result = append(result, int(link.FileKey[i]))
+			}
+		}
+	}
+
+	return result
+}
+
+// removeKey is a helper function for removing a specific file key from a list
+// of keys associated with disks attached to a virtual machine.
+func removeKey(l *[]int, key int) {
+	for i, k := range *l {
+		if k == key {
+			*l = append((*l)[:i], (*l)[i+1:]...)
+			break
+		}
+	}
 }
 
 func NewVirtualMachine(c *vim25.Client, ref types.ManagedObjectReference) *VirtualMachine {
@@ -54,6 +72,17 @@ func (v VirtualMachine) PowerState(ctx context.Context) (types.VirtualMachinePow
 	}
 
 	return o.Summary.Runtime.PowerState, nil
+}
+
+func (v VirtualMachine) IsTemplate(ctx context.Context) (bool, error) {
+	var o mo.VirtualMachine
+
+	err := v.Properties(ctx, v.Reference(), []string{PropConfigTemplate}, &o)
+	if err != nil {
+		return false, err
+	}
+
+	return o.Summary.Config.Template, nil
 }
 
 func (v VirtualMachine) PowerOn(ctx context.Context) (*Task, error) {
@@ -80,6 +109,20 @@ func (v VirtualMachine) PowerOff(ctx context.Context) (*Task, error) {
 	}
 
 	return NewTask(v.c, res.Returnval), nil
+}
+
+func (v VirtualMachine) PutUsbScanCodes(ctx context.Context, spec types.UsbScanCodeSpec) (int32, error) {
+	req := types.PutUsbScanCodes{
+		This: v.Reference(),
+		Spec: spec,
+	}
+
+	res, err := methods.PutUsbScanCodes(ctx, v.c, &req)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.Returnval, nil
 }
 
 func (v VirtualMachine) Reset(ctx context.Context) (*Task, error) {
@@ -117,6 +160,15 @@ func (v VirtualMachine) ShutdownGuest(ctx context.Context) error {
 	return err
 }
 
+func (v VirtualMachine) StandbyGuest(ctx context.Context) error {
+	req := types.StandbyGuest{
+		This: v.Reference(),
+	}
+
+	_, err := methods.StandbyGuest(ctx, v.c, &req)
+	return err
+}
+
 func (v VirtualMachine) RebootGuest(ctx context.Context) error {
 	req := types.RebootGuest{
 		This: v.Reference(),
@@ -148,6 +200,20 @@ func (v VirtualMachine) Clone(ctx context.Context, folder *Folder, name string, 
 	}
 
 	res, err := methods.CloneVM_Task(ctx, v.c, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewTask(v.c, res.Returnval), nil
+}
+
+func (v VirtualMachine) InstantClone(ctx context.Context, config types.VirtualMachineInstantCloneSpec) (*Task, error) {
+	req := types.InstantClone_Task{
+		This: v.Reference(),
+		Spec: config,
+	}
+
+	res, err := methods.InstantClone_Task(ctx, v.c, &req)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +264,18 @@ func (v VirtualMachine) Reconfigure(ctx context.Context, config types.VirtualMac
 	return NewTask(v.c, res.Returnval), nil
 }
 
-func (v VirtualMachine) WaitForIP(ctx context.Context) (string, error) {
+func (v VirtualMachine) RefreshStorageInfo(ctx context.Context) error {
+	req := types.RefreshStorageInfo{
+		This: v.Reference(),
+	}
+
+	_, err := methods.RefreshStorageInfo(ctx, v.c, &req)
+	return err
+}
+
+// WaitForIP waits for the VM guest.ipAddress property to report an IP address.
+// Waits for an IPv4 address if the v4 param is true.
+func (v VirtualMachine) WaitForIP(ctx context.Context, v4 ...bool) (string, error) {
 	var ip string
 
 	p := property.DefaultCollector(v.c)
@@ -215,6 +292,11 @@ func (v VirtualMachine) WaitForIP(ctx context.Context) (string, error) {
 			}
 
 			ip = c.Val.(string)
+			if len(v4) == 1 && v4[0] {
+				if net.ParseIP(ip).To4() == nil {
+					return false
+				}
+			}
 			return true
 		}
 
@@ -249,7 +331,9 @@ func (v VirtualMachine) WaitForNetIP(ctx context.Context, v4 bool, device ...str
 			devices := VirtualDeviceList(c.Val.(types.ArrayOfVirtualDevice).VirtualDevice)
 			for _, d := range devices {
 				if nic, ok := d.(types.BaseVirtualEthernetCard); ok {
-					mac := nic.GetVirtualEthernetCard().MacAddress
+					// Convert to lower so that e.g. 00:50:56:83:3A:5D is treated the
+					// same as 00:50:56:83:3a:5d
+					mac := strings.ToLower(nic.GetVirtualEthernetCard().MacAddress)
 					if mac == "" {
 						return false
 					}
@@ -261,6 +345,10 @@ func (v VirtualMachine) WaitForNetIP(ctx context.Context, v4 bool, device ...str
 
 		return true
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	if len(device) != 0 {
 		// Only wait for specific NIC(s)
@@ -281,7 +369,9 @@ func (v VirtualMachine) WaitForNetIP(ctx context.Context, v4 bool, device ...str
 
 			nics := c.Val.(types.ArrayOfGuestNicInfo).GuestNicInfo
 			for _, nic := range nics {
-				mac := nic.MacAddress
+				// Convert to lower so that e.g. 00:50:56:83:3A:5D is treated the
+				// same as 00:50:56:83:3a:5d
+				mac := strings.ToLower(nic.MacAddress)
 				if mac == "" || nic.IpConfig == nil {
 					continue
 				}
@@ -336,6 +426,17 @@ func (v VirtualMachine) Device(ctx context.Context) (VirtualDeviceList, error) {
 	return VirtualDeviceList(o.Config.Hardware.Device), nil
 }
 
+func (v VirtualMachine) EnvironmentBrowser(ctx context.Context) (*EnvironmentBrowser, error) {
+	var vm mo.VirtualMachine
+
+	err := v.Properties(ctx, v.Reference(), []string{"environmentBrowser"}, &vm)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewEnvironmentBrowser(v.c, vm.EnvironmentBrowser), nil
+}
+
 func (v VirtualMachine) HostSystem(ctx context.Context) (*HostSystem, error) {
 	var o mo.VirtualMachine
 
@@ -368,29 +469,34 @@ func (v VirtualMachine) ResourcePool(ctx context.Context) (*ResourcePool, error)
 	return NewResourcePool(v.c, *rp), nil
 }
 
-func (v VirtualMachine) configureDevice(ctx context.Context, op types.VirtualDeviceConfigSpecOperation, fop types.VirtualDeviceConfigSpecFileOperation, devices ...types.BaseVirtualDevice) error {
+func diskFileOperation(op types.VirtualDeviceConfigSpecOperation, fop types.VirtualDeviceConfigSpecFileOperation, device types.BaseVirtualDevice) types.VirtualDeviceConfigSpecFileOperation {
+	if disk, ok := device.(*types.VirtualDisk); ok {
+		// Special case to attach an existing disk
+		if op == types.VirtualDeviceConfigSpecOperationAdd && disk.CapacityInKB == 0 && disk.CapacityInBytes == 0 {
+			childDisk := false
+			if b, ok := disk.Backing.(*types.VirtualDiskFlatVer2BackingInfo); ok {
+				childDisk = b.Parent != nil
+			}
+
+			if !childDisk {
+				fop = "" // existing disk
+			}
+		}
+		return fop
+	}
+
+	return ""
+}
+
+func (v VirtualMachine) configureDevice(ctx context.Context, profile []types.BaseVirtualMachineProfileSpec, op types.VirtualDeviceConfigSpecOperation, fop types.VirtualDeviceConfigSpecFileOperation, devices ...types.BaseVirtualDevice) error {
 	spec := types.VirtualMachineConfigSpec{}
 
 	for _, device := range devices {
 		config := &types.VirtualDeviceConfigSpec{
-			Device:    device,
-			Operation: op,
-		}
-
-		if disk, ok := device.(*types.VirtualDisk); ok {
-			config.FileOperation = fop
-
-			// Special case to attach an existing disk
-			if op == types.VirtualDeviceConfigSpecOperationAdd && disk.CapacityInKB == 0 {
-				childDisk := false
-				if b, ok := disk.Backing.(*types.VirtualDiskFlatVer2BackingInfo); ok {
-					childDisk = b.Parent != nil
-				}
-
-				if !childDisk {
-					config.FileOperation = "" // existing disk
-				}
-			}
+			Device:        device,
+			Operation:     op,
+			FileOperation: diskFileOperation(op, fop, device),
+			Profile:       profile,
 		}
 
 		spec.DeviceChange = append(spec.DeviceChange, config)
@@ -406,12 +512,22 @@ func (v VirtualMachine) configureDevice(ctx context.Context, op types.VirtualDev
 
 // AddDevice adds the given devices to the VirtualMachine
 func (v VirtualMachine) AddDevice(ctx context.Context, device ...types.BaseVirtualDevice) error {
-	return v.configureDevice(ctx, types.VirtualDeviceConfigSpecOperationAdd, types.VirtualDeviceConfigSpecFileOperationCreate, device...)
+	return v.AddDeviceWithProfile(ctx, nil, device...)
+}
+
+// AddDeviceWithProfile adds the given devices to the VirtualMachine with the given profile
+func (v VirtualMachine) AddDeviceWithProfile(ctx context.Context, profile []types.BaseVirtualMachineProfileSpec, device ...types.BaseVirtualDevice) error {
+	return v.configureDevice(ctx, profile, types.VirtualDeviceConfigSpecOperationAdd, types.VirtualDeviceConfigSpecFileOperationCreate, device...)
 }
 
 // EditDevice edits the given (existing) devices on the VirtualMachine
 func (v VirtualMachine) EditDevice(ctx context.Context, device ...types.BaseVirtualDevice) error {
-	return v.configureDevice(ctx, types.VirtualDeviceConfigSpecOperationEdit, types.VirtualDeviceConfigSpecFileOperationReplace, device...)
+	return v.EditDeviceWithProfile(ctx, nil, device...)
+}
+
+// EditDeviceWithProfile edits the given (existing) devices on the VirtualMachine with the given profile
+func (v VirtualMachine) EditDeviceWithProfile(ctx context.Context, profile []types.BaseVirtualMachineProfileSpec, device ...types.BaseVirtualDevice) error {
+	return v.configureDevice(ctx, profile, types.VirtualDeviceConfigSpecOperationEdit, types.VirtualDeviceConfigSpecFileOperationReplace, device...)
 }
 
 // RemoveDevice removes the given devices on the VirtualMachine
@@ -420,7 +536,42 @@ func (v VirtualMachine) RemoveDevice(ctx context.Context, keepFiles bool, device
 	if keepFiles {
 		fop = ""
 	}
-	return v.configureDevice(ctx, types.VirtualDeviceConfigSpecOperationRemove, fop, device...)
+	return v.configureDevice(ctx, nil, types.VirtualDeviceConfigSpecOperationRemove, fop, device...)
+}
+
+// AttachDisk attaches the given disk to the VirtualMachine
+func (v VirtualMachine) AttachDisk(ctx context.Context, id string, datastore *Datastore, controllerKey int32, unitNumber *int32) error {
+	req := types.AttachDisk_Task{
+		This:          v.Reference(),
+		DiskId:        types.ID{Id: id},
+		Datastore:     datastore.Reference(),
+		ControllerKey: controllerKey,
+		UnitNumber:    unitNumber,
+	}
+
+	res, err := methods.AttachDisk_Task(ctx, v.c, &req)
+	if err != nil {
+		return err
+	}
+
+	task := NewTask(v.c, res.Returnval)
+	return task.Wait(ctx)
+}
+
+// DetachDisk detaches the given disk from the VirtualMachine
+func (v VirtualMachine) DetachDisk(ctx context.Context, id string) error {
+	req := types.DetachDisk_Task{
+		This:   v.Reference(),
+		DiskId: types.ID{Id: id},
+	}
+
+	res, err := methods.DetachDisk_Task(ctx, v.c, &req)
+	if err != nil {
+		return err
+	}
+
+	task := NewTask(v.c, res.Returnval)
+	return task.Wait(ctx)
 }
 
 // BootOptions returns the VirtualMachine's config.bootOptions property.
@@ -497,6 +648,24 @@ func (v VirtualMachine) CreateSnapshot(ctx context.Context, name string, descrip
 	return NewTask(v.c, res.Returnval), nil
 }
 
+// CreateSnapshotEx creates a new snapshot of a virtual machine.
+func (v VirtualMachine) CreateSnapshotEx(ctx context.Context, name string, description string, memory bool, quiesceSpec types.BaseVirtualMachineGuestQuiesceSpec) (*Task, error) {
+	req := types.CreateSnapshotEx_Task{
+		This:        v.Reference(),
+		Name:        name,
+		Description: description,
+		Memory:      memory,
+		QuiesceSpec: quiesceSpec,
+	}
+
+	res, err := methods.CreateSnapshotEx_Task(ctx, v.c, &req)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewTask(v.c, res.Returnval), nil
+}
+
 // RemoveAllSnapshot removes all snapshots of a virtual machine
 func (v VirtualMachine) RemoveAllSnapshot(ctx context.Context, consolidate *bool) (*Task, error) {
 	req := types.RemoveAllSnapshots_Task{
@@ -533,6 +702,63 @@ func (m snapshotMap) add(parent string, tree []types.VirtualMachineSnapshotTree)
 	}
 }
 
+// SnapshotSize calculates the size of a given snapshot in bytes. If the
+// snapshot is current, disk files not associated with any parent snapshot are
+// included in size calculations. This allows for measuring and including the
+// growth from the last fixed snapshot to the present state.
+func SnapshotSize(info types.ManagedObjectReference, parent *types.ManagedObjectReference, vmlayout *types.VirtualMachineFileLayoutEx, isCurrent bool) int {
+	var fileKeyList []int
+	var parentFiles []int
+	var allSnapshotFiles []int
+
+	diskFiles := extractDiskLayoutFiles(vmlayout.Disk)
+
+	for _, layout := range vmlayout.Snapshot {
+		diskLayout := extractDiskLayoutFiles(layout.Disk)
+		allSnapshotFiles = append(allSnapshotFiles, diskLayout...)
+
+		if layout.Key.Value == info.Value {
+			fileKeyList = append(fileKeyList, int(layout.DataKey)) // The .vmsn file
+			fileKeyList = append(fileKeyList, diskLayout...)       // The .vmdk files
+		} else if parent != nil && layout.Key.Value == parent.Value {
+			parentFiles = append(parentFiles, diskLayout...)
+		}
+	}
+
+	for _, parentFile := range parentFiles {
+		removeKey(&fileKeyList, parentFile)
+	}
+
+	for _, file := range allSnapshotFiles {
+		removeKey(&diskFiles, file)
+	}
+
+	fileKeyMap := make(map[int]types.VirtualMachineFileLayoutExFileInfo)
+	for _, file := range vmlayout.File {
+		fileKeyMap[int(file.Key)] = file
+	}
+
+	size := 0
+
+	for _, fileKey := range fileKeyList {
+		file := fileKeyMap[fileKey]
+		if parent != nil ||
+			(file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskDescriptor) &&
+				file.Type != string(types.VirtualMachineFileLayoutExFileTypeDiskExtent)) {
+			size += int(file.Size)
+		}
+	}
+
+	if isCurrent {
+		for _, diskFile := range diskFiles {
+			file := fileKeyMap[diskFile]
+			size += int(file.Size)
+		}
+	}
+
+	return size
+}
+
 // FindSnapshot supports snapshot lookup by name, where name can be:
 // 1) snapshot ManagedObjectReference.Value (unique)
 // 2) snapshot name (may not be unique)
@@ -546,7 +772,7 @@ func (v VirtualMachine) FindSnapshot(ctx context.Context, name string) (*types.M
 	}
 
 	if o.Snapshot == nil || len(o.Snapshot.RootSnapshotList) == 0 {
-		return nil, errors.New("No snapshots for this VM")
+		return nil, errors.New("no snapshots for this VM")
 	}
 
 	m := make(snapshotMap)
@@ -720,27 +946,6 @@ func (v VirtualMachine) Unregister(ctx context.Context) error {
 	return err
 }
 
-// QueryEnvironmentBrowser is a helper to get the environmentBrowser property.
-func (v VirtualMachine) QueryConfigTarget(ctx context.Context) (*types.ConfigTarget, error) {
-	var vm mo.VirtualMachine
-
-	err := v.Properties(ctx, v.Reference(), []string{"environmentBrowser"}, &vm)
-	if err != nil {
-		return nil, err
-	}
-
-	req := types.QueryConfigTarget{
-		This: vm.EnvironmentBrowser,
-	}
-
-	res, err := methods.QueryConfigTarget(ctx, v.Client(), &req)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.Returnval, nil
-}
-
 func (v VirtualMachine) MountToolsInstaller(ctx context.Context) error {
 	req := types.MountToolsInstaller{
 		This: v.Reference(),
@@ -798,4 +1003,111 @@ func (v VirtualMachine) UpgradeVM(ctx context.Context, version string) (*Task, e
 	}
 
 	return NewTask(v.c, res.Returnval), nil
+}
+
+// UUID is a helper to get the UUID of the VirtualMachine managed object.
+// This method returns an empty string if an error occurs when retrieving UUID from the VirtualMachine object.
+func (v VirtualMachine) UUID(ctx context.Context) string {
+	var o mo.VirtualMachine
+
+	err := v.Properties(ctx, v.Reference(), []string{"config.uuid"}, &o)
+	if err != nil {
+		return ""
+	}
+	if o.Config != nil {
+		return o.Config.Uuid
+	}
+	return ""
+}
+
+func (v VirtualMachine) QueryChangedDiskAreas(ctx context.Context, baseSnapshot, curSnapshot *types.ManagedObjectReference, disk *types.VirtualDisk, offset int64) (types.DiskChangeInfo, error) {
+	var noChange types.DiskChangeInfo
+	var err error
+
+	if offset > disk.CapacityInBytes {
+		return noChange, fmt.Errorf("offset is greater than the disk size (%#x and %#x)", offset, disk.CapacityInBytes)
+	} else if offset == disk.CapacityInBytes {
+		return types.DiskChangeInfo{StartOffset: offset, Length: 0}, nil
+	}
+
+	var b mo.VirtualMachineSnapshot
+	err = v.Properties(ctx, baseSnapshot.Reference(), []string{"config.hardware"}, &b)
+	if err != nil {
+		return noChange, fmt.Errorf("failed to fetch config.hardware of snapshot %s: %s", baseSnapshot, err)
+	}
+
+	var changeId *string
+	for _, vd := range b.Config.Hardware.Device {
+		d := vd.GetVirtualDevice()
+		if d.Key != disk.Key {
+			continue
+		}
+
+		// As per VDDK programming guide, these are the four types of disks
+		// that support CBT, see "Gathering Changed Block Information".
+		if b, ok := d.Backing.(*types.VirtualDiskFlatVer2BackingInfo); ok {
+			changeId = &b.ChangeId
+			break
+		}
+		if b, ok := d.Backing.(*types.VirtualDiskSparseVer2BackingInfo); ok {
+			changeId = &b.ChangeId
+			break
+		}
+		if b, ok := d.Backing.(*types.VirtualDiskRawDiskMappingVer1BackingInfo); ok {
+			changeId = &b.ChangeId
+			break
+		}
+		if b, ok := d.Backing.(*types.VirtualDiskRawDiskVer2BackingInfo); ok {
+			changeId = &b.ChangeId
+			break
+		}
+
+		return noChange, fmt.Errorf("disk %d has backing info without .ChangeId: %t", disk.Key, d.Backing)
+	}
+	if changeId == nil || *changeId == "" {
+		return noChange, fmt.Errorf("CBT is not enabled on disk %d", disk.Key)
+	}
+
+	req := types.QueryChangedDiskAreas{
+		This:        v.Reference(),
+		Snapshot:    curSnapshot,
+		DeviceKey:   disk.Key,
+		StartOffset: offset,
+		ChangeId:    *changeId,
+	}
+
+	res, err := methods.QueryChangedDiskAreas(ctx, v.Client(), &req)
+	if err != nil {
+		return noChange, err
+	}
+
+	return res.Returnval, nil
+}
+
+// ExportSnapshot exports all VMDK-files up to (but not including) a specified snapshot. This
+// is useful when exporting a running VM.
+func (v *VirtualMachine) ExportSnapshot(ctx context.Context, snapshot *types.ManagedObjectReference) (*nfc.Lease, error) {
+	req := types.ExportSnapshot{
+		This: *snapshot,
+	}
+	resp, err := methods.ExportSnapshot(ctx, v.Client(), &req)
+	if err != nil {
+		return nil, err
+	}
+	return nfc.NewLease(v.c, resp.Returnval), nil
+}
+
+func (v *VirtualMachine) PromoteDisks(ctx context.Context, unlink bool, disks []types.VirtualDisk) (*Task, error) {
+	req := types.PromoteDisks_Task{
+		This:   v.Reference(),
+		Unlink: unlink,
+		Disks:  disks,
+	}
+
+	res, err := methods.PromoteDisks_Task(ctx, v.Client(), &req)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewTask(v.Client(), res.Returnval), nil
 }

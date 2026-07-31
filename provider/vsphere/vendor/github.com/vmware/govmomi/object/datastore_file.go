@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2016-2017 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package object
 
@@ -153,7 +141,7 @@ func (s *fileStat) IsDir() bool {
 	return false
 }
 
-func (s *fileStat) Sys() interface{} {
+func (s *fileStat) Sys() any {
 	return s.header
 }
 
@@ -297,10 +285,8 @@ func (f *DatastoreFile) TailFunc(lines int, include func(line int, message strin
 
 			nread = bsize + remain
 			eof = true
-		} else {
-			if pos, err = f.Seek(offset, io.SeekEnd); err != nil {
-				return err
-			}
+		} else if pos, err = f.Seek(offset, io.SeekEnd); err != nil {
+			return err
 		}
 
 		if _, err = io.CopyN(buf, f, nread); err != nil {

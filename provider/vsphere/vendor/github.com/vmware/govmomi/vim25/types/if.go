@@ -1,18 +1,6 @@
-/*
-Copyright (c) 2014-2018 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package types
 
@@ -214,6 +202,18 @@ func init() {
 	t["BaseClusterAction"] = reflect.TypeOf((*ClusterAction)(nil)).Elem()
 }
 
+func (b *ClusterComputeResourceValidationResultBase) GetClusterComputeResourceValidationResultBase() *ClusterComputeResourceValidationResultBase {
+	return b
+}
+
+type BaseClusterComputeResourceValidationResultBase interface {
+	GetClusterComputeResourceValidationResultBase() *ClusterComputeResourceValidationResultBase
+}
+
+func init() {
+	t["BaseClusterComputeResourceValidationResultBase"] = reflect.TypeOf((*ClusterComputeResourceValidationResultBase)(nil)).Elem()
+}
+
 func (b *ClusterDasAdmissionControlInfo) GetClusterDasAdmissionControlInfo() *ClusterDasAdmissionControlInfo {
 	return b
 }
@@ -410,6 +410,18 @@ func init() {
 	t["BaseCpuIncompatible"] = reflect.TypeOf((*CpuIncompatible)(nil)).Elem()
 }
 
+func (b *CryptoManagerKmipCryptoKeyStatusKeyInfo) GetCryptoManagerKmipCryptoKeyStatusKeyInfo() *CryptoManagerKmipCryptoKeyStatusKeyInfo {
+	return b
+}
+
+type BaseCryptoManagerKmipCryptoKeyStatusKeyInfo interface {
+	GetCryptoManagerKmipCryptoKeyStatusKeyInfo() *CryptoManagerKmipCryptoKeyStatusKeyInfo
+}
+
+func init() {
+	t["BaseCryptoManagerKmipCryptoKeyStatusKeyInfo"] = reflect.TypeOf((*CryptoManagerKmipCryptoKeyStatusKeyInfo)(nil)).Elem()
+}
+
 func (b *CryptoSpec) GetCryptoSpec() *CryptoSpec { return b }
 
 type BaseCryptoSpec interface {
@@ -604,6 +616,28 @@ func init() {
 	t["BaseDVSFeatureCapability"] = reflect.TypeOf((*DVSFeatureCapability)(nil)).Elem()
 }
 
+func (b *DVSFilterSpecConnecteeSpec) GetDVSFilterSpecConnecteeSpec() *DVSFilterSpecConnecteeSpec {
+	return b
+}
+
+type BaseDVSFilterSpecConnecteeSpec interface {
+	GetDVSFilterSpecConnecteeSpec() *DVSFilterSpecConnecteeSpec
+}
+
+func init() {
+	t["BaseDVSFilterSpecConnecteeSpec"] = reflect.TypeOf((*DVSFilterSpecConnecteeSpec)(nil)).Elem()
+}
+
+func (b *DVSFilterSpecVlanSpec) GetDVSFilterSpecVlanSpec() *DVSFilterSpecVlanSpec { return b }
+
+type BaseDVSFilterSpecVlanSpec interface {
+	GetDVSFilterSpecVlanSpec() *DVSFilterSpecVlanSpec
+}
+
+func init() {
+	t["BaseDVSFilterSpecVlanSpec"] = reflect.TypeOf((*DVSFilterSpecVlanSpec)(nil)).Elem()
+}
+
 func (b *DVSHealthCheckCapability) GetDVSHealthCheckCapability() *DVSHealthCheckCapability { return b }
 
 type BaseDVSHealthCheckCapability interface {
@@ -726,6 +760,54 @@ type BaseDeviceNotSupported interface {
 
 func init() {
 	t["BaseDeviceNotSupported"] = reflect.TypeOf((*DeviceNotSupported)(nil)).Elem()
+}
+
+func (b *DirectPathProfileManagerCapacityQuerySpec) GetDirectPathProfileManagerCapacityQuerySpec() *DirectPathProfileManagerCapacityQuerySpec {
+	return b
+}
+
+type BaseDirectPathProfileManagerCapacityQuerySpec interface {
+	GetDirectPathProfileManagerCapacityQuerySpec() *DirectPathProfileManagerCapacityQuerySpec
+}
+
+func init() {
+	t["BaseDirectPathProfileManagerCapacityQuerySpec"] = reflect.TypeOf((*DirectPathProfileManagerCapacityQuerySpec)(nil)).Elem()
+}
+
+func (b *DirectPathProfileManagerCapacityResult) GetDirectPathProfileManagerCapacityResult() *DirectPathProfileManagerCapacityResult {
+	return b
+}
+
+type BaseDirectPathProfileManagerCapacityResult interface {
+	GetDirectPathProfileManagerCapacityResult() *DirectPathProfileManagerCapacityResult
+}
+
+func init() {
+	t["BaseDirectPathProfileManagerCapacityResult"] = reflect.TypeOf((*DirectPathProfileManagerCapacityResult)(nil)).Elem()
+}
+
+func (b *DirectPathProfileManagerDirectPathConfig) GetDirectPathProfileManagerDirectPathConfig() *DirectPathProfileManagerDirectPathConfig {
+	return b
+}
+
+type BaseDirectPathProfileManagerDirectPathConfig interface {
+	GetDirectPathProfileManagerDirectPathConfig() *DirectPathProfileManagerDirectPathConfig
+}
+
+func init() {
+	t["BaseDirectPathProfileManagerDirectPathConfig"] = reflect.TypeOf((*DirectPathProfileManagerDirectPathConfig)(nil)).Elem()
+}
+
+func (b *DirectPathProfileManagerTargetEntity) GetDirectPathProfileManagerTargetEntity() *DirectPathProfileManagerTargetEntity {
+	return b
+}
+
+type BaseDirectPathProfileManagerTargetEntity interface {
+	GetDirectPathProfileManagerTargetEntity() *DirectPathProfileManagerTargetEntity
+}
+
+func init() {
+	t["BaseDirectPathProfileManagerTargetEntity"] = reflect.TypeOf((*DirectPathProfileManagerTargetEntity)(nil)).Elem()
 }
 
 func (b *DiskNotSupported) GetDiskNotSupported() *DiskNotSupported { return b }
@@ -942,6 +1024,18 @@ type BaseEventArgument interface {
 
 func init() {
 	t["BaseEventArgument"] = reflect.TypeOf((*EventArgument)(nil)).Elem()
+}
+
+func (b *EventManagerEventViewSpec) GetEventManagerEventViewSpec() *EventManagerEventViewSpec {
+	return b
+}
+
+type BaseEventManagerEventViewSpec interface {
+	GetEventManagerEventViewSpec() *EventManagerEventViewSpec
+}
+
+func init() {
+	t["BaseEventManagerEventViewSpec"] = reflect.TypeOf((*EventManagerEventViewSpec)(nil)).Elem()
 }
 
 func (b *ExitStandbyModeFailedEvent) GetExitStandbyModeFailedEvent() *ExitStandbyModeFailedEvent {
@@ -1170,6 +1264,16 @@ func init() {
 	t["BaseGuestRegistryValueFault"] = reflect.TypeOf((*GuestRegistryValueFault)(nil)).Elem()
 }
 
+func (b *HbrReplicationTargetSpec) GetHbrReplicationTargetSpec() *HbrReplicationTargetSpec { return b }
+
+type BaseHbrReplicationTargetSpec interface {
+	GetHbrReplicationTargetSpec() *HbrReplicationTargetSpec
+}
+
+func init() {
+	t["BaseHbrReplicationTargetSpec"] = reflect.TypeOf((*HbrReplicationTargetSpec)(nil)).Elem()
+}
+
 func (b *HostAccountSpec) GetHostAccountSpec() *HostAccountSpec { return b }
 
 type BaseHostAccountSpec interface {
@@ -1242,6 +1346,18 @@ type BaseHostDasEvent interface {
 
 func init() {
 	t["BaseHostDasEvent"] = reflect.TypeOf((*HostDasEvent)(nil)).Elem()
+}
+
+func (b *HostDataTransportConnectionInfo) GetHostDataTransportConnectionInfo() *HostDataTransportConnectionInfo {
+	return b
+}
+
+type BaseHostDataTransportConnectionInfo interface {
+	GetHostDataTransportConnectionInfo() *HostDataTransportConnectionInfo
+}
+
+func init() {
+	t["BaseHostDataTransportConnectionInfo"] = reflect.TypeOf((*HostDataTransportConnectionInfo)(nil)).Elem()
 }
 
 func (b *HostDatastoreConnectInfo) GetHostDatastoreConnectInfo() *HostDatastoreConnectInfo { return b }
@@ -1346,6 +1462,16 @@ func init() {
 	t["BaseHostHardwareElementInfo"] = reflect.TypeOf((*HostHardwareElementInfo)(nil)).Elem()
 }
 
+func (b *HostHbaCreateSpec) GetHostHbaCreateSpec() *HostHbaCreateSpec { return b }
+
+type BaseHostHbaCreateSpec interface {
+	GetHostHbaCreateSpec() *HostHbaCreateSpec
+}
+
+func init() {
+	t["BaseHostHbaCreateSpec"] = reflect.TypeOf((*HostHbaCreateSpec)(nil)).Elem()
+}
+
 func (b *HostHostBusAdapter) GetHostHostBusAdapter() *HostHostBusAdapter { return b }
 
 type BaseHostHostBusAdapter interface {
@@ -1402,6 +1528,28 @@ func init() {
 	t["BaseHostMultipathInfoLogicalUnitPolicy"] = reflect.TypeOf((*HostMultipathInfoLogicalUnitPolicy)(nil)).Elem()
 }
 
+func (b *HostNvmeSpec) GetHostNvmeSpec() *HostNvmeSpec { return b }
+
+type BaseHostNvmeSpec interface {
+	GetHostNvmeSpec() *HostNvmeSpec
+}
+
+func init() {
+	t["BaseHostNvmeSpec"] = reflect.TypeOf((*HostNvmeSpec)(nil)).Elem()
+}
+
+func (b *HostNvmeTransportParameters) GetHostNvmeTransportParameters() *HostNvmeTransportParameters {
+	return b
+}
+
+type BaseHostNvmeTransportParameters interface {
+	GetHostNvmeTransportParameters() *HostNvmeTransportParameters
+}
+
+func init() {
+	t["BaseHostNvmeTransportParameters"] = reflect.TypeOf((*HostNvmeTransportParameters)(nil)).Elem()
+}
+
 func (b *HostPciPassthruConfig) GetHostPciPassthruConfig() *HostPciPassthruConfig { return b }
 
 type BaseHostPciPassthruConfig interface {
@@ -1454,6 +1602,16 @@ func init() {
 	t["BaseHostProfilesEntityCustomizations"] = reflect.TypeOf((*HostProfilesEntityCustomizations)(nil)).Elem()
 }
 
+func (b *HostRdmaDeviceBacking) GetHostRdmaDeviceBacking() *HostRdmaDeviceBacking { return b }
+
+type BaseHostRdmaDeviceBacking interface {
+	GetHostRdmaDeviceBacking() *HostRdmaDeviceBacking
+}
+
+func init() {
+	t["BaseHostRdmaDeviceBacking"] = reflect.TypeOf((*HostRdmaDeviceBacking)(nil)).Elem()
+}
+
 func (b *HostSriovDevicePoolInfo) GetHostSriovDevicePoolInfo() *HostSriovDevicePoolInfo { return b }
 
 type BaseHostSriovDevicePoolInfo interface {
@@ -1484,6 +1642,18 @@ type BaseHostTargetTransport interface {
 
 func init() {
 	t["BaseHostTargetTransport"] = reflect.TypeOf((*HostTargetTransport)(nil)).Elem()
+}
+
+func (b *HostTpmBootSecurityOptionEventDetails) GetHostTpmBootSecurityOptionEventDetails() *HostTpmBootSecurityOptionEventDetails {
+	return b
+}
+
+type BaseHostTpmBootSecurityOptionEventDetails interface {
+	GetHostTpmBootSecurityOptionEventDetails() *HostTpmBootSecurityOptionEventDetails
+}
+
+func init() {
+	t["BaseHostTpmBootSecurityOptionEventDetails"] = reflect.TypeOf((*HostTpmBootSecurityOptionEventDetails)(nil)).Elem()
 }
 
 func (b *HostTpmEventDetails) GetHostTpmEventDetails() *HostTpmEventDetails { return b }
@@ -1712,6 +1882,16 @@ func init() {
 	t["BaseIoFilterInfo"] = reflect.TypeOf((*IoFilterInfo)(nil)).Elem()
 }
 
+func (b *IoFilterManagerSslTrust) GetIoFilterManagerSslTrust() *IoFilterManagerSslTrust { return b }
+
+type BaseIoFilterManagerSslTrust interface {
+	GetIoFilterManagerSslTrust() *IoFilterManagerSslTrust
+}
+
+func init() {
+	t["BaseIoFilterManagerSslTrust"] = reflect.TypeOf((*IoFilterManagerSslTrust)(nil)).Elem()
+}
+
 func (b *IpAddress) GetIpAddress() *IpAddress { return b }
 
 type BaseIpAddress interface {
@@ -1730,6 +1910,26 @@ type BaseIscsiFault interface {
 
 func init() {
 	t["BaseIscsiFault"] = reflect.TypeOf((*IscsiFault)(nil)).Elem()
+}
+
+func (b *KmipClusterInfoKeyInfo) GetKmipClusterInfoKeyInfo() *KmipClusterInfoKeyInfo { return b }
+
+type BaseKmipClusterInfoKeyInfo interface {
+	GetKmipClusterInfoKeyInfo() *KmipClusterInfoKeyInfo
+}
+
+func init() {
+	t["BaseKmipClusterInfoKeyInfo"] = reflect.TypeOf((*KmipClusterInfoKeyInfo)(nil)).Elem()
+}
+
+func (b *KmipServerSpecKeySpec) GetKmipServerSpecKeySpec() *KmipServerSpecKeySpec { return b }
+
+type BaseKmipServerSpecKeySpec interface {
+	GetKmipServerSpecKeySpec() *KmipServerSpecKeySpec
+}
+
+func init() {
+	t["BaseKmipServerSpecKeySpec"] = reflect.TypeOf((*KmipServerSpecKeySpec)(nil)).Elem()
 }
 
 func (b *LicenseEvent) GetLicenseEvent() *LicenseEvent { return b }
@@ -2004,6 +2204,18 @@ type BaseOvfConsumerCallbackFault interface {
 
 func init() {
 	t["BaseOvfConsumerCallbackFault"] = reflect.TypeOf((*OvfConsumerCallbackFault)(nil)).Elem()
+}
+
+func (b *OvfCreateImportSpecParams) GetOvfCreateImportSpecParams() *OvfCreateImportSpecParams {
+	return b
+}
+
+type BaseOvfCreateImportSpecParams interface {
+	GetOvfCreateImportSpecParams() *OvfCreateImportSpecParams
+}
+
+func init() {
+	t["BaseOvfCreateImportSpecParams"] = reflect.TypeOf((*OvfCreateImportSpecParams)(nil)).Elem()
 }
 
 func (b *OvfElement) GetOvfElement() *OvfElement { return b }
@@ -2542,6 +2754,16 @@ func init() {
 	t["BaseTaskInProgress"] = reflect.TypeOf((*TaskInProgress)(nil)).Elem()
 }
 
+func (b *TaskManagerTaskViewSpec) GetTaskManagerTaskViewSpec() *TaskManagerTaskViewSpec { return b }
+
+type BaseTaskManagerTaskViewSpec interface {
+	GetTaskManagerTaskViewSpec() *TaskManagerTaskViewSpec
+}
+
+func init() {
+	t["BaseTaskManagerTaskViewSpec"] = reflect.TypeOf((*TaskManagerTaskViewSpec)(nil)).Elem()
+}
+
 func (b *TaskReason) GetTaskReason() *TaskReason { return b }
 
 type BaseTaskReason interface {
@@ -2956,6 +3178,18 @@ func init() {
 	t["BaseVirtualHardwareCompatibilityIssue"] = reflect.TypeOf((*VirtualHardwareCompatibilityIssue)(nil)).Elem()
 }
 
+func (b *VirtualMachineBaseIndependentFilterSpec) GetVirtualMachineBaseIndependentFilterSpec() *VirtualMachineBaseIndependentFilterSpec {
+	return b
+}
+
+type BaseVirtualMachineBaseIndependentFilterSpec interface {
+	GetVirtualMachineBaseIndependentFilterSpec() *VirtualMachineBaseIndependentFilterSpec
+}
+
+func init() {
+	t["BaseVirtualMachineBaseIndependentFilterSpec"] = reflect.TypeOf((*VirtualMachineBaseIndependentFilterSpec)(nil)).Elem()
+}
+
 func (b *VirtualMachineBootOptionsBootableDevice) GetVirtualMachineBootOptionsBootableDevice() *VirtualMachineBootOptionsBootableDevice {
 	return b
 }
@@ -2966,6 +3200,16 @@ type BaseVirtualMachineBootOptionsBootableDevice interface {
 
 func init() {
 	t["BaseVirtualMachineBootOptionsBootableDevice"] = reflect.TypeOf((*VirtualMachineBootOptionsBootableDevice)(nil)).Elem()
+}
+
+func (b *VirtualMachineConnection) GetVirtualMachineConnection() *VirtualMachineConnection { return b }
+
+type BaseVirtualMachineConnection interface {
+	GetVirtualMachineConnection() *VirtualMachineConnection
+}
+
+func init() {
+	t["BaseVirtualMachineConnection"] = reflect.TypeOf((*VirtualMachineConnection)(nil)).Elem()
 }
 
 func (b *VirtualMachineDeviceRuntimeInfoDeviceRuntimeState) GetVirtualMachineDeviceRuntimeInfoDeviceRuntimeState() *VirtualMachineDeviceRuntimeInfoDeviceRuntimeState {
@@ -3048,6 +3292,18 @@ type BaseVirtualMachineTargetInfo interface {
 
 func init() {
 	t["BaseVirtualMachineTargetInfo"] = reflect.TypeOf((*VirtualMachineTargetInfo)(nil)).Elem()
+}
+
+func (b *VirtualMachineVirtualDeviceGroupsDeviceGroup) GetVirtualMachineVirtualDeviceGroupsDeviceGroup() *VirtualMachineVirtualDeviceGroupsDeviceGroup {
+	return b
+}
+
+type BaseVirtualMachineVirtualDeviceGroupsDeviceGroup interface {
+	GetVirtualMachineVirtualDeviceGroupsDeviceGroup() *VirtualMachineVirtualDeviceGroupsDeviceGroup
+}
+
+func init() {
+	t["BaseVirtualMachineVirtualDeviceGroupsDeviceGroup"] = reflect.TypeOf((*VirtualMachineVirtualDeviceGroupsDeviceGroup)(nil)).Elem()
 }
 
 func (b *VirtualPCIPassthroughPluginBackingInfo) GetVirtualPCIPassthroughPluginBackingInfo() *VirtualPCIPassthroughPluginBackingInfo {
@@ -3276,6 +3532,16 @@ type BaseVmMigratedEvent interface {
 
 func init() {
 	t["BaseVmMigratedEvent"] = reflect.TypeOf((*VmMigratedEvent)(nil)).Elem()
+}
+
+func (b *VmPlacementPolicy) GetVmPlacementPolicy() *VmPlacementPolicy { return b }
+
+type BaseVmPlacementPolicy interface {
+	GetVmPlacementPolicy() *VmPlacementPolicy
+}
+
+func init() {
+	t["BaseVmPlacementPolicy"] = reflect.TypeOf((*VmPlacementPolicy)(nil)).Elem()
 }
 
 func (b *VmPoweredOffEvent) GetVmPoweredOffEvent() *VmPoweredOffEvent { return b }

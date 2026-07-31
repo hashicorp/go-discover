@@ -1,21 +1,54 @@
-/*
-Copyright (c) 2014 VMware, Inc. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: Apache-2.0
 
 package mo
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/vmware/govmomi/vim25/types"
+)
 
 var t = map[string]reflect.Type{}
+
+// TODO: 9.0+ MOs below, not included in the generated mo/mo.go, since the generator still uses older rbvmomi vmodl.db
+
+type DirectPathProfileManager struct {
+	Self types.ManagedObjectReference `json:"self"`
+}
+
+func (m DirectPathProfileManager) Reference() types.ManagedObjectReference {
+	return m.Self
+}
+
+func init() {
+	t["DirectPathProfileManager"] = reflect.TypeOf((*DirectPathProfileManager)(nil)).Elem()
+}
+
+type TransitGateway struct {
+	ManagedEntity
+
+	Config types.TransitGatewayConfigInfo `json:"config"`
+}
+
+func (m TransitGateway) Reference() types.ManagedObjectReference {
+	return m.Self
+}
+
+func init() {
+	t["TransitGateway"] = reflect.TypeOf((*TransitGateway)(nil)).Elem()
+}
+
+type HostDistributedVirtualSwitchManager struct {
+	Self                     types.ManagedObjectReference `json:"self"`
+	DistributedVirtualSwitch []string                     `json:"distributedVirtualSwitch"`
+}
+
+func (d HostDistributedVirtualSwitchManager) Reference() types.ManagedObjectReference {
+	return d.Self
+}
+
+func init() {
+	t["HostDistributedVirtualSwitchManager"] = reflect.TypeOf((*HostDistributedVirtualSwitchManager)(nil)).Elem()
+}
