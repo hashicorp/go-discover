@@ -22,10 +22,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/vic/pkg/vsphere/tags"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vapi/rest"
+	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -73,8 +74,8 @@ type vSphereClient struct {
 	// The VIM/govmomi client.
 	VimClient *govmomi.Client
 
-	// The specialized tags client SDK imported from vmware/vic.
-	TagsClient *tags.RestClient
+	// The govmomi vapi tags manager.
+	TagsClient *tags.Manager
 }
 
 // vimURL returns a URL to pass to the VIM SOAP client.
@@ -107,7 +108,7 @@ func newVSphereClient(ctx context.Context, host, user, password string, insecure
 		return nil, err
 	}
 
-	client.TagsClient, err = newRestSession(ctx, u, insecure)
+	client.TagsClient, err = newRestSession(ctx, client.VimClient, u, insecure)
 	if err != nil {
 		return nil, err
 	}
@@ -130,15 +131,15 @@ func newVimSession(ctx context.Context, u *url.URL, insecure bool) (*govmomi.Cli
 
 // newRestSession connects to the vSphere REST API endpoint, necessary for
 // tags.
-func newRestSession(ctx context.Context, u *url.URL, insecure bool) (*tags.RestClient, error) {
+func newRestSession(ctx context.Context, vimClient *govmomi.Client, u *url.URL, insecure bool) (*tags.Manager, error) {
 	logger.Printf("[DEBUG] Creating new CIS REST API session on endpoint %s", u.Host)
-	client := tags.NewClient(u, insecure, "")
-	if err := client.Login(ctx); err != nil {
+	rc := rest.NewClient(vimClient.Client)
+	if err := rc.Login(ctx, u.User); err != nil {
 		return nil, fmt.Errorf("error connecting to CIS REST endpoint: %s", err)
 	}
 
 	logger.Println("[DEBUG] CIS REST API session creation successful")
-	return client, nil
+	return tags.NewManager(rc), nil
 }
 
 // Provider defines the vSphere discovery provider.
@@ -212,7 +213,7 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 
 // tagIDFromName helps convert the tag and category names into the final ID
 // used for discovery.
-func tagIDFromName(ctx context.Context, client *tags.RestClient, name, category string) (string, error) {
+func tagIDFromName(ctx context.Context, client *tags.Manager, name, category string) (string, error) {
 	logger.Printf("[DEBUG] Fetching tag ID for tag name %q and category %q", name, category)
 
 	categoryID, err := tagCategoryByName(ctx, client, category)
@@ -224,44 +225,55 @@ func tagIDFromName(ctx context.Context, client *tags.RestClient, name, category 
 }
 
 // tagCategoryByName converts a tag category name into its ID.
-func tagCategoryByName(ctx context.Context, client *tags.RestClient, name string) (string, error) {
-	cats, err := client.GetCategoriesByName(ctx, name)
+func tagCategoryByName(ctx context.Context, client *tags.Manager, name string) (string, error) {
+	cats, err := client.GetCategories(ctx)
 	if err != nil {
 		return "", fmt.Errorf("could not get category for name %q: %s", name, err)
 	}
 
-	if len(cats) < 1 {
+	var matches []tags.Category
+	for _, c := range cats {
+		if c.Name == name {
+			matches = append(matches, c)
+		}
+	}
+
+	if len(matches) < 1 {
 		return "", fmt.Errorf("category name %q not found", name)
 	}
-	if len(cats) > 1 {
-		// Although GetCategoriesByName does not seem to think that tag categories
-		// are unique, empirical observation via the console and API show that they
-		// are. This error case is handled anyway.
+	if len(matches) > 1 {
+		// Although categories are unique by name empirically, handle the case
+		// defensively.
 		return "", fmt.Errorf("multiple categories with name %q found", name)
 	}
 
-	return cats[0].ID, nil
+	return matches[0].ID, nil
 }
 
 // tagByName converts a tag name into its ID.
-func tagByName(ctx context.Context, client *tags.RestClient, name, categoryID string) (string, error) {
-	tids, err := client.GetTagByNameForCategory(ctx, name, categoryID)
+func tagByName(ctx context.Context, client *tags.Manager, name, categoryID string) (string, error) {
+	tids, err := client.GetTagsForCategory(ctx, categoryID)
 	if err != nil {
 		return "", fmt.Errorf("could not get tag for name %q: %s", name, err)
 	}
 
-	if len(tids) < 1 {
+	var matches []tags.Tag
+	for _, t := range tids {
+		if t.Name == name {
+			matches = append(matches, t)
+		}
+	}
+
+	if len(matches) < 1 {
 		return "", fmt.Errorf("tag name %q not found in category ID %q", name, categoryID)
 	}
-	if len(tids) > 1 {
-		// This situation is very similar to the one in tagCategoryByName. The API
-		// docs even say that tags need to be unique in categories, yet
-		// GetTagByNameForCategory still returns multiple results.
+	if len(matches) > 1 {
+		// The API docs say tags must be unique within a category.
 		return "", fmt.Errorf("multiple tags with name %q found", name)
 	}
 
-	logger.Printf("[DEBUG] Tag ID is %q", tids[0].ID)
-	return tids[0].ID, nil
+	logger.Printf("[DEBUG] Tag ID is %q", matches[0].ID)
+	return matches[0].ID, nil
 }
 
 // virtualMachineIPsForTag is a higher-level wrapper that calls out to
@@ -287,18 +299,15 @@ func virtualMachinesForTag(ctx context.Context, client *vSphereClient, id string
 	if err != nil {
 		return nil, err
 	}
-	for i, obj := range objs {
-		switch {
-		case obj.Type == nil || obj.ID == nil:
-			logger.Printf("[WARN] Discovered object at index %d has either no ID or type", i)
-			continue
-		case *obj.Type != "VirtualMachine":
-			logger.Printf("[DEBUG] Discovered object ID %q is not a virutal machine", *obj.ID)
+	for _, obj := range objs {
+		ref := obj.Reference()
+		if ref.Type != "VirtualMachine" {
+			logger.Printf("[DEBUG] Discovered object ID %q is not a virtual machine", ref.Value)
 			continue
 		}
-		vm, err := virtualMachineFromMOID(ctx, client.VimClient, *obj.ID)
+		vm, err := virtualMachineFromMOID(ctx, client.VimClient, ref.Value)
 		if err != nil {
-			return nil, fmt.Errorf("error locating virtual machine with ID %q: %s", *obj.ID, err)
+			return nil, fmt.Errorf("error locating virtual machine with ID %q: %s", ref.Value, err)
 		}
 		vms = append(vms, vm)
 	}
