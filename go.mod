@@ -21,7 +21,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.480
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.480
-	github.com/vmware/govmomi v0.18.0
+	github.com/vmware/govmomi v0.55.1
 	golang.org/x/oauth2 v0.35.0
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
