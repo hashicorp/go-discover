@@ -139,7 +139,9 @@ func TestAddrsSimulator(t *testing.T) {
 		if err := rc.Login(ctx, simulator.DefaultLogin); err != nil {
 			return err
 		}
-		defer rc.Logout(ctx)
+		defer func() {
+			_ = rc.Logout(ctx)
+		}()
 
 		mgr := tags.NewManager(rc)
 
