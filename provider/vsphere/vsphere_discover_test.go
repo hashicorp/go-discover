@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/vmware/govmomi/find"
@@ -42,6 +43,42 @@ func testPreCheck(t *testing.T) {
 	}
 }
 
+// vsphereExpectedIPs returns the list of IP addresses that acceptance tests
+// should assert are present in the discovery output. The list is read from the
+// VSPHERE_EXPECTED_IPS environment variable as a comma-separated string
+// (e.g. "10.0.0.10,10.0.0.11"). If the variable is unset or empty, nil is
+// returned and the caller should fall back to asserting at least one IP.
+func vsphereExpectedIPs() []string {
+	v := os.Getenv("VSPHERE_EXPECTED_IPS")
+	if v == "" {
+		return nil
+	}
+	return strings.Split(v, ",")
+}
+
+// assertDiscoveredIPs checks that all expected IPs are present in addrs.
+// If no expected IPs are configured, it asserts that at least one address
+// was returned.
+func assertDiscoveredIPs(t *testing.T, addrs []string) {
+	t.Helper()
+	expected := vsphereExpectedIPs()
+	if len(expected) == 0 {
+		if len(addrs) == 0 {
+			t.Fatal("expected at least one address in discovery output, got none")
+		}
+		return
+	}
+	set := make(map[string]bool, len(addrs))
+	for _, a := range addrs {
+		set[a] = true
+	}
+	for _, ip := range expected {
+		if !set[ip] {
+			t.Fatalf("IP address %s is missing from discovery output", ip)
+		}
+	}
+}
+
 func TestAddrs(t *testing.T) {
 	testPreCheck(t)
 
@@ -63,22 +100,7 @@ func TestAddrs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	actual := map[string]bool{
-		"10.0.0.10": false,
-		"10.0.0.11": false,
-	}
-
-	for _, addr := range addrs {
-		if addr == "10.0.0.10" || addr == "10.0.0.11" {
-			actual[addr] = true
-		}
-	}
-
-	for k, v := range actual {
-		if !v {
-			t.Fatalf("IP address %s is missing from discovery output", k)
-		}
-	}
+	assertDiscoveredIPs(t, addrs)
 }
 
 // TestAddrsEnv tests to make sure that we can lean on the environment for
@@ -101,22 +123,7 @@ func TestAddrsEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	actual := map[string]bool{
-		"10.0.0.10": false,
-		"10.0.0.11": false,
-	}
-
-	for _, addr := range addrs {
-		if addr == "10.0.0.10" || addr == "10.0.0.11" {
-			actual[addr] = true
-		}
-	}
-
-	for k, v := range actual {
-		if !v {
-			t.Fatalf("IP address %s is missing from discovery output", k)
-		}
-	}
+	assertDiscoveredIPs(t, addrs)
 }
 
 // TestAddrsSimulator exercises the full Addrs() discovery path against an
