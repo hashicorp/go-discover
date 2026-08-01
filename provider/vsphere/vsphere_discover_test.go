@@ -16,7 +16,6 @@ import (
 	"github.com/vmware/govmomi/vapi/rest"
 	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/vim25"
-	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 
 	// Importing vapi/simulator registers the REST/tags endpoints on the
@@ -137,136 +136,81 @@ func TestAddrsSimulator(t *testing.T) {
 	)
 
 	model := simulator.VPX()
-	// Allow the model to create VMs with a NIC so guest.net is populated.
-	model.Machine = 1
+	model.Machine = 1 // ensure at least one VM with a NIC is created
 
-	err := model.Run(func(ctx context.Context, c *vim25.Client) error {
-		// --- 1. Create a REST client and tags manager pointed at the simulator.
+	// simulator.Test uses a func(ctx, c) callback so t.Fatal/t.Skip work
+	// directly — no sentinel error or outer error check needed.
+	simulator.Test(func(ctx context.Context, c *vim25.Client) {
+		// Set up REST tags client.
 		rc := rest.NewClient(c)
 		if err := rc.Login(ctx, simulator.DefaultLogin); err != nil {
-			return err
+			t.Fatal(err)
 		}
-		defer func() {
-			_ = rc.Logout(ctx)
-		}()
+		defer func() { _ = rc.Logout(ctx) }()
 
 		mgr := tags.NewManager(rc)
 
-		// --- 2. Create a tag category and tag.
+		// Create a tag category and tag.
 		catID, err := mgr.CreateCategory(ctx, &tags.Category{
 			Name:        categoryName,
 			Cardinality: "SINGLE",
 		})
 		if err != nil {
-			return err
+			t.Fatal(err)
 		}
-
-		tagID, err := mgr.CreateTag(ctx, &tags.Tag{
-			Name:       tagName,
-			CategoryID: catID,
-		})
+		tagID, err := mgr.CreateTag(ctx, &tags.Tag{Name: tagName, CategoryID: catID})
 		if err != nil {
-			return err
+			t.Fatal(err)
 		}
 
-		// --- 3. Find the first VM in the simulator inventory.
+		// Find the first VM in the simulator inventory.
 		finder := find.NewFinder(c, false)
 		dc, err := finder.DefaultDatacenter(ctx)
 		if err != nil {
-			return err
+			t.Fatal(err)
 		}
 		finder.SetDatacenter(dc)
-
 		vms, err := finder.VirtualMachineList(ctx, "*")
 		if err != nil {
-			return err
+			t.Fatal(err)
 		}
 		if len(vms) == 0 {
 			t.Skip("simulator produced no virtual machines")
 		}
 		vm := vms[0]
 
-		// --- 4. Power off the VM before customization (simulator requires it).
-		powerOffTask, err := vm.PowerOff(ctx)
-		if err != nil {
-			return err
-		}
-		if err := powerOffTask.Wait(ctx); err != nil {
-			return err
-		}
-
-		// Give the VM a routable guest IP via CustomizeVM so that
-		// guest.net[].IpConfig.IpAddress is populated (which is what
-		// vsphere_discover.go reads).
-		customizeTask, err := vm.Customize(ctx, types.CustomizationSpec{
-			NicSettingMap: []types.CustomizationAdapterMapping{
-				{
-					Adapter: types.CustomizationIPSettings{
-						Ip: &types.CustomizationFixedIp{IpAddress: testIP},
-					},
-				},
+		// Inject a guest IP directly into the simulator's in-memory registry.
+		// This avoids the power-off → CustomizeVM → power-on task chain that
+		// would otherwise be required to populate guest.net[].IpConfig.
+		simVM := simulator.Map(ctx).Get(vm.Reference()).(*simulator.VirtualMachine)
+		simVM.Guest.Net = []types.GuestNicInfo{{
+			IpConfig: &types.NetIpConfigInfo{
+				IpAddress: []types.NetIpConfigInfoIpAddress{{IpAddress: testIP}},
 			},
-			GlobalIPSettings: types.CustomizationGlobalIPSettings{},
-			Identity:         &types.CustomizationLinuxPrep{HostName: &types.CustomizationFixedName{Name: "test-vm"}},
-		})
-		if err != nil {
-			return err
-		}
-		if err := customizeTask.Wait(ctx); err != nil {
-			return err
+		}}
+
+		// Attach the tag to the VM and run discovery.
+		if err := mgr.AttachTag(ctx, tagID, vm.Reference()); err != nil {
+			t.Fatal(err)
 		}
 
-		// Power the VM back on so the simulator applies the customization spec
-		// and populates guest.net[].IpConfig (customization runs at power-on).
-		powerOnTask, err := vm.PowerOn(ctx)
-		if err != nil {
-			return err
-		}
-		if err := powerOnTask.Wait(ctx); err != nil {
-			return err
-		}
-
-		// --- 5. Attach the tag to the VM.
-		var vmRef mo.Reference = vm.Reference()
-		if err := mgr.AttachTag(ctx, tagID, vmRef); err != nil {
-			return err
-		}
-
-		// --- 6. Extract the simulator server host:port for Addrs() args.
-		serverURL := c.URL()
-		host := serverURL.Host
-
-		// --- 7. Run discovery against the simulator.
-		l := log.New(os.Stderr, "", log.LstdFlags)
-		p := &vsphere.Provider{}
-		addrs, err := p.Addrs(discover.Config{
+		pass, _ := simulator.DefaultLogin.Password()
+		addrs, err := (&vsphere.Provider{}).Addrs(discover.Config{
 			"provider":      "vsphere",
 			"tag_name":      tagName,
 			"category_name": categoryName,
-			"host":          host,
+			"host":          c.URL().Host,
 			"user":          simulator.DefaultLogin.Username(),
-			"password":      func() string { p, _ := simulator.DefaultLogin.Password(); return p }(),
+			"password":      pass,
 			"insecure_ssl":  "true",
 			"timeout":       "2m",
-		}, l)
+		}, log.New(os.Stderr, "", log.LstdFlags))
 		if err != nil {
-			return err
+			t.Fatal(err)
 		}
 
-		// --- 8. Assert the tagged VM's IP is in the result.
-		if len(addrs) == 0 {
-			t.Error("expected at least one address, got none")
-			return nil
-		}
-
-		found := slices.Contains(addrs, testIP)
-		if !found {
+		if !slices.Contains(addrs, testIP) {
 			t.Errorf("expected IP %s in addrs %v", testIP, addrs)
 		}
-
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	}, model)
 }
