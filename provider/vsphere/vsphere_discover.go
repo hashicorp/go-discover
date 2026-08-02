@@ -31,11 +31,10 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-// providerLog is the local provider logger. This should be initialized from
-// the provider entry point.
+// logger is the package-level logger, set on each Addrs call via setLog.
 var logger *log.Logger
 
-// setLog sets the logger.
+// setLog stores l as the active logger. If l is nil, output is discarded.
 func setLog(l *log.Logger) {
 	if l != nil {
 		logger = l
@@ -44,8 +43,8 @@ func setLog(l *log.Logger) {
 	}
 }
 
-// discoverErr prints out a friendly error heading for the top-level discovery
-// errors. It should only be used in the Addrs method.
+// discoverErr wraps an error message with a "discover-vsphere: " prefix.
+// Only call it in Addrs — lower-level functions return plain errors.
 func discoverErr(format string, a ...interface{}) error {
 	var s string
 	if len(a) > 0 {
@@ -69,12 +68,10 @@ func valueOrEnv(config map[string]string, key, env string) string {
 	return ""
 }
 
-// vSphereClient is a client connection manager for the vSphere provider.
+// vSphereClient holds both API handles needed for discovery:
+// the SOAP client (inventory queries) and the REST tags manager (tag lookups).
 type vSphereClient struct {
-	// The VIM/govmomi client.
-	VimClient *govmomi.Client
-
-	// The govmomi vapi tags manager.
+	VimClient  *govmomi.Client
 	TagsClient *tags.Manager
 }
 
@@ -90,8 +87,8 @@ func vimURL(server, user, password string) (*url.URL, error) {
 	return u, nil
 }
 
-// newVSphereClient returns a new vSphereClient after setting up the necessary
-// connections.
+// newVSphereClient opens a SOAP session and a REST tags session, returning
+// both bundled in a vSphereClient.
 func newVSphereClient(ctx context.Context, host, user, password string, insecure bool) (*vSphereClient, error) {
 	logger.Println("[DEBUG] Connecting to vSphere client endpoints")
 
@@ -117,7 +114,7 @@ func newVSphereClient(ctx context.Context, host, user, password string, insecure
 	return client, nil
 }
 
-// newVimSession connects the VIM SOAP API client connection.
+// newVimSession opens a govmomi SOAP session to the vCenter SDK endpoint.
 func newVimSession(ctx context.Context, u *url.URL, insecure bool) (*govmomi.Client, error) {
 	logger.Printf("[DEBUG] Creating new SOAP API session on endpoint %s", u.Host)
 	client, err := govmomi.NewClient(ctx, u, insecure)
@@ -243,8 +240,7 @@ func tagCategoryByName(ctx context.Context, client *tags.Manager, name string) (
 		return "", fmt.Errorf("category name %q not found", name)
 	}
 	if len(matches) > 1 {
-		// Although categories are unique by name empirically, handle the case
-		// defensively.
+		// Although categories are unique by name empirically, handle the case defensively.
 		return "", fmt.Errorf("multiple categories with name %q found", name)
 	}
 
@@ -277,9 +273,7 @@ func tagByName(ctx context.Context, client *tags.Manager, name, categoryID strin
 	return matches[0].ID, nil
 }
 
-// virtualMachineIPsForTag is a higher-level wrapper that calls out to
-// functions to fetch all of the virtual machines matching a certain tag ID,
-// and then gets all of the IP addresses for those virtual machines.
+// virtualMachineIPsForTag returns all routable guest IPs for VMs tagged with id.
 func virtualMachineIPsForTag(ctx context.Context, client *vSphereClient, id string) ([]string, error) {
 	vms, err := virtualMachinesForTag(ctx, client, id)
 	if err != nil {
@@ -317,8 +311,7 @@ func virtualMachinesForTag(ctx context.Context, client *vSphereClient, id string
 	return vms, nil
 }
 
-// ipAddrsForVirtualMachines takes a set of virtual machines and returns a
-// consolidated list of IP addresses for all of the VMs.
+// ipAddrsForVirtualMachines collects guest IPs across all given VMs.
 func ipAddrsForVirtualMachines(ctx context.Context, client *vSphereClient, vms []*object.VirtualMachine) ([]string, error) {
 	var addrs []string
 	for _, vm := range vms {
@@ -331,8 +324,7 @@ func ipAddrsForVirtualMachines(ctx context.Context, client *vSphereClient, vms [
 	return addrs, nil
 }
 
-// virtualMachineFromMOID locates a virtual machine by its managed object
-// reference ID.
+// virtualMachineFromMOID locates a virtual machine by its managed object reference ID.
 func virtualMachineFromMOID(ctx context.Context, client *govmomi.Client, id string) (*object.VirtualMachine, error) {
 	logger.Printf("[DEBUG] Locating VM with managed object ID %q", id)
 
@@ -347,17 +339,12 @@ func virtualMachineFromMOID(ctx context.Context, client *govmomi.Client, id stri
 	if err != nil {
 		return nil, err
 	}
-	// Should be safe to return here. If our reference returned here and is not a
-	// VM, then we have bigger problems and to be honest we should be panicking
-	// anyway.
+	// The ref type is hardcoded as "VirtualMachine" above, so this assertion is safe.
 	return vm.(*object.VirtualMachine), nil
 }
 
-// virtualMachineProperties is a convenience method that wraps fetching the
-// VirtualMachine MO from its higher-level object.
-//
-// It takes a list of property keys to fetch. Keeping the property set small
-// can sometimes result in significant performance improvements.
+// virtualMachineProperties fetches the requested MO property keys for vm.
+// Keeping the key set small reduces the payload returned by vCenter.
 func virtualMachineProperties(ctx context.Context, vm *object.VirtualMachine, keys []string) (*mo.VirtualMachine, error) {
 	logger.Printf("[DEBUG] Fetching properties for VM %q", vm.Name())
 	var props mo.VirtualMachine
@@ -367,11 +354,8 @@ func virtualMachineProperties(ctx context.Context, vm *object.VirtualMachine, ke
 	return &props, nil
 }
 
-// buildAndSelectGuestIPs builds a list of IP addresses known to VMware tools,
-// skipping local and auto-configuration addresses.
-//
-// The builder is non-discriminate and is only deterministic to the order that
-// it discovers addresses in VMware tools.
+// buildAndSelectGuestIPs returns the guest IPs reported by VMware Tools,
+// skipping loopback, link-local, and multicast addresses.
 func buildAndSelectGuestIPs(ctx context.Context, vm *object.VirtualMachine) ([]string, error) {
 	logger.Printf("[DEBUG] Discovering addresses for virtual machine %q", vm.Name())
 	var addrs []string
@@ -403,8 +387,7 @@ func buildAndSelectGuestIPs(ctx context.Context, vm *object.VirtualMachine) ([]s
 	return addrs, nil
 }
 
-// skipIPAddr defines the set of criteria that buildAndSelectGuestIPs uses to
-// check to see if it needs to skip an IP address.
+// skipIPAddr reports whether ip should be excluded from discovery results.
 func skipIPAddr(ip net.IP) bool {
 	switch {
 	case ip.IsLinkLocalMulticast():
@@ -419,8 +402,7 @@ func skipIPAddr(ip net.IP) bool {
 	return false
 }
 
-// virtualMachineNames is a helper method that returns all the names for a list
-// of virtual machines, comma separated.
+// virtualMachineNames returns VM names joined by commas, used for logging.
 func virtualMachineNames(vms []*object.VirtualMachine) string {
 	var s []string
 	for _, vm := range vms {

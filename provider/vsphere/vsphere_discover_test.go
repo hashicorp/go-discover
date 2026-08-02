@@ -42,11 +42,9 @@ func testPreCheck(t *testing.T) {
 	}
 }
 
-// vsphereExpectedIPs returns the list of IP addresses that acceptance tests
-// should assert are present in the discovery output. The list is read from the
-// VSPHERE_EXPECTED_IPS environment variable as a comma-separated string
-// (e.g. "10.0.0.10,10.0.0.11"). If the variable is unset or empty, nil is
-// returned and the caller should fall back to asserting at least one IP.
+// vsphereExpectedIPs reads VSPHERE_EXPECTED_IPS (comma-separated) and returns
+// the list of IPs that acceptance tests must find in discovery output.
+// Returns nil if the variable is unset, which triggers a "at least one" check.
 func vsphereExpectedIPs() []string {
 	v := os.Getenv("VSPHERE_EXPECTED_IPS")
 	if v == "" {
@@ -55,9 +53,8 @@ func vsphereExpectedIPs() []string {
 	return strings.Split(v, ",")
 }
 
-// assertDiscoveredIPs checks that all expected IPs are present in addrs.
-// If no expected IPs are configured, it asserts that at least one address
-// was returned.
+// assertDiscoveredIPs fails the test if any expected IP is missing from addrs.
+// If no expected IPs are set, it fails only when addrs is empty.
 func assertDiscoveredIPs(t *testing.T, addrs []string) {
 	t.Helper()
 	expected := vsphereExpectedIPs()
@@ -102,9 +99,8 @@ func TestAddrs(t *testing.T) {
 	assertDiscoveredIPs(t, addrs)
 }
 
-// TestAddrsEnv tests to make sure that we can lean on the environment for
-// credentials automatically. User credential environment variables are not set
-// using Setenv, leaving them to be fetched from the environment 100%.
+// TestAddrsEnv is the same as TestAddrs but omits host/user/password from the
+// config map, verifying that the provider falls back to VSPHERE_* env vars.
 func TestAddrsEnv(t *testing.T) {
 	testPreCheck(t)
 
@@ -125,9 +121,8 @@ func TestAddrsEnv(t *testing.T) {
 	assertDiscoveredIPs(t, addrs)
 }
 
-// TestAddrsSimulator exercises the full Addrs() discovery path against an
-// in-process govmomi vSphere simulator. It runs unconditionally — no live
-// vSphere environment or environment variables required.
+// TestAddrsSimulator runs Addrs() against an in-process vSphere simulator.
+// No live vCenter or environment variables are required.
 func TestAddrsSimulator(t *testing.T) {
 	const (
 		categoryName = "go-discover-test-category"
@@ -138,8 +133,6 @@ func TestAddrsSimulator(t *testing.T) {
 	model := simulator.VPX()
 	model.Machine = 1 // ensure at least one VM with a NIC is created
 
-	// simulator.Test uses a func(ctx, c) callback so t.Fatal/t.Skip work
-	// directly — no sentinel error or outer error check needed.
 	simulator.Test(func(ctx context.Context, c *vim25.Client) {
 		// Set up REST tags client.
 		rc := rest.NewClient(c)
