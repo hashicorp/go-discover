@@ -48,7 +48,7 @@ func setLog(l *log.Logger) {
 // errors. It should only be used in the Addrs method.
 func discoverErr(format string, a ...interface{}) error {
 	var s string
-	if len(a) > 1 {
+	if len(a) > 0 {
 		s = fmt.Sprintf(format, a...)
 	} else {
 		s = format
@@ -108,7 +108,7 @@ func newVSphereClient(ctx context.Context, host, user, password string, insecure
 		return nil, err
 	}
 
-	client.TagsClient, err = newRestSession(ctx, client.VimClient, u, insecure)
+	client.TagsClient, err = newRestSession(ctx, client.VimClient, u)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +129,10 @@ func newVimSession(ctx context.Context, u *url.URL, insecure bool) (*govmomi.Cli
 	return client, nil
 }
 
-// newRestSession connects to the vSphere REST API endpoint, necessary for
-// tags.
-func newRestSession(ctx context.Context, vimClient *govmomi.Client, u *url.URL, insecure bool) (*tags.Manager, error) {
+// newRestSession connects to the vSphere REST API endpoint, necessary for tags.
+// TLS configuration (including insecure-skip-verify) is inherited automatically
+// from vimClient's underlying soap.Client, so no separate insecure flag is needed.
+func newRestSession(ctx context.Context, vimClient *govmomi.Client, u *url.URL) (*tags.Manager, error) {
 	logger.Printf("[DEBUG] Creating new CIS REST API session on endpoint %s", u.Host)
 	rc := rest.NewClient(vimClient.Client)
 	if err := rc.Login(ctx, u.User); err != nil {
