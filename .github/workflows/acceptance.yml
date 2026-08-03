@@ -134,7 +134,7 @@ jobs:
 
   azure-vmss-provider:
      # don't run on fork PRs
-     if: github.repository_owner == 'hashicorp' && vars.ARM_ACTIVE_SUBSCRIPTION == true
+     if: github.repository_owner == 'hashicorp' && vars.ARM_ACTIVE_SUBSCRIPTION == 'true'
      runs-on: ubuntu-latest
      needs:
        - go-test
@@ -162,7 +162,7 @@ jobs:
 
   azurerm-provider:
      # don't run on fork PRs
-     if: github.repository_owner == 'hashicorp' && vars.ARM_ACTIVE_SUBSCRIPTION == true
+     if: github.repository_owner == 'hashicorp' && vars.ARM_ACTIVE_SUBSCRIPTION == 'true'
      runs-on: ubuntu-latest
      needs:
        - go-test
