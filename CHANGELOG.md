@@ -1,3 +1,9 @@
+## 1.4.0 (Unreleased)
+
+### Improvements
+
+* provider/vsphere: Upgraded `github.com/vmware/govmomi` from `v0.18.0` to `v0.55.1`. Removed `github.com/hashicorp/vic` dependency. [GH-353](https://github.com/hashicorp/go-discover/pull/353)
+
 ## 1.3.0 (2026-06-10)
 
 ### Improvements
