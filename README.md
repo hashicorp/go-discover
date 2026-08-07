@@ -246,7 +246,8 @@ tests for some of the providers.
 1. IAM &amp; Admin / Service Accounts: Create Service Account
     * Service account name: `admin`
     * Roles:
-        * `Project/Service Account Actor`
+        * `Service Account User`
+        * `Service Account Token Creator`
         * `Compute Engine/Compute Instance Admin (v1)`
         * `Compute Engine/Compute Security Admin`
     * Furnish a new private key: `yes`
