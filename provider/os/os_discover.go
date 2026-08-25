@@ -162,7 +162,7 @@ func newClient(args map[string]string, l *log.Logger) (*gophercloud.ServiceClien
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
+			DualStack: true, //nolint:staticcheck
 		}).DialContext,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
