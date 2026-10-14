@@ -140,17 +140,33 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 	l.Printf("[DEBUG] discover-aws: Creating session...")
 	var cfg aws.Config
 	var err error
-	_, found := aws.GetUseDualStackEndpoint()
+
+	// Check if dual-stack is explicitly disabled via environment variable
+	envCfg, _ := config.NewEnvConfig()
+	dualStackState, dualStackFound, _ := envCfg.GetUseDualStackEndpoint(context.TODO())
+	dualStackDisabled := dualStackFound && dualStackState == aws.DualStackEndpointStateDisabled
+
 	if accessKey != "" && secretKey != "" {
 		l.Printf("[INFO] discover-aws: Using static credentials provider")
 		staticCreds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, sessionToken)
+
 		switch {
-		case !found || addrType == "public_v4" || addrType == "private_v4":
+		case dualStackDisabled:
+			// Explicitly disabled - honor the setting
+			l.Printf("[DEBUG] discover-aws: Dual-stack explicitly disabled")
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateDisabled),
+				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
+			)
+		case addrType == "public_v4" || addrType == "private_v4":
+			// IPv4 address types - no dual-stack option
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithCredentialsProvider(aws.NewCredentialsCache(staticCreds)),
 			)
-		case found:
+		default:
+			// Enabled or unset - enable dual-stack for backward compat
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
@@ -162,15 +178,19 @@ func (p *Provider) Addrs(args map[string]string, l *log.Logger) ([]string, error
 		}
 	} else {
 		l.Printf("[INFO] discover-aws: Using default credential chain")
-		switch {
-		case found:
+
+		if dualStackDisabled {
+			// Explicitly disabled - honor the setting
+			l.Printf("[DEBUG] discover-aws: Dual-stack explicitly disabled")
+			cfg, err = config.LoadDefaultConfig(context.TODO(),
+				config.WithRegion(region),
+				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateDisabled),
+			)
+		} else {
+			// Enabled or unset - enable dual-stack for backward compat
 			cfg, err = config.LoadDefaultConfig(context.TODO(),
 				config.WithRegion(region),
 				config.WithUseDualStackEndpoint(aws.DualStackEndpointStateEnabled),
-			)
-		case !found:
-			cfg, err = config.LoadDefaultConfig(context.TODO(),
-				config.WithRegion(region),
 			)
 		}
 		if err != nil {
