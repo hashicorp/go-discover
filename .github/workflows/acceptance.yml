@@ -49,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         go-version:
-          - '1.25' # named in go.mod
+          - '1.26' # named in go.mod
           - 'oldstable'
           - 'stable'
     steps:
